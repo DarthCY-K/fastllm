@@ -6163,6 +6163,10 @@ namespace fastllm {
     }
 
     bool IsCudaLinearDataTypeSupported(DataType inputType, DataType weightType, DataType biasType) {
+        if (weightType == DataType::PACKED_INT8_GROUP128_BF16) {
+            return biasType == DataType::FLOAT32 && (inputType == DataType::FLOAT32 ||
+                inputType == DataType::FLOAT16 || inputType == DataType::BFLOAT16);
+        }
         if (biasType != DataType::FLOAT32) {
             return false;
         }
@@ -6232,6 +6236,8 @@ namespace fastllm {
                                    ", bias.dataType = " + GetDataTypeName(bias.dataType) + ".";
         if (!IsCudaLinearDataTypeSupported(input.dataType, weight.dataType, bias.dataType)) {
             ErrorInFastLLM("Linear error: unsupported dataType combination." + dataTypeInfo);
+        } else if (weight.dataType == DataType::PACKED_INT8_GROUP128_BF16) {
+            FastllmCudaMatMulPackedInt8Group128BF16(input, weight, bias, output, n, m, k, false);
         } else if (input.dataType == DataType::FLOAT16) {
             if (weight.dataType == DataType::FLOAT32) {
                 FastllmCudaHalfMatMulFloat32(input, weight, bias, output, n, m, k);
@@ -6364,6 +6370,11 @@ namespace fastllm {
     }
 
     bool DoCudaLinearAdd(Data &input, Data &weight, const Data &bias, Data &output) {
+        if (weight.dataType == DataType::PACKED_INT8_GROUP128_BF16) {
+            FastllmCudaMatMulPackedInt8Group128BF16(input, weight, bias, output,
+                input.Count(0) / input.dims.back(), input.dims.back(), output.dims.back(), true);
+            return true;
+        }
         int n = input.Count(0) / input.dims.back();
         int m = input.dims.back();
         int k = output.dims.back();
