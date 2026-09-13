@@ -344,6 +344,9 @@ namespace fastllm {
         // Internal NUMA layout: each 32-row tile stores packed block-16
         // weights, then FP32 scales, retaining gate/up row interleaving.
         NVFP4_BLOCK_16_PLANAR = 1011,
+        // Native compressed-tensors W8: each group stores 128 q+128 bytes
+        // followed by one raw BF16 scale. No integer or scale requantization.
+        PACKED_INT8_GROUP128_BF16 = 1012,
         INF_INT8_PERCHANNEL = 2000, // 推理用的int8, per channel量化
         INF_INT8_GROUP128 = 2001, // 推理用的int8, per group量化，group = 128
         INF_INT8_GROUP32 = 2002, // 推理用的int8, per group量化，group = 32

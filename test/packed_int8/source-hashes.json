@@ -1,0 +1,27 @@
+[
+  {
+    "file": "include/fastllm.h",
+    "sha256": "1c42efe383f169831e3d514beac792da859b3c024be9c6e2f43ee8c7ab0202ec",
+    "remote_matches": true
+  },
+  {
+    "file": "include/packedint8.h",
+    "sha256": "4b4e7c89e945940f941deab48272afbde628d7cddaf94c69bc42b5ea8de21037",
+    "remote_matches": true
+  },
+  {
+    "file": "src/fastllm.cpp",
+    "sha256": "1b467c5151ce60f00d1517930da6f7bfbe72680c39bb445bab25670b956b6157",
+    "remote_matches": true
+  },
+  {
+    "file": "src/model.cpp",
+    "sha256": "f9491eafed1b2b920032fb3f1f304b998bedd5a180e1a60a2f9dc1a0bcd080bb",
+    "remote_matches": true
+  },
+  {
+    "file": "src/devices/cpu/cpudevice.cpp",
+    "sha256": "92c001dbaa57d61c66f4eaaec7e69bfba6dfaab9201fa898dee9c6366fc13565",
+    "remote_matches": true
+  }
+]

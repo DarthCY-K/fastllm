@@ -4778,10 +4778,7 @@ namespace fastllm {
         // 4.0 更新模型信息
         model->ConfigureContext(contextOptions);
         if (model->YarnConfig() && (!dsparkPath.empty() || !dflashPath.empty())) {
-            if (std::getenv("FASTLLM_ALLOW_YARN_WITH_DFLASH") == nullptr) {
-                throw std::invalid_argument("Context extension with an external DSpark/DFlash draft is not implemented; disable the external draft.");
-            }
-            printf("[fastllm-experimental] Yarn + external DFlash/DSpark draft explicitly allowed by FASTLLM_ALLOW_YARN_WITH_DFLASH\n");
+            throw std::invalid_argument("Context extension with an external DSpark/DFlash draft is not implemented; disable the external draft.");
         }
         model->InitParams();
         if (model->contextPlan.configured) model->max_positions = model->contextPlan.effectiveLength;
