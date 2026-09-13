@@ -463,8 +463,11 @@ class FastLLmCompletion:
       if effort is None:
           effort = template_kwargs.get(
               "reasoning_effort", template_kwargs.get("thinking_effort"))
+      # Qwen3.8's fixed template defaults to medium; xhigh can exhaust the
+      # token budget on reasoning and return empty content.
+      default_effort = "medium" if self._is_qwen3_5_model() else "xhigh"
       if effort in {None, "none"}:
-          effort = "xhigh"
+          effort = default_effort
       if effort not in {"low", "medium", "xhigh"}:
           raise ValueError(
               "Qwen reasoning_effort must be one of: none, low, medium, xhigh")
