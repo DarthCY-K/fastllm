@@ -279,7 +279,7 @@ namespace fastllm {
         bool speculativeCacheOnlyForward = false;
         Data speculativeHiddenStates;
         std::vector <Data> speculativeDFlashHiddenStates;
-        std::vector<unsigned char> speculativeTypicalAccepted;
+        std::vector<unsigned char> speculativeMtpAccepted;
         DFlashContext *speculativeDFlashSamplingContext = nullptr;
         std::vector<DFlashContext*> speculativeDFlashSamplingContexts;
         std::vector<unsigned char> speculativeDFlashAccepted;
@@ -322,6 +322,7 @@ namespace fastllm {
         std::set<int> ggufGdnRestoredLayers;
         std::vector <int> mrope_sections = {11, 11, 10};
         bool visionPrepared = false;
+        std::string visionDevice = "auto";
         int vision_depth = 0;
         int vision_hidden_size = 0;
         int vision_num_heads = 0;
