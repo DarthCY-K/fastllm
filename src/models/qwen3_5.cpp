@@ -23391,8 +23391,9 @@ namespace fastllm {
                                     // Qwen35MTPForward's
                                     // "draft cache is not aligned with the target
                                     // cache" guard, which erased the cache and
-                                    // silently dropped MTP for the turn.
-                                    seedLongPrefillDFlash = false;
+                                    // silently dropped MTP for the turn.  The
+                                    // DFlash draft chain receives the same
+                                    // per-token seeding in the loop below.
                                     for (int t = 0; t < curLen; t++) {
                                         Data oneInput, onePos;
                                         Split(curInput, 1, t, t + 1, oneInput);
@@ -23437,6 +23438,44 @@ namespace fastllm {
                                                     oneDraft >= 0;
                                             }
                                         }
+                                        if (seedLongPrefillDFlash &&
+                                            !model->speculativeDFlashHiddenStates
+                                                 .empty()) {
+                                            const bool oneDFlashLast =
+                                                t + 1 == curLen;
+                                            const bool oneDFlashDrafts =
+                                                oneDFlashLast && !ret.empty() &&
+                                                Qwen35DFlashDraftFitsContext(
+                                                    model->max_positions,
+                                                    model->dflashCheckpointBlockSize,
+                                                    longPrefillBaseTokens + st +
+                                                        t + 1) &&
+                                                !Qwen35DFlashCommitEndsRequest(
+                                                    *model, singleContext,
+                                                    std::vector<int>{ret.back()});
+                                            bool oneDFlashAppended = false;
+                                            try {
+                                                oneDFlashAppended =
+                                                    appendLongPrefillDFlashCache(
+                                                        longPrefillBaseTokens +
+                                                            st + t,
+                                                        1, oneDFlashDrafts,
+                                                        oneDFlashLast ?
+                                                            (ret.empty() ?
+                                                                -1 :
+                                                                (int)ret.back()) :
+                                                            -1,
+                                                        longPrefillDFlashDraftTokens);
+                                            } catch (...) {
+                                                releaseLongPrefillDFlashHidden();
+                                                oneDFlashAppended = false;
+                                            }
+                                            if (!oneDFlashAppended) {
+                                                seedLongPrefillDFlash = false;
+                                            } else if (oneDFlashLast) {
+                                                longPrefillDFlashSeeded = true;
+                                            }
+                                        }
                                     }
                                     // The per-token seed above has already advanced
                                     // the draft KV to the end of this tail chunk.
@@ -23448,6 +23487,11 @@ namespace fastllm {
                                     // empty cache, which is what silently turned MTP
                                     // off on the very next decode step.  Suppress it.
                                     seedLongPrefillMtp = false;
+                                    // Same suppression for the whole-chunk DFlash
+                                    // seed below: the per-token loop above has
+                                    // already advanced the DFlash draft KV to the
+                                    // end of the tail (or disabled it on failure).
+                                    seedLongPrefillDFlash = false;
                                 } else {
                                     ret = model->ForwardGPU(1, curInput, curAttentionMasks,
                                                             curPositionIdsVec, curSeqLens,
