@@ -1,0 +1,51 @@
+{
+ "tag": "W1_scan",
+ "base": "http://127.0.0.1:8081",
+ "when": "2026-09-14 22:00:15",
+ "cases": [
+  {
+   "ttft": 1.862,
+   "total": 2.073,
+   "ctok": 4,
+   "dec": 19.0,
+   "finish": "stop",
+   "md5": "b1d058032cbc",
+   "last": "W2K_OK",
+   "name": "w2k",
+   "ptok_est": 1973
+  },
+  {
+   "ttft": 0.105,
+   "total": 3.04,
+   "ctok": 691,
+   "dec": 235.4,
+   "finish": "stop",
+   "md5": "dacc241c7db8",
+   "last": " 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_a",
+   "ptok_est": 25
+  },
+  {
+   "ttft": 29.32,
+   "total": 30.627,
+   "ctok": 291,
+   "dec": 222.5,
+   "finish": "stop",
+   "md5": "b536474ba172",
+   "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_m",
+   "ptok_est": 31440
+  },
+  {
+   "ttft": 0.082,
+   "total": 3.024,
+   "ctok": 691,
+   "dec": 234.9,
+   "finish": "stop",
+   "md5": "dacc241c7db8",
+   "last": " 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_b",
+   "ptok_est": 25
+  }
+ ]
+}

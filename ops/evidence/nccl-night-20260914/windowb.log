@@ -1,0 +1,341 @@
+===== WINDOW-B START 2026-09-14 21:56:08 =====
+--- stop prod 21:56:08 ---
+0, 1 MiB
+1, 1 MiB
+2, 1 MiB
+3, 1 MiB
+--- NCCL bench phase 21:56:16 ---
+### bench pair=0,3 cfg=[auto] 21:56:16
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,3 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=<auto> NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->3=1, 3->0=1
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   19.14 us  p50=   18.88 us  p95=   19.64 us  min=   18.43 us  max=   65.77 us
+CUDA event complete  mean=   27.47 us  p50=   27.10 us  p95=   28.45 us  min=   26.18 us  max=   73.73 us
+host enqueue+wait    mean=   31.57 us  p50=   31.31 us  p95=   32.03 us  min=   30.84 us  max=   78.38 us
+batched / operation  enqueue=18.35 us  CUDA-event=18.35 us  wall=18.35 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   20.37 us  p50=   19.01 us  p95=   19.67 us  min=   18.56 us  max= 1253.51 us
+CUDA event complete  mean=   29.89 us  p50=   28.67 us  p95=   29.63 us  min=   26.91 us  max= 1263.01 us
+host enqueue+wait    mean=   33.93 us  p50=   32.59 us  p95=   33.09 us  min=   32.01 us  max= 1267.31 us
+batched / operation  enqueue=18.40 us  CUDA-event=18.41 us  wall=18.41 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   19.51 us  p50=   19.32 us  p95=   20.13 us  min=   18.66 us  max=   71.73 us
+CUDA event complete  mean=   29.86 us  p50=   29.73 us  p95=   30.72 us  min=   27.30 us  max=   81.86 us
+host enqueue+wait    mean=   33.96 us  p50=   33.73 us  p95=   34.48 us  min=   32.99 us  max=   86.12 us
+batched / operation  enqueue=18.74 us  CUDA-event=18.75 us  wall=18.75 us
+### bench pair=0,3 cfg=[NCCL_PROTO=LL128] 21:56:18
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,3 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL128 NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->3=1, 3->0=1
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   18.70 us  p50=   18.45 us  p95=   19.73 us  min=   17.93 us  max=   28.84 us
+CUDA event complete  mean=   40.31 us  p50=   40.29 us  p95=   41.34 us  min=   38.91 us  max=   50.85 us
+host enqueue+wait    mean=   45.61 us  p50=   44.18 us  p95=   45.76 us  min=   43.64 us  max= 1221.83 us
+batched / operation  enqueue=18.82 us  CUDA-event=22.19 us  wall=22.20 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   19.17 us  p50=   19.11 us  p95=   19.58 us  min=   18.66 us  max=   27.49 us
+CUDA event complete  mean=   40.94 us  p50=   40.96 us  p95=   41.31 us  min=   39.23 us  max=   69.28 us
+host enqueue+wait    mean=   44.95 us  p50=   44.83 us  p95=   45.37 us  min=   44.23 us  max=   72.61 us
+batched / operation  enqueue=18.46 us  CUDA-event=22.39 us  wall=22.39 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   20.58 us  p50=   19.22 us  p95=   19.73 us  min=   18.78 us  max= 1281.57 us
+CUDA event complete  mean=   43.26 us  p50=   41.82 us  p95=   42.98 us  min=   37.50 us  max= 1302.78 us
+host enqueue+wait    mean=   47.32 us  p50=   45.90 us  p95=   46.41 us  min=   45.14 us  max= 1308.99 us
+batched / operation  enqueue=18.64 us  CUDA-event=23.89 us  wall=23.89 us
+### bench pair=0,3 cfg=[NCCL_ALGO=Tree] 21:56:20
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,3 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=<auto> NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->3=1, 3->0=1
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   18.31 us  p50=   17.80 us  p95=   21.39 us  min=   17.17 us  max=   30.92 us
+CUDA event complete  mean=   25.94 us  p50=   25.50 us  p95=   28.67 us  min=   22.88 us  max=   58.18 us
+host enqueue+wait    mean=   29.45 us  p50=   28.92 us  p95=   32.24 us  min=   28.25 us  max=   59.78 us
+batched / operation  enqueue=17.20 us  CUDA-event=17.20 us  wall=17.20 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   18.44 us  p50=   17.71 us  p95=   18.84 us  min=   17.23 us  max=  118.79 us
+CUDA event complete  mean=   29.45 us  p50=   28.90 us  p95=   30.46 us  min=   25.25 us  max=  128.99 us
+host enqueue+wait    mean=   33.54 us  p50=   33.09 us  p95=   34.02 us  min=   29.77 us  max=  138.31 us
+batched / operation  enqueue=18.90 us  CUDA-event=18.91 us  wall=18.91 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   18.28 us  p50=   18.17 us  p95=   18.82 us  min=   17.56 us  max=   42.70 us
+CUDA event complete  mean=   29.84 us  p50=   29.70 us  p95=   30.72 us  min=   28.67 us  max=   57.38 us
+host enqueue+wait    mean=   33.91 us  p50=   33.66 us  p95=   34.59 us  min=   32.91 us  max=   61.81 us
+batched / operation  enqueue=17.65 us  CUDA-event=17.66 us  wall=17.66 us
+### bench pair=0,3 cfg=[NCCL_PROTO=LL128 NCCL_ALGO=Tree] 21:56:22
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,3 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL128 NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->3=1, 3->0=1
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   18.86 us  p50=   17.56 us  p95=   18.55 us  min=   17.09 us  max= 1098.89 us
+CUDA event complete  mean=   40.54 us  p50=   39.10 us  p95=   40.83 us  min=   37.38 us  max= 1120.13 us
+host enqueue+wait    mean=   44.60 us  p50=   43.31 us  p95=   44.36 us  min=   42.67 us  max= 1123.38 us
+batched / operation  enqueue=17.48 us  CUDA-event=22.20 us  wall=22.21 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   17.92 us  p50=   17.87 us  p95=   18.36 us  min=   17.36 us  max=   25.71 us
+CUDA event complete  mean=   39.68 us  p50=   39.55 us  p95=   40.70 us  min=   35.36 us  max=   45.06 us
+host enqueue+wait    mean=   43.75 us  p50=   43.67 us  p95=   44.20 us  min=   42.95 us  max=   71.95 us
+batched / operation  enqueue=17.34 us  CUDA-event=22.18 us  wall=22.18 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   17.99 us  p50=   17.92 us  p95=   18.36 us  min=   17.48 us  max=   33.74 us
+CUDA event complete  mean=   34.57 us  p50=   34.66 us  p95=   34.85 us  min=   31.26 us  max=   63.49 us
+host enqueue+wait    mean=   39.47 us  p50=   38.16 us  p95=   38.63 us  min=   37.44 us  max= 1198.84 us
+batched / operation  enqueue=17.24 us  CUDA-event=17.25 us  wall=17.25 us
+### bench pair=0,3 cfg=[NCCL_PROTO=LL] 21:56:24
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,3 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->3=1, 3->0=1
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   18.88 us  p50=   18.55 us  p95=   21.95 us  min=   18.05 us  max=   32.68 us
+CUDA event complete  mean=   27.38 us  p50=   26.94 us  p95=   30.37 us  min=   25.63 us  max=   41.15 us
+host enqueue+wait    mean=   31.58 us  p50=   31.16 us  p95=   34.49 us  min=   30.67 us  max=   63.74 us
+batched / operation  enqueue=17.91 us  CUDA-event=17.91 us  wall=17.92 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   18.68 us  p50=   18.56 us  p95=   19.17 us  min=   18.12 us  max=   47.96 us
+CUDA event complete  mean=   28.30 us  p50=   28.32 us  p95=   28.67 us  min=   24.58 us  max=   57.34 us
+host enqueue+wait    mean=   32.41 us  p50=   32.19 us  p95=   32.77 us  min=   31.60 us  max=   61.38 us
+batched / operation  enqueue=18.51 us  CUDA-event=18.52 us  wall=18.52 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   18.96 us  p50=   18.77 us  p95=   19.64 us  min=   18.28 us  max=   30.72 us
+CUDA event complete  mean=   29.35 us  p50=   29.09 us  p95=   30.50 us  min=   27.33 us  max=   49.02 us
+host enqueue+wait    mean=   33.38 us  p50=   33.22 us  p95=   33.96 us  min=   32.65 us  max=   54.97 us
+batched / operation  enqueue=18.01 us  CUDA-event=18.02 us  wall=18.02 us
+### bench pair=0,1 cfg=[auto] 21:56:26
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,1 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=<auto> NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->1=0, 1->0=0
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   27.70 us  p50=   30.19 us  p95=   33.12 us  min=   15.66 us  max=   67.91 us
+CUDA event complete  mean=   38.11 us  p50=   39.65 us  p95=   43.78 us  min=   26.62 us  max=   77.82 us
+host enqueue+wait    mean=   42.27 us  p50=   44.31 us  p95=   48.23 us  min=   30.62 us  max=   81.86 us
+batched / operation  enqueue=15.01 us  CUDA-event=15.02 us  wall=15.02 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   15.50 us  p50=   15.43 us  p95=   16.11 us  min=   14.82 us  max=   26.18 us
+CUDA event complete  mean=   29.16 us  p50=   28.80 us  p95=   30.72 us  min=   26.62 us  max=   57.34 us
+host enqueue+wait    mean=   33.28 us  p50=   33.16 us  p95=   34.41 us  min=   31.60 us  max=   61.73 us
+batched / operation  enqueue=15.12 us  CUDA-event=15.13 us  wall=15.13 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   15.49 us  p50=   15.14 us  p95=   15.96 us  min=   14.52 us  max=   52.70 us
+CUDA event complete  mean=   34.84 us  p50=   34.78 us  p95=   37.18 us  min=   29.70 us  max=   71.23 us
+host enqueue+wait    mean=   38.97 us  p50=   38.54 us  p95=   41.43 us  min=   34.35 us  max=  153.62 us
+batched / operation  enqueue=15.15 us  CUDA-event=19.28 us  wall=19.28 us
+### bench pair=0,1 cfg=[NCCL_PROTO=LL128] 21:56:28
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,1 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL128 NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->1=0, 1->0=0
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   15.99 us  p50=   15.51 us  p95=   18.66 us  min=   14.69 us  max=   31.67 us
+CUDA event complete  mean=   35.66 us  p50=   35.07 us  p95=   38.40 us  min=   32.77 us  max=   63.36 us
+host enqueue+wait    mean=   40.59 us  p50=   39.36 us  p95=   42.06 us  min=   36.91 us  max=  861.06 us
+batched / operation  enqueue=15.35 us  CUDA-event=25.18 us  wall=25.18 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   16.09 us  p50=   15.87 us  p95=   18.57 us  min=   15.36 us  max=   31.07 us
+CUDA event complete  mean=   41.83 us  p50=   41.50 us  p95=   43.14 us  min=   40.61 us  max=   68.80 us
+host enqueue+wait    mean=   46.78 us  p50=   46.50 us  p95=   48.43 us  min=   45.48 us  max=   87.23 us
+batched / operation  enqueue=15.51 us  CUDA-event=31.61 us  wall=31.61 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   15.79 us  p50=   15.70 us  p95=   16.41 us  min=   14.73 us  max=   26.02 us
+CUDA event complete  mean=   43.83 us  p50=   42.85 us  p95=   44.48 us  min=   40.96 us  max= 1081.38 us
+host enqueue+wait    mean=   47.62 us  p50=   47.46 us  p95=   49.26 us  min=   45.55 us  max=   74.11 us
+batched / operation  enqueue=14.79 us  CUDA-event=26.55 us  wall=26.55 us
+### bench pair=0,1 cfg=[NCCL_ALGO=Tree] 21:56:30
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,1 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=<auto> NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->1=0, 1->0=0
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   15.70 us  p50=   15.46 us  p95=   17.73 us  min=   14.92 us  max=   31.06 us
+CUDA event complete  mean=   28.74 us  p50=   28.58 us  p95=   30.66 us  min=   26.62 us  max=  147.71 us
+host enqueue+wait    mean=   33.68 us  p50=   33.28 us  p95=   35.33 us  min=   31.98 us  max=  152.63 us
+batched / operation  enqueue=14.96 us  CUDA-event=17.17 us  wall=17.17 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   17.16 us  p50=   15.72 us  p95=   16.25 us  min=   15.05 us  max= 1410.36 us
+CUDA event complete  mean=   32.23 us  p50=   30.72 us  p95=   32.77 us  min=   28.38 us  max= 1425.60 us
+host enqueue+wait    mean=   37.06 us  p50=   35.50 us  p95=   37.38 us  min=   33.01 us  max= 1430.39 us
+batched / operation  enqueue=14.96 us  CUDA-event=19.67 us  wall=19.67 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   16.96 us  p50=   15.88 us  p95=   30.45 us  min=   15.24 us  max=   59.26 us
+CUDA event complete  mean=   49.95 us  p50=   50.72 us  p95=   56.54 us  min=   43.01 us  max=  104.35 us
+host enqueue+wait    mean=   54.76 us  p50=   55.50 us  p95=   61.00 us  min=   47.28 us  max=  112.34 us
+batched / operation  enqueue=17.21 us  CUDA-event=34.92 us  wall=34.93 us
+### bench pair=0,1 cfg=[NCCL_PROTO=LL128 NCCL_ALGO=Tree] 21:56:32
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,1 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL128 NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->1=0, 1->0=0
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   15.54 us  p50=   15.27 us  p95=   18.02 us  min=   14.60 us  max=   25.60 us
+CUDA event complete  mean=   34.56 us  p50=   34.50 us  p95=   36.80 us  min=   32.77 us  max=   68.51 us
+host enqueue+wait    mean=   38.34 us  p50=   38.03 us  p95=   40.38 us  min=   36.94 us  max=   66.78 us
+batched / operation  enqueue=15.61 us  CUDA-event=23.58 us  wall=23.59 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   15.52 us  p50=   15.47 us  p95=   15.94 us  min=   15.03 us  max=   23.43 us
+CUDA event complete  mean=   40.17 us  p50=   40.06 us  p95=   40.96 us  min=   36.96 us  max=  112.96 us
+host enqueue+wait    mean=   44.40 us  p50=   44.30 us  p95=   44.86 us  min=   43.55 us  max=   72.97 us
+batched / operation  enqueue=14.88 us  CUDA-event=26.23 us  wall=26.24 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   15.51 us  p50=   15.47 us  p95=   15.94 us  min=   14.86 us  max=   25.92 us
+CUDA event complete  mean=   44.35 us  p50=   44.26 us  p95=   47.07 us  min=   40.96 us  max=   69.34 us
+host enqueue+wait    mean=   48.63 us  p50=   48.31 us  p95=   51.02 us  min=   45.13 us  max=  110.77 us
+batched / operation  enqueue=15.98 us  CUDA-event=32.66 us  wall=32.66 us
+### bench pair=0,1 cfg=[NCCL_PROTO=LL] 21:56:34
+CUDA runtime=13010 driver=13030 NCCL=23102
+devices=0,1 warmup=100 synchronized_iters=1000 batched_iters=2000
+NCCL_PROTO=LL NCCL_SHM_DISABLE=<unset>
+CUDA peer access: 0->1=0, 1->0=0
+
+bytes=4096 (2048 fp16 elements)
+host enqueue         mean=   15.83 us  p50=   15.51 us  p95=   18.30 us  min=   15.03 us  max=   28.36 us
+CUDA event complete  mean=   25.67 us  p50=   25.47 us  p95=   27.33 us  min=   23.07 us  max=   53.25 us
+host enqueue+wait    mean=   29.24 us  p50=   29.02 us  p95=   30.93 us  min=   27.64 us  max=   56.67 us
+batched / operation  enqueue=14.81 us  CUDA-event=14.82 us  wall=14.82 us
+
+bytes=8192 (4096 fp16 elements)
+host enqueue         mean=   15.83 us  p50=   15.09 us  p95=   18.43 us  min=   14.69 us  max=   32.28 us
+CUDA event complete  mean=   26.96 us  p50=   26.53 us  p95=   29.70 us  min=   24.58 us  max=   55.33 us
+host enqueue+wait    mean=   30.86 us  p50=   30.13 us  p95=   33.45 us  min=   28.69 us  max=   64.25 us
+batched / operation  enqueue=14.25 us  CUDA-event=14.26 us  wall=14.26 us
+
+bytes=16384 (8192 fp16 elements)
+host enqueue         mean=   15.22 us  p50=   15.10 us  p95=   15.91 us  min=   14.49 us  max=   24.53 us
+CUDA event complete  mean=   33.19 us  p50=   32.93 us  p95=   35.26 us  min=   28.67 us  max=   43.33 us
+host enqueue+wait    mean=   37.80 us  p50=   36.79 us  p95=   39.13 us  min=   32.77 us  max= 1022.27 us
+batched / operation  enqueue=15.05 us  CUDA-event=18.36 us  wall=18.36 us
+--- cfg W0 benches=scan2+mt env=[] argv=[] 21:56:36 ---
+W0 READY http=401 after ~35s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+w2k {"ttft": 2.194, "total": 2.426, "ctok": 4, "dec": 17.3, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1974}
+d200_a {"ttft": 0.108, "total": 3.063, "ctok": 691, "dec": 233.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 26}
+c32_m {"ttft": 34.028, "total": 35.365, "ctok": 291, "dec": 217.6, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31450}
+c64_m {"ttft": 70.104, "total": 71.473, "ctok": 291, "dec": 212.5, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62918}
+d200_b {"ttft": 0.083, "total": 3.033, "ctok": 691, "dec": 234.3, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 26}
+SAVED /home/ai-agent/builds/upgrade-test/wb_W0_scan2.json
+turn 1 {"ttft": 19.07, "total": 20.377, "ctok": 291, "md5": "b536474ba172", "turn": 1}
+turn 2 {"ttft": 0.977, "total": 2.753, "ctok": 399, "md5": "fd9258c98a61", "turn": 2}
+turn 3 {"ttft": 0.59, "total": 2.371, "ctok": 399, "md5": "079d674ab02b", "turn": 3}
+SAVED /home/ai-agent/builds/upgrade-test/wb_W0_mt.json
+--- cfg W1 benches=scan env=[NCCL_PROTO=LL128] argv=[] 21:59:44 ---
+W1 READY http=401 after ~35s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+w2k {"ttft": 1.862, "total": 2.073, "ctok": 4, "dec": 19.0, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.105, "total": 3.04, "ctok": 691, "dec": 235.4, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 29.32, "total": 30.627, "ctok": 291, "dec": 222.5, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.082, "total": 3.024, "ctok": 691, "dec": 234.9, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_W1_scan.json
+--- cfg W2 benches=scan env=[NCCL_ALGO=Tree] argv=[] 22:01:08 ---
+W2 READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_ALGO=Tree | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+w2k {"ttft": 2.181, "total": 2.491, "ctok": 3, "dec": 9.7, "finish": "stop", "md5": "30070501627d", "last": "W2K", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.104, "total": 3.406, "ctok": 691, "dec": 209.3, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 34.475, "total": 35.993, "ctok": 291, "dec": 191.7, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.082, "total": 3.394, "ctok": 691, "dec": 208.6, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_W2_scan.json
+--- cfg W3 benches=scan env=[NCCL_PROTO=LL128;NCCL_ALGO=Tree] argv=[] 22:02:33 ---
+W3 READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128;NCCL_ALGO=Tree | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+w2k {"ttft": 1.805, "total": 2.039, "ctok": 3, "dec": 12.8, "finish": "stop", "md5": "30070501627d", "last": "W2K", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.09, "total": 3.186, "ctok": 691, "dec": 223.2, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 28.147, "total": 29.58, "ctok": 291, "dec": 203.1, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.071, "total": 3.183, "ctok": 691, "dec": 222.0, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_W3_scan.json
+--- cfg C1 benches=scan2 env=[] argv=[--chunked_prefill_size=1024;--prefix_cache_snapshot_interval_pages=8] 22:03:51 ---
+C1 READY http=401 after ~30s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=--chunked_prefill_size=1024;--prefix_cache_snapshot_interval_pages=8
+[scan_launch] effective chunk=1024 interval_pages=8 backbone=force
+w2k {"ttft": 2.056, "total": 2.32, "ctok": 4, "dec": 15.1, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1974}
+d200_a {"ttft": 0.117, "total": 3.112, "ctok": 691, "dec": 230.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 26}
+c32_m {"ttft": 33.613, "total": 34.958, "ctok": 291, "dec": 216.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31450}
+c64_m {"ttft": 69.443, "total": 70.865, "ctok": 291, "dec": 204.7, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62918}
+d200_b {"ttft": 0.085, "total": 3.093, "ctok": 691, "dec": 229.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 26}
+SAVED /home/ai-agent/builds/upgrade-test/wb_C1_scan2.json
+--- cfg C2 benches=scan2 env=[] argv=[--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16] 22:06:27 ---
+C2 READY http=401 after ~35s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16
+[scan_launch] effective chunk=2048 interval_pages=16 backbone=force
+w2k {"ttft": 1.855, "total": 2.154, "ctok": 4, "dec": 13.4, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1974}
+d200_a {"ttft": 0.108, "total": 3.17, "ctok": 691, "dec": 225.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 26}
+c32_m {"ttft": 30.77, "total": 32.085, "ctok": 291, "dec": 221.3, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31450}
+c64_m {"ttft": 64.727, "total": 66.092, "ctok": 291, "dec": 213.3, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62918}
+d200_b {"ttft": 0.089, "total": 3.05, "ctok": 691, "dec": 233.4, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 26}
+SAVED /home/ai-agent/builds/upgrade-test/wb_C2_scan2.json
+--- cfg P2 benches=mt+scan env=[FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=2] argv=[] 22:09:00 ---
+P2 READY http=401 after ~30s
+[scan_launch] SCAN_ENV=FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=2 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+turn 1 {"ttft": 19.462, "total": 21.045, "ctok": 291, "md5": "b536474ba172", "turn": 1}
+turn 2 {"ttft": 0.983, "total": 2.757, "ctok": 399, "md5": "fd9258c98a61", "turn": 2}
+turn 3 {"ttft": 0.553, "total": 2.337, "ctok": 399, "md5": "079d674ab02b", "turn": 3}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P2_mt.json
+w2k {"ttft": 2.07, "total": 2.109, "ctok": 4, "dec": 102.7, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.095, "total": 3.112, "ctok": 691, "dec": 229.1, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 31.543, "total": 32.872, "ctok": 291, "dec": 218.9, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.09, "total": 3.092, "ctok": 691, "dec": 230.2, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P2_scan.json
+--- cfg P4 benches=mt+scan env=[FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=4] argv=[] 22:10:48 ---
+P4 READY http=401 after ~30s
+[scan_launch] SCAN_ENV=FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=4 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+turn 1 {"ttft": 19.627, "total": 21.171, "ctok": 291, "md5": "b536474ba172", "turn": 1}
+turn 2 {"ttft": 0.987, "total": 2.737, "ctok": 399, "md5": "fd9258c98a61", "turn": 2}
+turn 3 {"ttft": 0.558, "total": 2.325, "ctok": 399, "md5": "079d674ab02b", "turn": 3}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P4_mt.json
+w2k {"ttft": 2.099, "total": 2.137, "ctok": 4, "dec": 105.4, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.097, "total": 3.04, "ctok": 691, "dec": 234.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 31.821, "total": 33.137, "ctok": 291, "dec": 221.3, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.088, "total": 3.035, "ctok": 691, "dec": 234.4, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P4_scan.json
+--- cfg P8 benches=mt+scan env=[FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=8] argv=[] 22:12:36 ---
+P8 READY http=401 after ~35s
+[scan_launch] SCAN_ENV=FASTLLM_PREFIX_CACHE_SNAPSHOT_MAX_PER_REQUEST=8 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+turn 1 {"ttft": 19.969, "total": 21.532, "ctok": 291, "md5": "b536474ba172", "turn": 1}
+turn 2 {"ttft": 0.957, "total": 2.734, "ctok": 399, "md5": "fd9258c98a61", "turn": 2}
+turn 3 {"ttft": 0.589, "total": 2.378, "ctok": 399, "md5": "079d674ab02b", "turn": 3}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P8_mt.json
+w2k {"ttft": 2.107, "total": 2.145, "ctok": 4, "dec": 104.7, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.095, "total": 3.051, "ctok": 691, "dec": 233.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 32.105, "total": 33.446, "ctok": 291, "dec": 217.1, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+d200_b {"ttft": 0.087, "total": 3.054, "ctok": 691, "dec": 232.9, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb_P8_scan.json
+--- restore prod 22:14:30 ---
+PROD_READY http=401 after ~30s
+post-check: {"id":"fastllm-Qwen3.8-27B-W8A16-d5bc7a9ca1e942a08e99be77f978b556","object":"chat.completion","created":1789395296,"model":"Qwen3.8-27B-W8A16","choices":[{"index":0,"message":{"role":"assistant","content":"WB_OK","reasoning_content":null,"tool_calls":null},"finish_rea
+===== WINDOW-B END 2026-09-14 22:14:56 =====

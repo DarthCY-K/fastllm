@@ -1,0 +1,160 @@
+===== WINDOW-B3 START 2026-09-14 22:35:01 =====
+--- stop prod 22:35:01 ---
+0, 1 MiB
+1, 1 MiB
+2, 1 MiB
+3, 1 MiB
+--- cfg W1A env=[NCCL_PROTO=LL128] argv=[] 22:35:08 ---
+W1A READY http=401 after ~35s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 1.886, "total": 2.112, "ctok": 4, "dec": 17.7, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.095, "total": 3.062, "ctok": 691, "dec": 232.9, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 29.284, "total": 30.61, "ctok": 291, "dec": 219.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 29.037, "total": 30.347, "ctok": 291, "dec": 222.1, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 59.834, "total": 61.203, "ctok": 291, "dec": 212.6, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.075, "total": 3.03, "ctok": 691, "dec": 233.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W1A.json
+[Prompt] 37 Tokens. Speed: 540.246948 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 51.348705 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 229.499176 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 235.998001 tokens / s.
+--- cfg W1B env=[NCCL_PROTO=LL128] argv=[] 22:38:06 ---
+W1B READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 1.851, "total": 2.085, "ctok": 4, "dec": 17.1, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.094, "total": 3.05, "ctok": 691, "dec": 233.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 29.255, "total": 30.567, "ctok": 291, "dec": 221.9, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 29.039, "total": 30.349, "ctok": 291, "dec": 222.1, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 59.847, "total": 61.198, "ctok": 291, "dec": 215.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.074, "total": 3.015, "ctok": 691, "dec": 235.0, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W1B.json
+[Prompt] 37 Tokens. Speed: 544.204956 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 51.577415 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 229.874298 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 238.013916 tokens / s.
+--- cfg W1C env=[NCCL_PROTO=LL128] argv=[] 22:40:58 ---
+W1C READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128 | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 1.958, "total": 2.194, "ctok": 4, "dec": 16.9, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.094, "total": 3.051, "ctok": 691, "dec": 233.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 29.289, "total": 30.605, "ctok": 291, "dec": 221.2, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 29.165, "total": 30.475, "ctok": 291, "dec": 222.2, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 59.922, "total": 61.281, "ctok": 291, "dec": 214.2, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.074, "total": 3.032, "ctok": 691, "dec": 233.6, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W1C.json
+[Prompt] 37 Tokens. Speed: 543.566833 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 51.568207 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 226.798386 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 238.489197 tokens / s.
+--- cfg W1D env=[NCCL_PROTO=LL128;NCCL_DEBUG=INFO;NCCL_DEBUG_SUBSYS=INIT,TUNING] argv=[] 22:43:51 ---
+W1D READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_PROTO=LL128;NCCL_DEBUG=INFO;NCCL_DEBUG_SUBSYS=INIT,TUNING | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+AI-ReasoningCenter:57061:57633 [1] NCCL INFO Best tuning { .id = 1, .valid = 1, timeUs = 26.890682,  .algo = TREE, .proto = LL128, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 2, maxChannels = 2, nWarps = 20, forced = 1 }
+AI-ReasoningCenter:57061:57633 [1] NCCL INFO Best tuning, algorithm, TREE, protocol, LL128
+AI-ReasoningCenter:57061:57061 [0] NCCL INFO Best tuning { .id = 1, .valid = 1, timeUs = 26.890682,  .algo = TREE, .proto = LL128, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 2, maxChannels = 2, nWarps = 20, forced = 1 }
+AI-ReasoningCenter:57061:57061 [0] NCCL INFO Best tuning, algorithm, TREE, protocol, LL128
+AI-ReasoningCenter:57061:57635 [3] NCCL INFO Best tuning { .id = 1, .valid = 1, timeUs = 26.890682,  .algo = TREE, .proto = LL128, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 2, maxChannels = 2, nWarps = 20, forced = 1 }
+AI-ReasoningCenter:57061:57635 [3] NCCL INFO Best tuning, algorithm, TREE, protocol, LL128
+AI-ReasoningCenter:57061:57634 [2] NCCL INFO Best tuning { .id = 1, .valid = 1, timeUs = 26.890682,  .algo = TREE, .proto = LL128, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 2, maxChannels = 2, nWarps = 20, forced = 1 }
+AI-ReasoningCenter:57061:57634 [2] NCCL INFO Best tuning, algorithm, TREE, protocol, LL128
+AI-ReasoningCenter:57061:57061 [0] NCCL INFO Connected all trees
+AI-ReasoningCenter:57061:57061 [0] NCCL INFO AllReduce: 10240 Bytes -> Algo TREE proto LL128 channel{Lo..Hi}={0..0} cgaClusterSize 4
+AI-ReasoningCenter:57061:57633 [1] NCCL INFO Connected all trees
+w2k {"ttft": 1.919, "total": 2.179, "ctok": 4, "dec": 15.4, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.121, "total": 5.953, "ctok": 691, "dec": 118.5, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 29.46, "total": 31.564, "ctok": 291, "dec": 138.3, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 29.205, "total": 31.595, "ctok": 291, "dec": 121.7, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 59.932, "total": 62.146, "ctok": 291, "dec": 131.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.097, "total": 5.332, "ctok": 691, "dec": 132.0, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W1D.json
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 140.093109 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 130.900101 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 132.119980 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 123.093376 tokens / s.
+--- cfg W0D env=[NCCL_DEBUG=INFO;NCCL_DEBUG_SUBSYS=INIT,TUNING] argv=[] 22:46:53 ---
+W0D READY http=401 after ~30s
+[scan_launch] SCAN_ENV=NCCL_DEBUG=INFO;NCCL_DEBUG_SUBSYS=INIT,TUNING | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+AI-ReasoningCenter:58126:58713 [2] NCCL INFO Best tuning { .id = 3, .valid = 1, timeUs = 13.880000,  .algo = RING, .proto = LL, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 1, maxChannels = 1, nWarps = 8, forced = 0 }
+AI-ReasoningCenter:58126:58713 [2] NCCL INFO Best tuning, algorithm, RING, protocol, LL
+AI-ReasoningCenter:58126:58712 [1] NCCL INFO Best tuning { .id = 3, .valid = 1, timeUs = 13.880000,  .algo = RING, .proto = LL, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 1, maxChannels = 1, nWarps = 8, forced = 0 }
+AI-ReasoningCenter:58126:58712 [1] NCCL INFO Best tuning, algorithm, RING, protocol, LL
+AI-ReasoningCenter:58126:58126 [0] NCCL INFO Best tuning { .id = 3, .valid = 1, timeUs = 13.880000,  .algo = RING, .proto = LL, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 1, maxChannels = 1, nWarps = 8, forced = 0 }
+AI-ReasoningCenter:58126:58126 [0] NCCL INFO Best tuning, algorithm, RING, protocol, LL
+AI-ReasoningCenter:58126:58714 [3] NCCL INFO Best tuning { .id = 3, .valid = 1, timeUs = 13.880000,  .algo = RING, .proto = LL, .symKernelId = Unknown, .ceMethodId = 2, nChannels = 1, maxChannels = 1, nWarps = 8, forced = 0 }
+AI-ReasoningCenter:58126:58714 [3] NCCL INFO Best tuning, algorithm, RING, protocol, LL
+AI-ReasoningCenter:58126:58714 [3] NCCL INFO Connected all rings, use ring PXN 0 GDR 1
+AI-ReasoningCenter:58126:58712 [1] NCCL INFO Connected all rings, use ring PXN 0 GDR 1
+AI-ReasoningCenter:58126:58126 [0] NCCL INFO Connected all rings, use ring PXN 0 GDR 1
+w2k {"ttft": 2.195, "total": 2.518, "ctok": 4, "dec": 12.4, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.122, "total": 5.796, "ctok": 691, "dec": 121.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 34.168, "total": 36.556, "ctok": 291, "dec": 121.9, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 33.862, "total": 36.07, "ctok": 291, "dec": 131.8, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 68.011, "total": 70.242, "ctok": 291, "dec": 130.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.096, "total": 5.749, "ctok": 691, "dec": 122.3, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W0D.json
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 120.467033 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 128.495636 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 123.566666 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 122.399925 tokens / s.
+--- cfg W0A env=[] argv=[] 22:50:12 ---
+W0A READY http=401 after ~30s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=
+[scan_launch] effective chunk=512 interval_pages=4 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 2.191, "total": 2.409, "ctok": 4, "dec": 18.3, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.106, "total": 3.055, "ctok": 691, "dec": 234.3, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 34.081, "total": 35.405, "ctok": 291, "dec": 219.7, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 33.805, "total": 35.126, "ctok": 291, "dec": 220.2, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 67.853, "total": 69.218, "ctok": 291, "dec": 213.3, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.088, "total": 3.053, "ctok": 691, "dec": 233.0, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_W0A.json
+[Prompt] 37 Tokens. Speed: 454.550049 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 48.190449 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 229.297836 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 235.162125 tokens / s.
+--- cfg C2A env=[] argv=[--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16] 22:53:23 ---
+C2A READY http=401 after ~35s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16
+[scan_launch] effective chunk=2048 interval_pages=16 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 1.905, "total": 2.145, "ctok": 4, "dec": 16.7, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.115, "total": 3.148, "ctok": 691, "dec": 227.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 30.388, "total": 31.703, "ctok": 291, "dec": 221.4, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 30.322, "total": 31.624, "ctok": 291, "dec": 223.5, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 64.03, "total": 65.392, "ctok": 291, "dec": 213.7, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.087, "total": 3.078, "ctok": 691, "dec": 231.0, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_C2A.json
+[Prompt] 37 Tokens. Speed: 454.719482 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 51.112244 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 228.761642 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 231.101181 tokens / s.
+--- cfg C2B env=[] argv=[--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16] 22:56:27 ---
+C2B READY http=401 after ~35s
+[scan_launch] SCAN_ENV= | SCAN_ARGV=--chunked_prefill_size=2048;--prefix_cache_snapshot_interval_pages=16
+[scan_launch] effective chunk=2048 interval_pages=16 backbone=force
+NCCL Initialized for 4 devices.
+w2k {"ttft": 1.853, "total": 2.132, "ctok": 4, "dec": 14.4, "finish": "stop", "md5": "b1d058032cbc", "last": "W2K_OK", "name": "w2k", "ptok_est": 1973}
+d200_a {"ttft": 0.105, "total": 3.179, "ctok": 691, "dec": 224.8, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_a", "ptok_est": 25}
+c32_m {"ttft": 30.425, "total": 31.79, "ctok": 291, "dec": 213.2, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_m", "ptok_est": 31440}
+c32_n {"ttft": 30.375, "total": 31.723, "ctok": 291, "dec": 215.9, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c32_n", "ptok_est": 31440}
+c64_m {"ttft": 64.166, "total": 65.573, "ctok": 291, "dec": 206.8, "finish": "stop", "md5": "b536474ba172", "last": " 88 89 90 91 92 93 94 95 96 97 98 99 100", "name": "c64_m", "ptok_est": 62899}
+d200_b {"ttft": 0.087, "total": 3.121, "ctok": 691, "dec": 227.7, "finish": "stop", "md5": "dacc241c7db8", "last": " 191 192 193 194 195 196 197 198 199 200", "name": "d200_b", "ptok_est": 25}
+SAVED /home/ai-agent/builds/upgrade-test/wb3_C2B.json
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 54.964233 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 225.316071 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 231.002747 tokens / s.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 229.779617 tokens / s.
+--- restore prod 22:59:32 ---
+PROD_READY http=401 after ~30s
+post-check: {"id":"fastllm-Qwen3.8-27B-W8A16-8719ed81d34d4938a0416a7a4ad45824","object":"chat.completion","created":1789397997,"model":"Qwen3.8-27B-W8A16","choices":[{"index":0,"message":{"role":"assistant","content":"WB3_OK","reasoning_content":null,"tool_calls":null},"finish_re
+===== WINDOW-B3 END 2026-09-14 22:59:58 =====
