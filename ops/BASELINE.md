@@ -13,3 +13,19 @@
 - **验收数据**：ab5/ab6 四配置严谨复测（见桌面《推理机-FastLLM-r2严谨复测总结-2026-09-14.md》与 `upgrade-test/ab5_* ab6_*`）
 - **未决/风险**：#726（DFlash stream sync）上游开放；#731 尾块路径未实测触发；q1 散文 temp0 跨配置差异（观察项）
 - **bundle**：`fastllm-r2-prod-20260914.bundle`（repo --all，含 r2-prod-20260914 tag）
+
+## 增补 1：DFlash 尾块修复转正（2026-09-14 18:35:48–18:36:38）
+
+- **引擎**：`libfastllm_tools.so` md5 `9c010b441cfc4cf0bcbdeb2ff5c5305c`（123,309,936 B，+224B）
+- **提交**：`a794da58`（单文件 +46/−2：尾块≤64 逐 token DFlash 种子，镜像 MTP 模式）；tag：`dflash-tailfix-prod-20260914`
+- **备份**：`venv/.../ftllm.backup-20260914-pre-dflashfix`（616M）→ `scripts/rollback_dflashfix.sh`
+- **验收**：16K 尾块档 decode 52.1→210.9 tok/s（测试窗）；转正探针 191.7 + `seeded: tokens=16139, chunk=512` 出现；多轮 turn2 51→217；输出 md5 不变
+- **文档**：`ops/docs/推理机-FastLLM-DFlash尾块丢种bug-修复设计-2026-09-14.md`
+
+## 增补 2：DFlash backbone TP force 转正（2026-09-14 19:11:37–19:13:00）
+
+- **变更**：生产 launcher 第 27 行 `FASTLLM_CUDA_DFLASH_TP_BACKBONE` `auto → force`（draft backbone TP 分片：5 paired MLPs / 10 weights / 2.49 GiB logical / FP16 shards）
+- **备份**：`fastllm_prod_launch.py.bak-pre-backboneforce-20260914` → `scripts/rollback_backboneforce.sh`
+- **验证**：重启后 `TP prepared: 5 paired MLPs ...`（prod 日志行号 84551，其后无 skipped）；d200 233.4/233.4、c32 解码 222.1（对照无 force 带 220.3–225.7 / 209.0–212.6）；输出 md5 不变（`dacc241c7db8`/`b536474ba172`）；1M 上下文保持
+- **依据**：`ops/docs/推理机-FastLLM-开关扫描-2026-09-14.md`（11 配置扫描，唯一赢家，窗口 +7.6~7.9%）
+- **其他扫描结论**：fused/MTP 关闭项全部落 ±2% 噪声带（保持默认全开）；DFlash2 checkpoint `block_size=8` = 草稿块上限；chunked_prefill_size 已为 512
