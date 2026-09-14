@@ -230,12 +230,26 @@ class Qwen3CoderToolParser(ToolParser):
         parameters = self._tool_parameters(function_name, tools)
         properties = parameters.get("properties")
         arguments: dict[str, Any] = {}
+        raw_values: dict[str, str] = {}
         for parameter_name, raw_value in raw_arguments:
-            if parameter_name in arguments:
+            if parameter_name in raw_values:
+                # Observed decode glitch: after the last parameter the model
+                # sometimes re-emits an earlier parameter verbatim before
+                # closing the function. Identical values carry no ambiguity,
+                # so drop the repeat instead of discarding the whole
+                # (already complete) tool call; conflicting values stay an
+                # error because the intent is undecidable.
+                if raw_values[parameter_name] == raw_value:
+                    logger.warning(
+                        "Tool '%s' repeats parameter '%s' with an identical "
+                        "value; ignoring the duplicate.", function_name,
+                        parameter_name)
+                    continue
                 raise ValueError(
                     f"Tool {function_name!r} repeats parameter "
                     f"{parameter_name!r}")
 
+            raw_values[parameter_name] = raw_value
             parameter_schema = self._parameter_schema(parameter_name,
                                                        parameters)
             if parameter_schema is None:
