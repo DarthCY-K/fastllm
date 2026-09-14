@@ -31,7 +31,7 @@
     "--model_name",
     "Qwen3.8-27B-W8A16",
     "--api_key",
-    "__INJECTED_AT_RUNTIME__",
+    "[REDACTED]",
     "--speculative_algorithm",
     "dflash",
     "--speculative_draft_model_path",
