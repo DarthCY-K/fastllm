@@ -207,6 +207,84 @@ class Qwen3CoderToolParserTest(unittest.TestCase):
             "content": "int main() {}",
         })
 
+    def test_repeated_identical_parameter_is_ignored(self):
+        # Decode glitch: after finishing the last parameter the model
+        # sometimes re-emits an earlier parameter verbatim before closing
+        # the function. Identical values are unambiguous, so the call must
+        # survive instead of being rejected as malformed.
+        wire = _wire_call("write", [
+            ("filePath", "/tmp/a.cpp"),
+            ("content", "int main() {}"),
+            ("filePath", "/tmp/a.cpp"),
+        ])
+        request = _write_request()
+        expected = {"filePath": "/tmp/a.cpp", "content": "int main() {}"}
+
+        non_stream = Qwen3CoderToolParser(
+            _DummyTokenizer()).extract_tool_calls(wire, request)
+        self.assertTrue(non_stream.tools_called)
+        self.assertEqual(
+            json.loads(non_stream.tool_calls[0].function.arguments),
+            expected,
+        )
+
+        for split in range(1, len(wire)):
+            with self.subTest(split=split):
+                calls, content, parser = _collect_stream(
+                    [wire[:split], wire[split:]], request)
+                self.assertIsNone(parser.streaming_parse_error())
+                self.assertEqual(content, "")
+                self.assertEqual(len(calls), 1)
+                self.assertEqual(calls[0]["name"], "write")
+                self.assertEqual(json.loads(calls[0]["arguments"]),
+                                 expected)
+
+    def test_repeated_identical_parameter_passes_stream_facade(self):
+        request = _write_request()
+        wire = _wire_call("write", [
+            ("filePath", "/tmp/a.cpp"),
+            ("content", "int main() {}"),
+            ("filePath", "/tmp/a.cpp"),
+        ])
+        parser = FunctionCallParser.from_request(
+            request,
+            tool_parser_name="qwen3_coder",
+            tokenizer=_DummyTokenizer(),
+        )
+
+        parsed = parser.parse_stream_chunk(
+            previous_text="",
+            current_text=wire,
+            delta_text=wire,
+            previous_token_ids=[],
+            current_token_ids=[],
+            delta_token_ids=[],
+        )
+        diagnostics = parser.finalize_stream()
+        flushed = parser.flush_stream_tool_calls()
+
+        self.assertEqual([d.code for d in diagnostics], [])
+        self.assertEqual(
+            len(parsed.valid_tool_calls) + len(flushed.valid_tool_calls), 1)
+
+    def test_repeated_parameter_with_conflicting_values_stays_invalid(self):
+        request = _write_request()
+        wire = _wire_call("write", [
+            ("filePath", "/tmp/a.cpp"),
+            ("content", "int main() {}"),
+            ("filePath", "/tmp/b.cpp"),
+        ])
+
+        non_stream = Qwen3CoderToolParser(
+            _DummyTokenizer()).extract_tool_calls(wire, request)
+        self.assertFalse(non_stream.tools_called)
+        self.assertEqual(non_stream.tool_calls, [])
+
+        calls, _, parser = _collect_stream([wire], request)
+        self.assertEqual(calls, [])
+        self.assertIn("repeats parameter",
+                      parser.streaming_parse_error() or "")
+
     def test_array_parameter_non_streaming(self):
         todos = [{"content": "inspect request", "status": "pending"}]
         parser = Qwen3CoderToolParser(_DummyTokenizer())
