@@ -11,6 +11,7 @@
 #include "fastllm-cuda-ordered-reduce.cuh"
 #endif
 #include "fastllm.h"
+#include "fastllm-cuda-packed-int8.cuh"
 #include "utils/utils.h"
 
 #include <cstdlib>
@@ -40,6 +41,29 @@ extern "C" bool FastllmNcclGraphPeerCopy(int dstDevice, void *dst,
                                           size_t bytes);
 
 static bool FastllmCudaDataHasDenseStrides(const fastllm::Data &data);
+
+void FastllmCudaMatMulPackedInt8Group128BF16(const fastllm::Data &input,
+        const fastllm::Data &weight, const fastllm::Data &bias, fastllm::Data &output,
+        int n, int m, int k, bool addTo) {
+    using namespace fastllm;
+    AssertInFastLLM(weight.dataType == DataType::PACKED_INT8_GROUP128_BF16 &&
+        weight.dims.size() == 2 && weight.dims[0] == k && weight.dims[1] == m &&
+        m > 0 && m % 128 == 0 && output.dataType == input.dataType &&
+        bias.dataType == DataType::FLOAT32 && (bias.dims.empty() || bias.Count(0) == k),
+        "CUDA packed INT8/group128 BF16 linear: invalid shape/type/bias.");
+    AssertInFastLLM(FastllmCudaDataHasDenseStrides(input) && FastllmCudaDataHasDenseStrides(output),
+        "CUDA packed INT8 linear requires dense activation/output views.");
+    AssertInFastLLM(bias.dims.empty() || bias.cudaData != nullptr,
+        "CUDA packed INT8 linear requires a CUDA bias buffer.");
+    int type = input.dataType == DataType::FLOAT32 ? 0 :
+        input.dataType == DataType::FLOAT16 ? 1 : input.dataType == DataType::BFLOAT16 ? 2 : -1;
+    AssertInFastLLM(type >= 0, "CUDA packed INT8 linear: unsupported activation type.");
+    auto state = fastllm_packed_int8_cuda::Launch(input.cudaData, (const uint8_t*)weight.cudaData,
+        bias.dims.empty() ? nullptr : (const float*)bias.cudaData, output.cudaData,
+        n, m, k, type, addTo, cudaStreamPerThread);
+    AssertInFastLLM(state == cudaSuccess, std::string("CUDA packed INT8 linear: ") + cudaGetErrorString(state));
+}
+
 static bool FastllmCudaResolveDataDeviceId(const fastllm::Data &data,
                                            int &device);
 static bool FastllmCudaDataCanShareDevice(const fastllm::Data &reference,

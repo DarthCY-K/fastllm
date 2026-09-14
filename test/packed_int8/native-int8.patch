@@ -1,0 +1,452 @@
+--- a/include/fastllm.h
++++ b/include/fastllm.h
+@@ -344,6 +344,9 @@
+         // Internal NUMA layout: each 32-row tile stores packed block-16
+         // weights, then FP32 scales, retaining gate/up row interleaving.
+         NVFP4_BLOCK_16_PLANAR = 1011,
++        // Native compressed-tensors W8: each group stores 128 q+128 bytes
++        // followed by one raw BF16 scale. No integer or scale requantization.
++        PACKED_INT8_GROUP128_BF16 = 1012,
+         INF_INT8_PERCHANNEL = 2000, // 推理用的int8, per channel量化
+         INF_INT8_GROUP128 = 2001, // 推理用的int8, per group量化，group = 128
+         INF_INT8_GROUP32 = 2002, // 推理用的int8, per group量化，group = 32
+--- a/include/packedint8.h
++++ b/include/packedint8.h
+@@ -0,0 +1,113 @@
++#ifndef FASTLLM_PACKEDINT8_H
++#define FASTLLM_PACKEDINT8_H
++#include <cstddef>
++#include <cstdint>
++#include <cstring>
++#include <stdexcept>
++#include <cmath>
++#include <limits>
++
++namespace fastllm {
++// A layout-only adapter: Q8_0 has 32 signed integers and an FP16 scale.
++// Four adjacent blocks share each source group128 scale. No rounding of weights
++// or scales is permitted. compressed-tensors stores q+128, NOT two's complement.
++inline uint16_t PackedInt8ExactHalfScale(uint16_t bf16) {
++    unsigned exp = (bf16 >> 7) & 255, mant = bf16 & 127;
++    if (!(bf16 & 0x8000)) {
++        if (bf16 == 0) return 0;
++        if (exp >= 113 && exp <= 142)
++            return static_cast<uint16_t>(((exp - 112) << 10) | (mant << 3));
++        if (exp >= 103 && exp < 113) {
++            unsigned significand = 128 + mant;
++            if (exp >= 110) return static_cast<uint16_t>(significand << (exp - 110));
++            unsigned shift = 110 - exp;
++            if ((significand & ((1u << shift) - 1)) == 0)
++                return static_cast<uint16_t>(significand >> shift);
++        }
++    }
++    throw std::runtime_error("Packed INT8 scale is not exactly representable as nonnegative finite FP16");
++}
++inline void RepackPackedInt8Group128ToQ8_0(
++        const uint8_t *packed, size_t packedBytes,
++        const uint16_t *bf16Scales, size_t scaleCount,
++        uint8_t *output, size_t outputBytes) {
++    if (!packed || !bf16Scales || !output || packedBytes == 0 ||
++        packedBytes % 128 || scaleCount != packedBytes / 128 ||
++        outputBytes / 136 != scaleCount || outputBytes % 136) {
++        throw std::runtime_error("Invalid packed INT8 group128 buffer sizes");
++    }
++    // Validate every scale before changing caller-owned storage.
++    for (size_t group = 0; group < scaleCount; group++)
++        (void)PackedInt8ExactHalfScale(bf16Scales[group]);
++    for (size_t group = 0; group < scaleCount; group++) {
++        uint16_t scale = PackedInt8ExactHalfScale(bf16Scales[group]);
++        for (size_t block = 0; block < 4; block++) {
++            uint8_t *dst = output + (group * 4 + block) * 34;
++            std::memcpy(dst, &scale, sizeof(scale));
++            for (size_t j = 0; j < 32; j++) {
++                dst[2+j] = packed[group * 128 + block * 32 + j] ^ 0x80;
++            }
++        }
++    }
++}
++// Portable native reference kernel. Keeps the checkpoint's byte-offset INT8
++// weights and BF16 group scales in place; only scalar operands are converted.
++// This component is not registered as a FastLLM device operator yet.
++inline void PackedInt8Group128LinearF16(
++        const uint16_t *input, const uint8_t *packed, const uint16_t *scales,
++        const float *bias, float *output, size_t batch, size_t rows, size_t cols) {
++    if (!input || !packed || !scales || !output || !batch || !rows || !cols ||
++        cols % 128 || rows > SIZE_MAX / cols || batch > SIZE_MAX / cols ||
++        batch > SIZE_MAX / rows) {
++        throw std::runtime_error("Invalid native packed INT8 group128 linear shape");
++    }
++    for (size_t b = 0; b < batch; b++) {
++        for (size_t r = 0; r < rows; r++) {
++            float sum = bias ? bias[r] : 0.0f;
++            for (size_t g = 0; g < cols / 128; g++) {
++                uint32_t bits = uint32_t(scales[r * (cols / 128) + g]) << 16;
++                float scale; std::memcpy(&scale, &bits, sizeof(scale));
++                float dot = 0.0f;
++                for (size_t j = 0; j < 128; j++) {
++                    size_t c = g * 128 + j;
++                    uint16_t h = input[b * cols + c];
++                    int exp = (h >> 10) & 31, mant = h & 1023;
++                    float a;
++                    if (exp == 31) a = mant ? std::numeric_limits<float>::quiet_NaN() : std::numeric_limits<float>::infinity();
++                    else a = exp ? std::ldexp(float(1024 + mant), exp - 25) : std::ldexp(float(mant), -24);
++                    if (h & 0x8000) a = -a;
++                    dot += a * (int(packed[r * cols + c]) - 128);
++                }
++                sum += dot * scale;
++            }
++            output[b * rows + r] = sum;
++        }
++    }
++}
++// Runtime group-interleaved layout: [128 offset-binary bytes][BF16 scale].
++// Activation/output scratch is allowed; there is never a float weight tensor.
++inline void PackedInt8InterleavedLinearF32(
++        const float *input, const uint8_t *weight, const float *bias,
++        float *output, size_t batch, size_t rows, size_t cols) {
++    if (!input || !weight || !output || !batch || !rows || !cols || cols % 128 ||
++        cols / 128 > SIZE_MAX / 130 || rows > SIZE_MAX / (cols / 128 * 130) ||
++        batch > SIZE_MAX / cols || batch > SIZE_MAX / rows)
++        throw std::runtime_error("Invalid interleaved packed INT8 shape");
++    size_t groups = cols / 128;
++    for (size_t b = 0; b < batch; b++) for (size_t r = 0; r < rows; r++) {
++        float sum = bias ? bias[r] : 0.0f;
++        for (size_t g = 0; g < groups; g++) {
++            const uint8_t *block = weight + (r * groups + g) * 130;
++            uint16_t bf16; std::memcpy(&bf16, block + 128, 2);
++            uint32_t bits = uint32_t(bf16) << 16;
++            float scale; std::memcpy(&scale, &bits, 4);
++            float dot = 0.0f;
++            for (size_t j = 0; j < 128; j++)
++                dot += input[b * cols + g * 128 + j] * (int(block[j]) - 128);
++            sum += dot * scale;
++        }
++        output[b * rows + r] = sum;
++    }
++}
++}
++#endif
+--- a/src/fastllm.cpp
++++ b/src/fastllm.cpp
+@@ -559,6 +559,7 @@
+         {DataType::NVFP4_BLOCK_16_E8M0, {"nvfp4_block_16_e8m0"}},
+         {DataType::NVFP4_BLOCK_16_E4M3, {"nvfp4_block_16_e4m3"}},
+         {DataType::INT4_GROUP32, {"int4_group32"}},
++        {DataType::PACKED_INT8_GROUP128_BF16, {"packed_int8_group128_bf16"}},
+         {DataType::NVFP4_BLOCK_32_E8M0, {"nvfp4_block_32_e8m0"}},
+         {DataType::INF_INT8_PERCHANNEL, {"inf_int8_perchannel"}}, {DataType::INF_INT8_GROUP128, {"inf_int8_group128"}},
+         {DataType::INF_INT8_GROUP32, {"inf_int8_group32"}},
+@@ -740,6 +741,12 @@
+     size_t GetDataBytes(DataType type, size_t rows, size_t columns) {
+         if (rows == 0 || columns == 0) {
+             return 0;
++        }
++        if (type == DataType::PACKED_INT8_GROUP128_BF16) {
++            AssertInFastLLM(columns % 128 == 0 && columns / 128 <= SIZE_MAX / 130 &&
++                            rows <= SIZE_MAX / (columns / 128 * 130),
++                            "Invalid PACKED_INT8_GROUP128_BF16 storage dimensions.");
++            return rows * (columns / 128) * 130;
+         }
+         if (type == DataType::FLOAT32) {
+             return rows * columns * sizeof(float);
+@@ -1808,6 +1815,11 @@
+     }
+ 
+     void Data::UpdateUnitSize() {
++        if (this->dataType == DataType::PACKED_INT8_GROUP128_BF16 && !this->dims.empty()) {
++            AssertInFastLLM(this->dims.size() == 2 && this->dims.back() > 0 && this->dims.back() % 128 == 0,
++                            "PACKED_INT8_GROUP128_BF16 requires a 2D group128 weight.");
++            this->perChannelAxis = 0; this->groupCnt = 128; this->group = this->dims.back() / 128;
++        }
+         if (this->dataType == DataType::INT4_GROUP32 && this->dims.size() >= 2) {
+             const int columns = this->dims.back();
+             AssertInFastLLM(columns % 32 == 0,
+@@ -1840,7 +1852,7 @@
+                    this->dataType == DataType::NVFP4_BLOCK_16_E8M0 ||
+                    this->dataType == DataType::NVFP4_BLOCK_16_E4M3 ||
+                    this->dataType == DataType::NVFP4_BLOCK_32_E8M0 ||
+-                   this->dataType == DataType::INT4_GROUP32) {
++                   (this->dataType == DataType::INT4_GROUP32 || this->dataType == DataType::PACKED_INT8_GROUP128_BF16)) {
+             this->unitSize = 1;
+             this->unitSizeDiv = 1;
+         } else if (this->dataType == DataType::INT4 
+@@ -1871,7 +1883,7 @@
+              this->dataType == DataType::NVFP4_BLOCK_16_E8M0 ||
+              this->dataType == DataType::NVFP4_BLOCK_16_E4M3 ||
+              this->dataType == DataType::NVFP4_BLOCK_32_E8M0 ||
+-             this->dataType == DataType::INT4_GROUP32) && this->dims.size() >= 2) {
++             (this->dataType == DataType::INT4_GROUP32 || this->dataType == DataType::PACKED_INT8_GROUP128_BF16)) && this->dims.size() >= 2) {
+             size_t rows = 0, columns = 0;
+             FastllmGetPackedRowsCols(this->dims, rows, columns);
+             this->expansionBytes = GetDataBytes(this->dataType, rows, columns);
+@@ -2102,7 +2114,7 @@
+              this->dataType == DataType::NVFP4_BLOCK_16_E8M0 ||
+              this->dataType == DataType::NVFP4_BLOCK_16_E4M3 ||
+              this->dataType == DataType::NVFP4_BLOCK_32_E8M0 ||
+-             this->dataType == DataType::INT4_GROUP32) && this->dims.size() >= 2) {
++             (this->dataType == DataType::INT4_GROUP32 || this->dataType == DataType::PACKED_INT8_GROUP128_BF16)) && this->dims.size() >= 2) {
+             size_t rows = 0, columns = 0;
+             FastllmGetPackedRowsCols(this->dims, rows, columns);
+             return GetDataBytes(this->dataType, rows, columns);
+@@ -2123,7 +2135,7 @@
+              this->dataType == DataType::NVFP4_BLOCK_16_E8M0 ||
+              this->dataType == DataType::NVFP4_BLOCK_16_E4M3 ||
+              this->dataType == DataType::NVFP4_BLOCK_32_E8M0 ||
+-             this->dataType == DataType::INT4_GROUP32) && this->dims.size() >= 2) {
++             (this->dataType == DataType::INT4_GROUP32 || this->dataType == DataType::PACKED_INT8_GROUP128_BF16)) && this->dims.size() >= 2) {
+             size_t rows = 0, columns = 0;
+             FastllmGetPackedRowsCols(this->dims, rows, columns);
+             this->expansionBytes = GetDataBytes(this->dataType, rows, columns);
+@@ -3210,6 +3222,8 @@
+             return DataType::INF_INT8_PERCHANNEL;
+         } else if (this->dataType == DataType::INT4_GROUP128) {
+             return DataType::INF_INT8_GROUP128;
++        } else if (this->dataType == DataType::PACKED_INT8_GROUP128_BF16) {
++            return DataType::FLOAT16;
+         } else if (this->dataType == DataType::INT4_GROUP32) {
+             return DataType::INF_INT8_GROUP32;
+         } else if (this->dataType == DataType::BFLOAT16 || 
+--- a/src/model.cpp
++++ b/src/model.cpp
+@@ -1813,11 +1813,101 @@
+         return TryGetPackedFP4DataType(safeTensors, name, dataType);
+     }
+ 
++    // I32 storage alone does not identify bit width: compressed-tensors packs
++    // four INT8 or eight INT4 values per word. Consult the small shape payload
++    // before inferring a group size. Never read/dequantize the weight here.
++    static bool PackedShapeMatches(const SafeTensors &safeTensors,
++                                    const std::string &name, uint64_t packFactor) {
++        const auto &weight = safeTensors.itmeDict.at(name);
++        const std::string prefix = name.substr(0, name.size() - strlen(".weight_packed"));
++        const auto shapeIt = safeTensors.itmeDict.find(prefix + ".weight_shape");
++        if (shapeIt == safeTensors.itmeDict.end()) {
++            return packFactor == 8; // Preserve legacy shape-less INT4 checkpoints.
++        }
++        const auto &shape = shapeIt->second;
++        if (weight.shape.empty() || shape.dtype != "I64" || shape.shape.size() != 1 ||
++            shape.shape[0] != weight.shape.size() ||
++            shape.bytes != weight.shape.size() * sizeof(int64_t)) {
++            return false;
++        }
++        std::vector<int64_t> logical(weight.shape.size());
++        shape.ReadRawData(logical.data(), shape.bytes);
++        for (size_t i = 0; i < logical.size(); i++) {
++            uint64_t factor = i + 1 == logical.size() ? packFactor : 1;
++            if (logical[i] <= 0 || weight.shape[i] > (uint64_t)INT64_MAX / factor ||
++                (uint64_t)logical[i] != weight.shape[i] * factor) {
++                return false; // Padded/ambiguous input dimensions unsupported.
++            }
++        }
++        return true;
++    }
++
++    static bool TryGetPackedInt8Group128(const SafeTensors &safeTensors,
++                                         const std::string &name) {
++        auto it = safeTensors.itmeDict.find(name);
++        if (it == safeTensors.itmeDict.end() || it->second.dtype != "I32" ||
++            !StringEndWith(name, ".weight_packed") || it->second.shape.size() != 2 ||
++            !PackedShapeMatches(safeTensors, name, 4)) return false;
++        const std::string prefix = name.substr(0, name.size() - strlen(".weight_packed"));
++        if (safeTensors.itmeDict.count(prefix + ".weight_zero_point") ||
++            safeTensors.itmeDict.count(prefix + ".weight_g_idx")) return false;
++        auto scaleIt = safeTensors.itmeDict.find(prefix + ".weight_scale");
++        if (scaleIt == safeTensors.itmeDict.end()) return false;
++        const auto &w = it->second;
++        const auto &s = scaleIt->second;
++        return w.shape[0] > 0 && w.shape[1] > 0 && w.shape[1] % 32 == 0 &&
++            w.shape[0] <= UINT64_MAX / w.shape[1] / 4 &&
++            w.bytes == w.shape[0] * w.shape[1] * 4 &&
++            s.dtype == "BF16" && s.shape.size() == 2 &&
++            s.shape[0] == w.shape[0] && s.shape[1] == w.shape[1] / 32 &&
++            s.len == w.shape[0] * (w.shape[1] / 32);
++    }
++
++    // Stream checkpoint rows into the native group-interleaved layout. The only
++    // scratch is one packed row and the compact BF16 scale tensor.
++    static void LoadPackedInt8Group128Weight(const SafeTensors &safeTensors,
++                                             const std::string &name, Data &weight) {
++        AssertInFastLLM(TryGetPackedInt8Group128(safeTensors, name),
++                        "Invalid native compressed-tensors INT8 group128 weight: " + name);
++        const auto &item = safeTensors.itmeDict.at(name);
++        const std::string prefix = name.substr(0, name.size() - strlen(".weight_packed"));
++        const auto &scale = safeTensors.itmeDict.at(prefix + ".weight_scale");
++        const size_t rows = item.shape[0], cols = item.shape[1] * 4, groups = cols / 128;
++        AssertInFastLLM(weight.dataType == DataType::PACKED_INT8_GROUP128_BF16 &&
++                        weight.dataDevice == DataDevice::CPU && weight.dims.size() == 2 &&
++                        (size_t)weight.dims[0] == rows && (size_t)weight.dims[1] == cols &&
++                        scale.bytes == rows * groups * 2,
++                        "Native packed INT8 destination/scale shape mismatch: " + name);
++        std::vector<uint16_t> scales(rows * groups);
++        scale.ReadRawData(scales.data(), scale.bytes);
++        std::vector<uint8_t> row(cols);
++        auto closeFile = [](FILE *file) { fclose(file); };
++        std::unique_ptr<FILE, decltype(closeFile)> file(fopen(item.fileName.c_str(), "rb"), closeFile);
++        AssertInFastLLM(file != nullptr, "Cannot open packed INT8 weight: " + name);
++#if defined(_WIN32) || defined(_WIN64)
++        int seekResult = _fseeki64(file.get(), item.data_offsets[0], SEEK_SET);
++#else
++        int seekResult = fseek(file.get(), item.data_offsets[0], SEEK_SET);
++#endif
++        AssertInFastLLM(seekResult == 0, "Cannot seek packed INT8 weight: " + name);
++        weight.Allocate();
++        for (size_t r = 0; r < rows; r++) {
++            AssertInFastLLM(fread(row.data(), 1, cols, file.get()) == cols,
++                            "Truncated packed INT8 weight: " + name);
++            for (size_t g = 0; g < groups; g++) {
++                uint8_t *dst = weight.cpuData + (r * groups + g) * 130;
++                memcpy(dst, row.data() + g * 128, 128);
++                memcpy(dst + 128, &scales[r * groups + g], 2);
++            }
++        }
++    }
++
+     static bool TryGetPackedInt4GroupCnt(const SafeTensors &safeTensors,
+                                          const std::string &name, int &groupCnt) {
+         auto it = safeTensors.itmeDict.find(name);
+         if (it == safeTensors.itmeDict.end() || it->second.dtype != "I32" ||
+-            !StringEndWith(name, ".weight_packed") || it->second.shape.size() < 2) {
++            !StringEndWith(name, ".weight_packed") || it->second.shape.size() < 2 ||
++            !PackedShapeMatches(safeTensors, name, 8)) {
+             return false;
+         }
+ 
+@@ -1859,7 +1949,8 @@
+         if (weightIt == safeTensors.itmeDict.end() ||
+             weightIt->second.dtype != "I32" ||
+             !StringEndWith(name, ".weight_packed") ||
+-            weightIt->second.shape.size() != 2) {
++            weightIt->second.shape.size() != 2 ||
++            !PackedShapeMatches(safeTensors, name, 8)) {
+             return false;
+         }
+ 
+@@ -1992,6 +2083,7 @@
+             PackedInt4GroupInfo packedInt4Info;
+             return it != safeTensors.itmeDict.end() &&
+                    (it->second.dtype == "F8_E4M3" || IsPackedFP4StorageDType(it->second.dtype) ||
++                    TryGetPackedInt8Group128(safeTensors, candidate) ||
+                     TryGetPackedInt4GroupInfo(
+                         safeTensors, candidate, packedInt4Info));
+         };
+@@ -2024,9 +2116,9 @@
+             std::string prefix =
+                 name.substr(0, name.size() - strlen(".weight_shape"));
+             PackedInt4GroupInfo packedInt4Info;
+-            return TryGetPackedInt4GroupInfo(
+-                safeTensors, prefix + ".weight_packed",
+-                packedInt4Info);
++            return TryGetPackedInt8Group128(safeTensors, prefix + ".weight_packed") ||
++                TryGetPackedInt4GroupInfo(
++                    safeTensors, prefix + ".weight_packed", packedInt4Info);
+         }
+         if (StringEndWith(name, "_scale_inv")) {
+             return isQuantTensor(name.substr(0, name.size() - strlen("_scale_inv")));
+@@ -4794,6 +4886,11 @@
+             PackedInt4GroupInfo packedInt4Info;
+             bool isPackedInt4Group = TryGetPackedInt4GroupInfo(
+                 safeTensors, tensorName, packedInt4Info);
++            const bool isPackedInt8Group = TryGetPackedInt8Group128(safeTensors, tensorName);
++            if (tensor.dtype == "I32" && StringEndWith(tensorName, ".weight_packed") &&
++                !isPackedInt4Group && !isPackedInt8Group) {
++                ErrorInFastLLM("Unsupported or malformed compressed-tensors packed integer weight: " + tensorName);
++            }
+             auto oriDataType = DataType::FLOAT32;
+             for (auto &it : tensorMap[tensorName]) {
+                 std::string weightName = it.first;
+@@ -4840,6 +4937,7 @@
+                 if (isPackedInt4Group) {
+                     dataType = packedInt4Info.dataType;
+                 }
++                if (isPackedInt8Group) dataType = DataType::PACKED_INT8_GROUP128_BF16;
+                 if (tensor.dtype == "I64") {
+                     dataType = DataType::INT32PARAM;
+                 }
+@@ -4850,6 +4948,12 @@
+                 } else if (IsPackedFP4Tensor(safeTensors, tensorName)) {
+                     std::vector<int> realShape = tensor.intShape;
+                     realShape[1] *= 2;
++                    model->weight.AddEmptyWeight(weightName, realShape, dataType);
++                } else if (isPackedInt8Group) {
++                    std::vector<int> realShape = tensor.intShape;
++                    AssertInFastLLM(realShape[1] <= INT_MAX / 4,
++                                    "Native packed INT8 logical columns exceed INT_MAX.");
++                    realShape[1] *= 4;
+                     model->weight.AddEmptyWeight(weightName, realShape, dataType);
+                 } else if (isPackedInt4Group) {
+                     std::vector<int> realShape = tensor.intShape;
+@@ -4987,6 +5091,7 @@
+                             printLoadingProgress(tensor.bytes);
+                             continue;
+                         }
++                        const bool isPackedInt8Group = TryGetPackedInt8Group128(safeTensors, tensorName);
+                         std::string scaleTensorName = "";
+                         std::string qzeroTensorName = "";
+                         PackedInt4GroupInfo packedInt4Info;
+@@ -5095,7 +5200,12 @@
+                             WeightType diskLazyWeightType = GetDiskLazyWeightType(
+                                 model, weightName, tensor.bytes);
+                             bool diskLazyWeight = diskLazyWeightType != WeightType::NONE;
+-                            if (diskLazyWeight) {
++                            if (isPackedInt8Group) {
++                                AssertInFastLLM(!diskLazyWeight && it.second != DATA_AUTO_CONV &&
++                                                loraDicts.find(weightName) == loraDicts.end(),
++                                                "Native packed INT8 does not support disk-lazy, transposed CONV or LoRA loading: " + weightName);
++                                LoadPackedInt8Group128Weight(safeTensors, tensorName, model->weight[weightName]);
++                            } else if (diskLazyWeight) {
+                                 if (packedInt4Info.isAffine) {
+                                     ErrorInFastLLM(
+                                         "Disk device does not support compressed-tensors asymmetric INT4 lazy weights yet: " +
+--- a/src/devices/cpu/cpudevice.cpp
++++ b/src/devices/cpu/cpudevice.cpp
+@@ -4,6 +4,7 @@
+ 
+ #define _USE_MATH_DEFINES
+ #include "devices/cpu/cpudevice.h"
++#include "packedint8.h"
+ #include "executor.h"
+ #include "devices/cpu/computeutils.h"
+ #include "devices/cpu/kimi_k3_ops.h"
+@@ -6746,6 +6747,42 @@
+     }
+ 
+     void DoCpuLinear(Data &input, Data &weight, const Data &bias, Data &output) {
++        if (weight.dataType == DataType::PACKED_INT8_GROUP128_BF16) {
++            auto floating = [](DataType type) { return type == DataType::FLOAT32 ||
++                type == DataType::FLOAT16 || type == DataType::BFLOAT16; };
++            AssertInFastLLM(floating(input.dataType) && floating(output.dataType) &&
++                            bias.dataType == DataType::FLOAT32,
++                            "Native packed INT8 CPU Linear requires floating activations/output and F32 bias.");
++            AssertInFastLLM(weight.dims.size() == 2 && !input.dims.empty() &&
++                            input.dims.back() == weight.dims[1] && weight.cpuData != nullptr,
++                            "Native packed INT8 CPU Linear shape/storage mismatch.");
++            const size_t cols = weight.dims[1], rows = weight.dims[0];
++            const size_t batch = input.Count(0) / cols;
++            AssertInFastLLM(output.Count(0) == batch * rows &&
++                            (bias.dims.empty() || bias.Count(0) == rows),
++                            "Native packed INT8 CPU Linear output/bias shape mismatch.");
++            output.Allocate();
++            std::vector<float> inputScratch, outputScratch;
++            const float *x = (const float*)input.cpuData;
++            if (input.dataType != DataType::FLOAT32) {
++                inputScratch.resize(input.Count(0));
++                if (input.dataType == DataType::FLOAT16)
++                    Float16ToFloat32((uint16_t*)input.cpuData, inputScratch.data(), input.Count(0));
++                else BFloat16ToFloat32((uint16_t*)input.cpuData, inputScratch.data(), input.Count(0));
++                x = inputScratch.data();
++            }
++            float *y = (float*)output.cpuData;
++            if (output.dataType != DataType::FLOAT32) {
++                outputScratch.resize(batch * rows); y = outputScratch.data();
++            }
++            PackedInt8InterleavedLinearF32(x, weight.cpuData,
++                bias.dims.empty() ? nullptr : (const float*)bias.cpuData, y, batch, rows, cols);
++            if (output.dataType == DataType::FLOAT16)
++                Float32ToFloat16(y, (uint16_t*)output.cpuData, batch * rows);
++            else if (output.dataType == DataType::BFLOAT16)
++                Float32ToBFloat16(y, (uint16_t*)output.cpuData, batch * rows);
++            return;
++        }
+ //auto st = std::chrono::system_clock::now();
+         output.Allocate();
+         int n = input.Count(0) / input.dims.back();

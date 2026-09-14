@@ -4,6 +4,7 @@
 
 #define _USE_MATH_DEFINES
 #include "devices/cpu/cpudevice.h"
+#include "packedint8.h"
 #include "devices/cpu/deepseekv41-reference-math.h"
 #include "executor.h"
 #include "devices/cpu/computeutils.h"
@@ -7023,6 +7024,42 @@ ops += (long long)lines * inputDim * interDim * 2;
     }
 
     void DoCpuLinear(Data &input, Data &weight, const Data &bias, Data &output) {
+        if (weight.dataType == DataType::PACKED_INT8_GROUP128_BF16) {
+            auto floating = [](DataType type) { return type == DataType::FLOAT32 ||
+                type == DataType::FLOAT16 || type == DataType::BFLOAT16; };
+            AssertInFastLLM(floating(input.dataType) && floating(output.dataType) &&
+                            bias.dataType == DataType::FLOAT32,
+                            "Native packed INT8 CPU Linear requires floating activations/output and F32 bias.");
+            AssertInFastLLM(weight.dims.size() == 2 && !input.dims.empty() &&
+                            input.dims.back() == weight.dims[1] && weight.cpuData != nullptr,
+                            "Native packed INT8 CPU Linear shape/storage mismatch.");
+            const size_t cols = weight.dims[1], rows = weight.dims[0];
+            const size_t batch = input.Count(0) / cols;
+            AssertInFastLLM(output.Count(0) == batch * rows &&
+                            (bias.dims.empty() || bias.Count(0) == rows),
+                            "Native packed INT8 CPU Linear output/bias shape mismatch.");
+            output.Allocate();
+            std::vector<float> inputScratch, outputScratch;
+            const float *x = (const float*)input.cpuData;
+            if (input.dataType != DataType::FLOAT32) {
+                inputScratch.resize(input.Count(0));
+                if (input.dataType == DataType::FLOAT16)
+                    Float16ToFloat32((uint16_t*)input.cpuData, inputScratch.data(), input.Count(0));
+                else BFloat16ToFloat32((uint16_t*)input.cpuData, inputScratch.data(), input.Count(0));
+                x = inputScratch.data();
+            }
+            float *y = (float*)output.cpuData;
+            if (output.dataType != DataType::FLOAT32) {
+                outputScratch.resize(batch * rows); y = outputScratch.data();
+            }
+            PackedInt8InterleavedLinearF32(x, weight.cpuData,
+                bias.dims.empty() ? nullptr : (const float*)bias.cpuData, y, batch, rows, cols);
+            if (output.dataType == DataType::FLOAT16)
+                Float32ToFloat16(y, (uint16_t*)output.cpuData, batch * rows);
+            else if (output.dataType == DataType::BFLOAT16)
+                Float32ToBFloat16(y, (uint16_t*)output.cpuData, batch * rows);
+            return;
+        }
 //auto st = std::chrono::system_clock::now();
         output.Allocate();
         int n = input.Count(0) / input.dims.back();

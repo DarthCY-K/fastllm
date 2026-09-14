@@ -996,6 +996,9 @@ namespace fastllm {
 
     static int GetMultiCudaSplitUnit(const fastllm::Data &data, int splitAxis) {
         int unit = data.groupCnt <= 0 ? 128 : data.groupCnt;
+        if (data.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16) {
+            unit = 128; // K shards must preserve entire inline BF16-scale groups.
+        }
         if (data.dataType == fastllm::DataType::FP8_E4M3) {
             int blockSize = splitAxis == 0 ? data.blockK : data.blockM;
             if (blockSize > 0) {
