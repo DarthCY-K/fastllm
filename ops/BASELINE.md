@@ -41,3 +41,12 @@
   - 虾跑分抽查：**86.8/100**（P80、8 科全 95、反思力 95）→ 历史带 84.6–87.8 内、无回归；https://paofen.cocoloop.cn/report/ses_1789386124795_oj5qbq
 - **#734 pick**：commit `bbf154bd`（仅入库未构建；下次构建携带）。
 - **制品**：`upgrade-test/artifacts/accept-final/`；本地 `hermes/cache/etfp8-ab/r2-20260914/accept-final/`；文档 `ops/docs/推理机-封版验收-2026-09-14.md`。
+
+## 仓库迁移（2026-09-14 晚）
+
+- 原 Gitea 私有仓 `DarthCY/fastllm-qwen38-prod` 已删除（用户决定：fastllm 只在 GitHub 维护）。
+- **单一事实源 = GitHub fork `DarthCY-K/fastllm`**：
+  - 分支 **`sm75-2080Ti`** = 真实上游血缘（21650fae + 10 笔，ahead=10/behind=0），内容 = 本基线全部；
+  - 分支 `sm75-2080Ti-snapshot` = 原组装史（`47db364c`，等价旧 Gitea main）；
+  - tags `r2-prod-20260914` / `dflash-tailfix-prod-20260914` / `backboneforce-prod-20260914` 仍指向 snapshot 链（等同内容）。
+- 部署机 remote：已移除 `gitea`，保留 `fork`（github）；日常推送 `git push fork sm75-2080Ti`。
