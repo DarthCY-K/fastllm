@@ -1,0 +1,378 @@
+auth
+Fastllm KV Cache Token limit: 1048576 tokens (pageLen=128).
+Fastllm AddPrefill Pages limit: 6553 pages.
+Fastllm Scheduler: Qwen3.5 MTP (lane=1).
+INFO:     127.0.0.1:55832 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/1984, 25%). Speed: 899.176025 tokens / s.
+[Prompt] Long Prefill ... (1024/1984, 51%). Speed: 1086.317139 tokens / s.
+[Prompt] Long Prefill ... (1536/1984, 77%). Speed: 1080.071899 tokens / s.
+[Prompt] Long Prefill ... (1984/1984, 100%). Speed: 1023.433289 tokens / s.
+[Qwen3.5 DFlash2] enabled: layers=5, drafts_per_step=7, root_device=cuda:0, tp_devices=4, log_interval=64 validations.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=1984, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 0.511986 tokens / s.
+auth
+INFO:     127.0.0.1:55844 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] 31 Tokens. Speed: 315.995514 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 4.646856 tokens / s.
+[Qwen3.5 MTP worker profile] samples=64 first_rank=16 avg={seq_tokens=8.00} avg_ms={total=33.107,setup=0.004,layers=31.862,head=1.240,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 224.856857 tokens / s.
+[Qwen3.5 MTP worker profile] samples=128 first_rank=32 avg={seq_tokens=8.00} avg_ms={total=28.887,setup=0.004,layers=27.679,head=1.202,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=192 first_rank=48 avg={seq_tokens=8.00} avg_ms={total=27.496,setup=0.004,layers=26.301,head=1.190,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 225.646179 tokens / s.
+[Qwen3.5 MTP profile] samples=64 paths={seed=1,tp_inplace=63,tp_copy=0,single=0} accept={spec=63,full=62,partial=1,reject0=0} avg_tokens={commit=7.84,matched_draft=6.84,draft_slots=6.89} avg_ms={total=38.581,setup=0.003,cache_prep=0.622,target=28.503,match=0.000,commit=0.000,rollback=0.008,retry=0.000,draft=9.442,draft_first=9.409,draft_extra=0.000,other=0.004}.
+[Qwen3.5 MTP worker profile] samples=256 first_rank=64 avg={seq_tokens=8.00} avg_ms={total=26.821,setup=0.004,layers=25.632,head=1.184,other=0.001}.
+[Qwen3.5 MTP target profile] samples=64 tp_calls=64 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=27.520,setup=0.006,weight_prep=0.003,input_prep=0.099,embedding=0.153,cache_local=0.033,worker=27.041,meta_sync=0.031,sampling=0.149,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 100.00%, 100.00%, 100.00%, 98.44%, 98.44%, 98.44%].
+[Qwen3.5 MTP worker profile] samples=320 first_rank=80 avg={seq_tokens=8.00} avg_ms={total=26.397,setup=0.004,layers=25.212,head=1.180,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 223.971664 tokens / s.
+auth
+INFO:     127.0.0.1:55850 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] 35 Tokens. Speed: 453.059692 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 4.441602 tokens / s.
+[Qwen3.5 MTP worker profile] samples=384 first_rank=96 avg={seq_tokens=8.00} avg_ms={total=26.189,setup=0.004,layers=25.007,head=1.177,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=448 first_rank=112 avg={seq_tokens=8.00} avg_ms={total=26.043,setup=0.004,layers=24.863,head=1.175,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 223.190903 tokens / s.
+[Qwen3.5 MTP profile] samples=128 paths={seed=2,tp_inplace=126,tp_copy=0,single=0} accept={spec=126,full=124,partial=2,reject0=0} avg_tokens={commit=7.84,matched_draft=6.84,draft_slots=6.89} avg_ms={total=37.289,setup=0.003,cache_prep=0.472,target=27.440,match=0.000,commit=0.000,rollback=0.008,retry=0.000,draft=9.363,draft_first=9.332,draft_extra=0.000,other=0.004}.
+[Qwen3.5 MTP worker profile] samples=512 first_rank=128 avg={seq_tokens=8.00} avg_ms={total=25.945,setup=0.004,layers=24.764,head=1.176,other=0.001}.
+[Qwen3.5 MTP target profile] samples=128 tp_calls=128 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.615,setup=0.006,weight_prep=0.003,input_prep=0.098,embedding=0.144,cache_local=0.032,worker=26.161,meta_sync=0.028,sampling=0.141,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 100.00%, 100.00%, 99.22%, 98.44%, 98.44%, 98.44%].
+[Qwen3.5 MTP worker profile] samples=576 first_rank=144 avg={seq_tokens=8.00} avg_ms={total=25.869,setup=0.004,layers=24.689,head=1.174,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 223.622040 tokens / s.
+[Qwen3.5 MTP worker profile] samples=640 first_rank=160 avg={seq_tokens=8.00} avg_ms={total=25.825,setup=0.004,layers=24.647,head=1.173,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 220.562881 tokens / s.
+auth
+INFO:     127.0.0.1:41714 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] 35 Tokens. Speed: 456.641510 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 17.588633 tokens / s.
+[Qwen3.5 MTP worker profile] samples=704 first_rank=176 avg={seq_tokens=8.00} avg_ms={total=25.790,setup=0.004,layers=24.612,head=1.172,other=0.001}.
+[Qwen3.5 MTP profile] samples=192 paths={seed=3,tp_inplace=189,tp_copy=0,single=0} accept={spec=189,full=186,partial=3,reject0=0} avg_tokens={commit=7.83,matched_draft=6.83,draft_slots=6.89} avg_ms={total=36.957,setup=0.002,cache_prep=0.424,target=27.173,match=0.000,commit=0.000,rollback=0.008,retry=0.000,draft=9.347,draft_first=9.316,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=768 first_rank=192 avg={seq_tokens=8.00} avg_ms={total=25.737,setup=0.004,layers=24.560,head=1.172,other=0.001}.
+[Qwen3.5 MTP target profile] samples=192 tp_calls=192 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.400,setup=0.006,weight_prep=0.003,input_prep=0.096,embedding=0.138,cache_local=0.031,worker=25.955,meta_sync=0.027,sampling=0.141,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 100.00%, 100.00%, 98.96%, 98.44%, 98.44%, 98.44%].
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 223.017471 tokens / s.
+[Qwen3.5 MTP worker profile] samples=832 first_rank=208 avg={seq_tokens=8.00} avg_ms={total=25.715,setup=0.004,layers=24.539,head=1.171,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=896 first_rank=224 avg={seq_tokens=8.00} avg_ms={total=25.697,setup=0.004,layers=24.519,head=1.173,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 0.0%, Speed: 221.925018 tokens / s.
+[Qwen3.5 MTP worker profile] samples=960 first_rank=240 avg={seq_tokens=8.00} avg_ms={total=25.679,setup=0.004,layers=24.501,head=1.173,other=0.001}.
+[Qwen3.5 MTP profile] samples=256 paths={seed=3,tp_inplace=253,tp_copy=0,single=0} accept={spec=253,full=250,partial=3,reject0=0} avg_tokens={commit=7.88,matched_draft=6.88,draft_slots=6.92} avg_ms={total=36.704,setup=0.002,cache_prep=0.394,target=26.935,match=0.000,commit=0.000,rollback=0.006,retry=0.000,draft=9.362,draft_first=9.332,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=1024 first_rank=256 avg={seq_tokens=8.00} avg_ms={total=25.668,setup=0.004,layers=24.491,head=1.172,other=0.001}.
+[Qwen3.5 MTP target profile] samples=256 tp_calls=256 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.333,setup=0.006,weight_prep=0.003,input_prep=0.096,embedding=0.136,cache_local=0.031,worker=25.892,meta_sync=0.027,sampling=0.139,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 100.00%, 100.00%, 99.22%, 98.83%, 98.83%, 98.83%].
+[Decode] alive = 1, pending = 0, context usages: 0.1%, Speed: 220.408875 tokens / s.
+auth
+INFO:     127.0.0.1:41728 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/31441, 1%). Speed: 944.829834 tokens / s.
+[Prompt] Long Prefill ... (1024/31441, 3%). Speed: 1079.139893 tokens / s.
+[Prompt] Long Prefill ... (1536/31441, 4%). Speed: 1075.907593 tokens / s.
+[Prompt] Long Prefill ... (2048/31441, 6%). Speed: 909.518677 tokens / s.
+[Prompt] Long Prefill ... (2560/31441, 8%). Speed: 1070.505127 tokens / s.
+[Prompt] Long Prefill ... (3072/31441, 9%). Speed: 1087.655273 tokens / s.
+[Prompt] Long Prefill ... (3584/31441, 11%). Speed: 1067.941406 tokens / s.
+[Prompt] Long Prefill ... (4096/31441, 13%). Speed: 906.658569 tokens / s.
+[Prompt] Long Prefill ... (4608/31441, 14%). Speed: 1037.066162 tokens / s.
+[Prompt] Long Prefill ... (5120/31441, 16%). Speed: 1079.198608 tokens / s.
+[Prompt] Long Prefill ... (5632/31441, 17%). Speed: 1069.423950 tokens / s.
+[Prompt] Long Prefill ... (6144/31441, 19%). Speed: 907.564575 tokens / s.
+[Prompt] Long Prefill ... (6656/31441, 21%). Speed: 1066.760376 tokens / s.
+[Prompt] Long Prefill ... (7168/31441, 22%). Speed: 1065.428833 tokens / s.
+[Prompt] Long Prefill ... (7680/31441, 24%). Speed: 1063.315063 tokens / s.
+[Prompt] Long Prefill ... (8192/31441, 26%). Speed: 892.757446 tokens / s.
+[Prompt] Long Prefill ... (8704/31441, 27%). Speed: 993.220215 tokens / s.
+[Prompt] Long Prefill ... (9216/31441, 29%). Speed: 1117.475830 tokens / s.
+[Prompt] Long Prefill ... (9728/31441, 30%). Speed: 1055.853882 tokens / s.
+[Prompt] Long Prefill ... (10240/31441, 32%). Speed: 959.509033 tokens / s.
+[Prompt] Long Prefill ... (10752/31441, 34%). Speed: 1051.839722 tokens / s.
+[Prompt] Long Prefill ... (11264/31441, 35%). Speed: 1049.659180 tokens / s.
+[Prompt] Long Prefill ... (11776/31441, 37%). Speed: 1042.960815 tokens / s.
+[Prompt] Long Prefill ... (12288/31441, 39%). Speed: 966.106445 tokens / s.
+[Prompt] Long Prefill ... (12800/31441, 40%). Speed: 1095.501953 tokens / s.
+[Prompt] Long Prefill ... (13312/31441, 42%). Speed: 1039.976807 tokens / s.
+[Prompt] Long Prefill ... (13824/31441, 43%). Speed: 1037.433350 tokens / s.
+[Prompt] Long Prefill ... (14336/31441, 45%). Speed: 965.011536 tokens / s.
+[Prompt] Long Prefill ... (14848/31441, 47%). Speed: 1080.442383 tokens / s.
+[Prompt] Long Prefill ... (15360/31441, 48%). Speed: 1029.152222 tokens / s.
+[Prompt] Long Prefill ... (15872/31441, 50%). Speed: 1027.346069 tokens / s.
+[Prompt] Long Prefill ... (16384/31441, 52%). Speed: 953.339539 tokens / s.
+[Prompt] Long Prefill ... (16896/31441, 53%). Speed: 946.429932 tokens / s.
+[Prompt] Long Prefill ... (17408/31441, 55%). Speed: 1069.373901 tokens / s.
+[Prompt] Long Prefill ... (17920/31441, 56%). Speed: 1018.288635 tokens / s.
+[Prompt] Long Prefill ... (18432/31441, 58%). Speed: 943.404297 tokens / s.
+[Prompt] Long Prefill ... (18944/31441, 60%). Speed: 1061.414917 tokens / s.
+[Prompt] Long Prefill ... (19456/31441, 61%). Speed: 1009.397278 tokens / s.
+[Prompt] Long Prefill ... (19968/31441, 63%). Speed: 1008.699402 tokens / s.
+[Prompt] Long Prefill ... (20480/31441, 65%). Speed: 939.266968 tokens / s.
+[Prompt] Long Prefill ... (20992/31441, 66%). Speed: 1052.063477 tokens / s.
+[Prompt] Long Prefill ... (21504/31441, 68%). Speed: 1001.530334 tokens / s.
+[Prompt] Long Prefill ... (22016/31441, 70%). Speed: 1001.723206 tokens / s.
+[Prompt] Long Prefill ... (22528/31441, 71%). Speed: 927.280945 tokens / s.
+[Prompt] Long Prefill ... (23040/31441, 73%). Speed: 1042.135742 tokens / s.
+[Prompt] Long Prefill ... (23552/31441, 74%). Speed: 993.207703 tokens / s.
+[Prompt] Long Prefill ... (24064/31441, 76%). Speed: 993.388855 tokens / s.
+[Prompt] Long Prefill ... (24576/31441, 78%). Speed: 923.631531 tokens / s.
+[Prompt] Long Prefill ... (25088/31441, 79%). Speed: 1032.532227 tokens / s.
+[Prompt] Long Prefill ... (25600/31441, 81%). Speed: 986.225098 tokens / s.
+[Prompt] Long Prefill ... (26112/31441, 83%). Speed: 983.973755 tokens / s.
+[Prompt] Long Prefill ... (26624/31441, 84%). Speed: 911.099304 tokens / s.
+[Prompt] Long Prefill ... (27136/31441, 86%). Speed: 1022.820923 tokens / s.
+[Prompt] Long Prefill ... (27648/31441, 87%). Speed: 976.313904 tokens / s.
+[Prompt] Long Prefill ... (28160/31441, 89%). Speed: 975.770142 tokens / s.
+[Prompt] Long Prefill ... (28672/31441, 91%). Speed: 906.336365 tokens / s.
+[Prompt] Long Prefill ... (29184/31441, 92%). Speed: 1012.968140 tokens / s.
+[Prompt] Long Prefill ... (29696/31441, 94%). Speed: 965.827087 tokens / s.
+[Prompt] Long Prefill ... (30208/31441, 96%). Speed: 962.209351 tokens / s.
+[Prompt] Long Prefill ... (30720/31441, 97%). Speed: 894.827087 tokens / s.
+[Prompt] Long Prefill ... (31232/31441, 99%). Speed: 999.413818 tokens / s.
+[Prompt] Long Prefill ... (31441/31441, 100%). Speed: 820.735901 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=31441, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 0.640040 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1088 first_rank=272 avg={seq_tokens=8.00} avg_ms={total=25.682,setup=0.004,layers=24.503,head=1.175,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=1152 first_rank=288 avg={seq_tokens=8.00} avg_ms={total=25.711,setup=0.004,layers=24.532,head=1.174,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 3.0%, Speed: 211.885117 tokens / s.
+auth
+INFO:     127.0.0.1:44974 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/31441, 1%). Speed: 1041.434692 tokens / s.
+[Prompt] Long Prefill ... (1024/31441, 3%). Speed: 1081.076050 tokens / s.
+[Prompt] Long Prefill ... (1536/31441, 4%). Speed: 1078.208496 tokens / s.
+[Prompt] Long Prefill ... (2048/31441, 6%). Speed: 945.539307 tokens / s.
+[Prompt] Long Prefill ... (2560/31441, 8%). Speed: 1067.150391 tokens / s.
+[Prompt] Long Prefill ... (3072/31441, 9%). Speed: 1084.166382 tokens / s.
+[Prompt] Long Prefill ... (3584/31441, 11%). Speed: 1067.072388 tokens / s.
+[Prompt] Long Prefill ... (4096/31441, 13%). Speed: 905.457153 tokens / s.
+[Prompt] Long Prefill ... (4608/31441, 14%). Speed: 1072.752319 tokens / s.
+[Prompt] Long Prefill ... (5120/31441, 16%). Speed: 1073.628418 tokens / s.
+[Prompt] Long Prefill ... (5632/31441, 17%). Speed: 1070.978760 tokens / s.
+[Prompt] Long Prefill ... (6144/31441, 19%). Speed: 893.052063 tokens / s.
+[Prompt] Long Prefill ... (6656/31441, 21%). Speed: 1066.897583 tokens / s.
+[Prompt] Long Prefill ... (7168/31441, 22%). Speed: 1064.531006 tokens / s.
+[Prompt] Long Prefill ... (7680/31441, 24%). Speed: 1060.547729 tokens / s.
+[Prompt] Long Prefill ... (8192/31441, 26%). Speed: 968.692261 tokens / s.
+[Prompt] Long Prefill ... (8704/31441, 27%). Speed: 1056.881714 tokens / s.
+[Prompt] Long Prefill ... (9216/31441, 29%). Speed: 1053.920898 tokens / s.
+[Prompt] Long Prefill ... (9728/31441, 30%). Speed: 1052.759399 tokens / s.
+[Prompt] Long Prefill ... (10240/31441, 32%). Speed: 960.088684 tokens / s.
+[Prompt] Long Prefill ... (10752/31441, 34%). Speed: 1046.026611 tokens / s.
+[Prompt] Long Prefill ... (11264/31441, 35%). Speed: 1045.085327 tokens / s.
+[Prompt] Long Prefill ... (11776/31441, 37%). Speed: 1042.645020 tokens / s.
+[Prompt] Long Prefill ... (12288/31441, 39%). Speed: 962.181213 tokens / s.
+[Prompt] Long Prefill ... (12800/31441, 40%). Speed: 1091.330078 tokens / s.
+[Prompt] Long Prefill ... (13312/31441, 42%). Speed: 1035.075806 tokens / s.
+[Prompt] Long Prefill ... (13824/31441, 43%). Speed: 1030.975220 tokens / s.
+[Prompt] Long Prefill ... (14336/31441, 45%). Speed: 960.640686 tokens / s.
+[Prompt] Long Prefill ... (14848/31441, 47%). Speed: 1079.169800 tokens / s.
+[Prompt] Long Prefill ... (15360/31441, 48%). Speed: 1025.311768 tokens / s.
+[Prompt] Long Prefill ... (15872/31441, 50%). Speed: 1022.148010 tokens / s.
+[Prompt] Long Prefill ... (16384/31441, 52%). Speed: 952.099060 tokens / s.
+[Prompt] Long Prefill ... (16896/31441, 53%). Speed: 1068.271729 tokens / s.
+[Prompt] Long Prefill ... (17408/31441, 55%). Speed: 1016.550781 tokens / s.
+[Prompt] Long Prefill ... (17920/31441, 56%). Speed: 1013.001465 tokens / s.
+[Prompt] Long Prefill ... (18432/31441, 58%). Speed: 946.060547 tokens / s.
+[Prompt] Long Prefill ... (18944/31441, 60%). Speed: 1059.969849 tokens / s.
+[Prompt] Long Prefill ... (19456/31441, 61%). Speed: 1010.871887 tokens / s.
+[Prompt] Long Prefill ... (19968/31441, 63%). Speed: 1004.623108 tokens / s.
+[Prompt] Long Prefill ... (20480/31441, 65%). Speed: 935.613892 tokens / s.
+[Prompt] Long Prefill ... (20992/31441, 66%). Speed: 1051.794922 tokens / s.
+[Prompt] Long Prefill ... (21504/31441, 68%). Speed: 1000.314026 tokens / s.
+[Prompt] Long Prefill ... (22016/31441, 70%). Speed: 998.434204 tokens / s.
+[Prompt] Long Prefill ... (22528/31441, 71%). Speed: 928.360657 tokens / s.
+[Prompt] Long Prefill ... (23040/31441, 73%). Speed: 1037.302979 tokens / s.
+[Prompt] Long Prefill ... (23552/31441, 74%). Speed: 991.356750 tokens / s.
+[Prompt] Long Prefill ... (24064/31441, 76%). Speed: 988.648926 tokens / s.
+[Prompt] Long Prefill ... (24576/31441, 78%). Speed: 919.644287 tokens / s.
+[Prompt] Long Prefill ... (25088/31441, 79%). Speed: 1027.933105 tokens / s.
+[Prompt] Long Prefill ... (25600/31441, 81%). Speed: 983.208496 tokens / s.
+[Prompt] Long Prefill ... (26112/31441, 83%). Speed: 980.961853 tokens / s.
+[Prompt] Long Prefill ... (26624/31441, 84%). Speed: 911.236450 tokens / s.
+[Prompt] Long Prefill ... (27136/31441, 86%). Speed: 1020.265137 tokens / s.
+[Prompt] Long Prefill ... (27648/31441, 87%). Speed: 974.211853 tokens / s.
+[Prompt] Long Prefill ... (28160/31441, 89%). Speed: 972.268799 tokens / s.
+[Prompt] Long Prefill ... (28672/31441, 91%). Speed: 902.968506 tokens / s.
+[Prompt] Long Prefill ... (29184/31441, 92%). Speed: 1011.177490 tokens / s.
+[Prompt] Long Prefill ... (29696/31441, 94%). Speed: 965.765686 tokens / s.
+[Prompt] Long Prefill ... (30208/31441, 96%). Speed: 964.858398 tokens / s.
+[Prompt] Long Prefill ... (30720/31441, 97%). Speed: 899.256104 tokens / s.
+[Prompt] Long Prefill ... (31232/31441, 99%). Speed: 999.963379 tokens / s.
+[Prompt] Long Prefill ... (31441/31441, 100%). Speed: 848.084534 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=31441, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 2.458388 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1216 first_rank=304 avg={seq_tokens=8.00} avg_ms={total=25.742,setup=0.004,layers=24.563,head=1.174,other=0.001}.
+[Qwen3.5 MTP profile] samples=320 paths={seed=3,tp_inplace=317,tp_copy=0,single=0} accept={spec=317,full=311,partial=6,reject0=0} avg_tokens={commit=7.86,matched_draft=6.86,draft_slots=6.93} avg_ms={total=36.665,setup=0.002,cache_prep=0.399,target=26.926,match=0.000,commit=0.000,rollback=0.010,retry=0.000,draft=9.324,draft_first=9.293,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=1280 first_rank=320 avg={seq_tokens=8.00} avg_ms={total=25.778,setup=0.004,layers=24.600,head=1.173,other=0.001}.
+[Qwen3.5 MTP target profile] samples=320 tp_calls=320 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.438,setup=0.006,weight_prep=0.003,input_prep=0.096,embedding=0.134,cache_local=0.031,worker=25.998,meta_sync=0.028,sampling=0.137,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 100.00%, 100.00%, 98.44%, 98.12%, 98.12%, 98.12%].
+[Decode] alive = 1, pending = 0, context usages: 3.0%, Speed: 209.920212 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1344 first_rank=336 avg={seq_tokens=8.00} avg_ms={total=25.813,setup=0.004,layers=24.635,head=1.173,other=0.001}.
+auth
+INFO:     127.0.0.1:52450 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/31441, 1%). Speed: 1039.698242 tokens / s.
+[Prompt] Long Prefill ... (1024/31441, 3%). Speed: 1084.023071 tokens / s.
+[Prompt] Long Prefill ... (1536/31441, 4%). Speed: 1078.277710 tokens / s.
+[Prompt] Long Prefill ... (2048/31441, 6%). Speed: 1014.913147 tokens / s.
+[Prompt] Long Prefill ... (2560/31441, 8%). Speed: 1139.162476 tokens / s.
+[Prompt] Long Prefill ... (3072/31441, 9%). Speed: 1085.811890 tokens / s.
+[Prompt] Long Prefill ... (3584/31441, 11%). Speed: 1048.574829 tokens / s.
+[Prompt] Long Prefill ... (4096/31441, 13%). Speed: 1012.964355 tokens / s.
+[Prompt] Long Prefill ... (4608/31441, 14%). Speed: 1138.314453 tokens / s.
+[Prompt] Long Prefill ... (5120/31441, 16%). Speed: 1075.721069 tokens / s.
+[Prompt] Long Prefill ... (5632/31441, 17%). Speed: 1074.642090 tokens / s.
+[Prompt] Long Prefill ... (6144/31441, 19%). Speed: 1000.888306 tokens / s.
+[Prompt] Long Prefill ... (6656/31441, 21%). Speed: 1126.821167 tokens / s.
+[Prompt] Long Prefill ... (7168/31441, 22%). Speed: 1045.337036 tokens / s.
+[Prompt] Long Prefill ... (7680/31441, 24%). Speed: 1063.749878 tokens / s.
+[Prompt] Long Prefill ... (8192/31441, 26%). Speed: 987.457336 tokens / s.
+[Prompt] Long Prefill ... (8704/31441, 27%). Speed: 1114.956665 tokens / s.
+[Prompt] Long Prefill ... (9216/31441, 29%). Speed: 1054.191650 tokens / s.
+[Prompt] Long Prefill ... (9728/31441, 30%). Speed: 1051.864624 tokens / s.
+[Prompt] Long Prefill ... (10240/31441, 32%). Speed: 981.655640 tokens / s.
+[Prompt] Long Prefill ... (10752/31441, 34%). Speed: 1104.397827 tokens / s.
+[Prompt] Long Prefill ... (11264/31441, 35%). Speed: 1045.771973 tokens / s.
+[Prompt] Long Prefill ... (11776/31441, 37%). Speed: 1045.692383 tokens / s.
+[Prompt] Long Prefill ... (12288/31441, 39%). Speed: 955.639343 tokens / s.
+[Prompt] Long Prefill ... (12800/31441, 40%). Speed: 1090.984863 tokens / s.
+[Prompt] Long Prefill ... (13312/31441, 42%). Speed: 1035.518433 tokens / s.
+[Prompt] Long Prefill ... (13824/31441, 43%). Speed: 1032.002075 tokens / s.
+[Prompt] Long Prefill ... (14336/31441, 45%). Speed: 964.871521 tokens / s.
+[Prompt] Long Prefill ... (14848/31441, 47%). Speed: 1082.120972 tokens / s.
+[Prompt] Long Prefill ... (15360/31441, 48%). Speed: 1026.935303 tokens / s.
+[Prompt] Long Prefill ... (15872/31441, 50%). Speed: 1024.150024 tokens / s.
+[Prompt] Long Prefill ... (16384/31441, 52%). Speed: 952.853333 tokens / s.
+[Prompt] Long Prefill ... (16896/31441, 53%). Speed: 1072.845215 tokens / s.
+[Prompt] Long Prefill ... (17408/31441, 55%). Speed: 1016.415955 tokens / s.
+[Prompt] Long Prefill ... (17920/31441, 56%). Speed: 1017.025391 tokens / s.
+[Prompt] Long Prefill ... (18432/31441, 58%). Speed: 945.967224 tokens / s.
+[Prompt] Long Prefill ... (18944/31441, 60%). Speed: 1058.607178 tokens / s.
+[Prompt] Long Prefill ... (19456/31441, 61%). Speed: 1011.185242 tokens / s.
+[Prompt] Long Prefill ... (19968/31441, 63%). Speed: 1006.316711 tokens / s.
+[Prompt] Long Prefill ... (20480/31441, 65%). Speed: 937.552368 tokens / s.
+[Prompt] Long Prefill ... (20992/31441, 66%). Speed: 1050.131958 tokens / s.
+[Prompt] Long Prefill ... (21504/31441, 68%). Speed: 1003.050720 tokens / s.
+[Prompt] Long Prefill ... (22016/31441, 70%). Speed: 998.458679 tokens / s.
+[Prompt] Long Prefill ... (22528/31441, 71%). Speed: 929.750366 tokens / s.
+[Prompt] Long Prefill ... (23040/31441, 73%). Speed: 1038.981445 tokens / s.
+[Prompt] Long Prefill ... (23552/31441, 74%). Speed: 991.968750 tokens / s.
+[Prompt] Long Prefill ... (24064/31441, 76%). Speed: 988.423218 tokens / s.
+[Prompt] Long Prefill ... (24576/31441, 78%). Speed: 922.531921 tokens / s.
+[Prompt] Long Prefill ... (25088/31441, 79%). Speed: 1030.016479 tokens / s.
+[Prompt] Long Prefill ... (25600/31441, 81%). Speed: 984.276855 tokens / s.
+[Prompt] Long Prefill ... (26112/31441, 83%). Speed: 982.035095 tokens / s.
+[Prompt] Long Prefill ... (26624/31441, 84%). Speed: 915.358765 tokens / s.
+[Prompt] Long Prefill ... (27136/31441, 86%). Speed: 1021.354736 tokens / s.
+[Prompt] Long Prefill ... (27648/31441, 87%). Speed: 975.812256 tokens / s.
+[Prompt] Long Prefill ... (28160/31441, 89%). Speed: 973.318054 tokens / s.
+[Prompt] Long Prefill ... (28672/31441, 91%). Speed: 906.560242 tokens / s.
+[Prompt] Long Prefill ... (29184/31441, 92%). Speed: 1011.804138 tokens / s.
+[Prompt] Long Prefill ... (29696/31441, 94%). Speed: 970.123657 tokens / s.
+[Prompt] Long Prefill ... (30208/31441, 96%). Speed: 964.058594 tokens / s.
+[Prompt] Long Prefill ... (30720/31441, 97%). Speed: 896.136047 tokens / s.
+[Prompt] Long Prefill ... (31232/31441, 99%). Speed: 1004.191650 tokens / s.
+[Prompt] Long Prefill ... (31441/31441, 100%). Speed: 847.097290 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=31441, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 2.482108 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1408 first_rank=352 avg={seq_tokens=8.00} avg_ms={total=25.837,setup=0.004,layers=24.659,head=1.173,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 3.0%, Speed: 211.142975 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1472 first_rank=368 avg={seq_tokens=8.00} avg_ms={total=25.860,setup=0.004,layers=24.682,head=1.173,other=0.001}.
+auth
+INFO:     127.0.0.1:35940 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/19643, 2%). Speed: 1040.175049 tokens / s.
+[Prompt] Long Prefill ... (1024/19643, 5%). Speed: 1086.017822 tokens / s.
+[Prompt] Long Prefill ... (1536/19643, 7%). Speed: 1079.143311 tokens / s.
+[Prompt] Long Prefill ... (2048/19643, 10%). Speed: 1012.824951 tokens / s.
+[Prompt] Long Prefill ... (2560/19643, 13%). Speed: 1137.179565 tokens / s.
+[Prompt] Long Prefill ... (3072/19643, 15%). Speed: 1086.261475 tokens / s.
+[Prompt] Long Prefill ... (3584/19643, 18%). Speed: 1068.592041 tokens / s.
+[Prompt] Long Prefill ... (4096/19643, 20%). Speed: 1010.056946 tokens / s.
+[Prompt] Long Prefill ... (4608/19643, 23%). Speed: 1138.784546 tokens / s.
+[Prompt] Long Prefill ... (5120/19643, 26%). Speed: 1076.952515 tokens / s.
+[Prompt] Long Prefill ... (5632/19643, 28%). Speed: 1073.107056 tokens / s.
+[Prompt] Long Prefill ... (6144/19643, 31%). Speed: 999.477295 tokens / s.
+[Prompt] Long Prefill ... (6656/19643, 33%). Speed: 1124.473999 tokens / s.
+[Prompt] Long Prefill ... (7168/19643, 36%). Speed: 1065.231445 tokens / s.
+[Prompt] Long Prefill ... (7680/19643, 39%). Speed: 1063.652954 tokens / s.
+[Prompt] Long Prefill ... (8192/19643, 41%). Speed: 991.573242 tokens / s.
+[Prompt] Long Prefill ... (8704/19643, 44%). Speed: 1116.038452 tokens / s.
+[Prompt] Long Prefill ... (9216/19643, 46%). Speed: 1056.889526 tokens / s.
+[Prompt] Long Prefill ... (9728/19643, 49%). Speed: 1053.426270 tokens / s.
+[Prompt] Long Prefill ... (10240/19643, 52%). Speed: 979.840881 tokens / s.
+[Prompt] Long Prefill ... (10752/19643, 54%). Speed: 1103.452026 tokens / s.
+[Prompt] Long Prefill ... (11264/19643, 57%). Speed: 1047.665283 tokens / s.
+[Prompt] Long Prefill ... (11776/19643, 59%). Speed: 1043.688110 tokens / s.
+[Prompt] Long Prefill ... (12288/19643, 62%). Speed: 964.293762 tokens / s.
+[Prompt] Long Prefill ... (12800/19643, 65%). Speed: 1094.365967 tokens / s.
+[Prompt] Long Prefill ... (13312/19643, 67%). Speed: 1038.200806 tokens / s.
+[Prompt] Long Prefill ... (13824/19643, 70%). Speed: 1034.706421 tokens / s.
+[Prompt] Long Prefill ... (14336/19643, 72%). Speed: 964.276855 tokens / s.
+[Prompt] Long Prefill ... (14848/19643, 75%). Speed: 1082.306274 tokens / s.
+[Prompt] Long Prefill ... (15360/19643, 78%). Speed: 1028.400269 tokens / s.
+[Prompt] Long Prefill ... (15872/19643, 80%). Speed: 1023.875488 tokens / s.
+[Prompt] Long Prefill ... (16384/19643, 83%). Speed: 955.497864 tokens / s.
+[Prompt] Long Prefill ... (16896/19643, 86%). Speed: 1071.110962 tokens / s.
+[Prompt] Long Prefill ... (17408/19643, 88%). Speed: 1017.444092 tokens / s.
+[Prompt] Long Prefill ... (17920/19643, 91%). Speed: 1014.953918 tokens / s.
+[Prompt] Long Prefill ... (18432/19643, 93%). Speed: 944.721130 tokens / s.
+[Prompt] Long Prefill ... (18944/19643, 96%). Speed: 1061.234375 tokens / s.
+[Prompt] Long Prefill ... (19456/19643, 99%). Speed: 1009.881836 tokens / s.
+[Prompt] Long Prefill ... (19643/19643, 100%). Speed: 922.207214 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=19643, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 3.982502 tokens / s.
+[Qwen3.5 MTP profile] samples=384 paths={seed=3,tp_inplace=381,tp_copy=0,single=0} accept={spec=381,full=366,partial=14,reject0=1} avg_tokens={commit=7.77,matched_draft=6.77,draft_slots=6.95} avg_ms={total=36.693,setup=0.002,cache_prep=0.404,target=26.957,match=0.000,commit=0.000,rollback=0.020,retry=0.000,draft=9.306,draft_first=9.276,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=1536 first_rank=384 avg={seq_tokens=8.00} avg_ms={total=25.878,setup=0.004,layers=24.700,head=1.173,other=0.001}.
+[Qwen3.5 MTP target profile] samples=384 tp_calls=384 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.534,setup=0.006,weight_prep=0.002,input_prep=0.097,embedding=0.134,cache_local=0.031,worker=26.095,meta_sync=0.029,sampling=0.136,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[99.74%, 98.96%, 97.92%, 95.57%, 95.31%, 95.31%, 95.31%].
+[Qwen3.5 MTP worker profile] samples=1600 first_rank=400 avg={seq_tokens=8.00} avg_ms={total=25.891,setup=0.004,layers=24.714,head=1.172,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 75.473404 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1664 first_rank=416 avg={seq_tokens=8.00} avg_ms={total=25.902,setup=0.004,layers=24.724,head=1.172,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 70.818657 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1728 first_rank=432 avg={seq_tokens=8.00} avg_ms={total=25.916,setup=0.004,layers=24.739,head=1.172,other=0.001}.
+[Qwen3.5 MTP profile] samples=448 paths={seed=3,tp_inplace=445,tp_copy=0,single=0} accept={spec=445,full=366,partial=66,reject0=13} avg_tokens={commit=7.06,matched_draft=6.06,draft_slots=6.95} avg_ms={total=36.807,setup=0.002,cache_prep=0.395,target=26.952,match=0.000,commit=0.000,rollback=0.095,retry=0.000,draft=9.359,draft_first=9.326,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=1792 first_rank=448 avg={seq_tokens=8.00} avg_ms={total=25.929,setup=0.004,layers=24.752,head=1.172,other=0.001}.
+[Qwen3.5 MTP target profile] samples=448 tp_calls=448 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.580,setup=0.006,weight_prep=0.002,input_prep=0.095,embedding=0.134,cache_local=0.031,worker=26.144,meta_sync=0.030,sampling=0.134,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[96.88%, 91.74%, 87.72%, 83.71%, 82.81%, 82.14%, 81.70%].
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 76.748642 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1856 first_rank=464 avg={seq_tokens=8.00} avg_ms={total=25.955,setup=0.004,layers=24.778,head=1.172,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=1920 first_rank=480 avg={seq_tokens=8.00} avg_ms={total=25.964,setup=0.004,layers=24.787,head=1.172,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 51.930729 tokens / s.
+[Qwen3.5 MTP worker profile] samples=1984 first_rank=496 avg={seq_tokens=8.00} avg_ms={total=25.972,setup=0.004,layers=24.795,head=1.172,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 59.977425 tokens / s.
+[Qwen3.5 MTP profile] samples=512 paths={seed=3,tp_inplace=509,tp_copy=0,single=0} accept={spec=509,full=366,partial=106,reject0=37} avg_tokens={commit=6.46,matched_draft=5.46,draft_slots=6.96} avg_ms={total=36.896,setup=0.002,cache_prep=0.388,target=26.958,match=0.000,commit=0.000,rollback=0.152,retry=0.000,draft=9.392,draft_first=9.358,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=2048 first_rank=512 avg={seq_tokens=8.00} avg_ms={total=25.978,setup=0.004,layers=24.802,head=1.171,other=0.001}.
+[Qwen3.5 MTP target profile] samples=512 tp_calls=512 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.621,setup=0.006,weight_prep=0.002,input_prep=0.093,embedding=0.131,cache_local=0.031,worker=26.191,meta_sync=0.030,sampling=0.133,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[92.58%, 84.96%, 79.10%, 73.83%, 72.46%, 71.88%, 71.48%].
+[Qwen3.5 MTP worker profile] samples=2112 first_rank=528 avg={seq_tokens=8.00} avg_ms={total=25.985,setup=0.004,layers=24.809,head=1.171,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.9%, Speed: 60.084629 tokens / s.
+auth
+INFO:     127.0.0.1:53720 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Qwen3.5 DFlash2] prefix cache restored: tokens=18432, draft_kv_tokens=2559.
+[Qwen3.5 MTP] prefix cache hit: tokens=18432.
+[Prompt] Long Prefill ... (512/1672, 30%). Speed: 980.146179 tokens / s.
+[Prompt] Long Prefill ... (1024/1672, 61%). Speed: 1057.803589 tokens / s.
+[Prompt] Long Prefill ... (1536/1672, 91%). Speed: 1008.579163 tokens / s.
+[Prompt] Long Prefill ... (1672/1672, 100%). Speed: 837.740845 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=20104, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 13.126149 tokens / s.
+[Qwen3.5 MTP worker profile] samples=2176 first_rank=544 avg={seq_tokens=8.00} avg_ms={total=25.991,setup=0.004,layers=24.815,head=1.171,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=2240 first_rank=560 avg={seq_tokens=8.00} avg_ms={total=25.995,setup=0.004,layers=24.819,head=1.172,other=0.001}.
+auth
+INFO:     127.0.0.1:53722 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] Long Prefill ... (512/8076, 6%). Speed: 1042.827637 tokens / s.
+[Prompt] Long Prefill ... (1024/8076, 12%). Speed: 1084.223022 tokens / s.
+[Prompt] Long Prefill ... (1536/8076, 19%). Speed: 1080.860229 tokens / s.
+[Prompt] Long Prefill ... (2048/8076, 25%). Speed: 979.373657 tokens / s.
+[Prompt] Long Prefill ... (2560/8076, 31%). Speed: 1138.683960 tokens / s.
+[Prompt] Long Prefill ... (3072/8076, 38%). Speed: 1086.957275 tokens / s.
+[Prompt] Long Prefill ... (3584/8076, 44%). Speed: 1070.114502 tokens / s.
+[Prompt] Long Prefill ... (4096/8076, 50%). Speed: 1008.015076 tokens / s.
+[Prompt] Long Prefill ... (4608/8076, 57%). Speed: 1142.689209 tokens / s.
+[Prompt] Long Prefill ... (5120/8076, 63%). Speed: 1079.528198 tokens / s.
+[Prompt] Long Prefill ... (5632/8076, 69%). Speed: 1070.943970 tokens / s.
+[Prompt] Long Prefill ... (6144/8076, 76%). Speed: 996.771973 tokens / s.
+[Prompt] Long Prefill ... (6656/8076, 82%). Speed: 1128.666870 tokens / s.
+[Prompt] Long Prefill ... (7168/8076, 88%). Speed: 1064.598999 tokens / s.
+[Prompt] Long Prefill ... (7680/8076, 95%). Speed: 1065.237915 tokens / s.
+[Prompt] Long Prefill ... (8076/8076, 100%). Speed: 1002.981750 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=8076, chunk=512.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 16.974949 tokens / s.
+[Qwen3.5 MTP profile] samples=576 paths={seed=3,tp_inplace=573,tp_copy=0,single=0} accept={spec=573,full=394,partial=129,reject0=50} avg_tokens={commit=6.29,matched_draft=5.29,draft_slots=6.96} avg_ms={total=36.881,setup=0.002,cache_prep=0.389,target=26.929,match=0.000,commit=0.000,rollback=0.168,retry=0.000,draft=9.389,draft_first=9.355,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=2304 first_rank=576 avg={seq_tokens=8.00} avg_ms={total=25.976,setup=0.004,layers=24.800,head=1.172,other=0.001}.
+[Qwen3.5 MTP target profile] samples=576 tp_calls=576 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=26.616,setup=0.006,weight_prep=0.002,input_prep=0.094,embedding=0.129,cache_local=0.031,worker=26.188,meta_sync=0.030,sampling=0.133,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[91.32%, 83.51%, 77.60%, 71.70%, 70.14%, 69.27%, 68.92%].
+[Decode] alive = 1, pending = 0, context usages: 0.8%, Speed: 216.907379 tokens / s.
+[Qwen3.5 MTP worker profile] samples=2368 first_rank=592 avg={seq_tokens=8.00} avg_ms={total=25.957,setup=0.004,layers=24.781,head=1.171,other=0.001}.
