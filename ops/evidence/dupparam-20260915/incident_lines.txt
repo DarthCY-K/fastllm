@@ -1,0 +1,5 @@
+2026-09-15 00:17:20,685 63433 qwen3coder_tool_parser.py[line:543] WARNING: Failed to parse streamed Qwen tool call: Tool 'write' repeats parameter 'path'
+[Decode] alive = 1, pending = 2, context usages: 7.6%, Speed: 94.183945 tokens / s.
+[Prompt] 18 Tokens. Speed: 348.317169 tokens / s.
+2026-09-15 00:17:20,788 63433 fastllm_completion.py[line:3705] WARNING: Invalid stream tool call final state: malformed_tool_block at index None (Tool 'write' repeats parameter 'path')
+2026-09-15 00:17:20,788 63433 fastllm_completion.py[line:3710] WARNING: Invalid stream raw output: chars=26978 head='\n\n<tool_call>\n<function=write>\n<parameter=path>\nC:/Users/45271/pelican-bicycle.html\n</parameter>\n<parameter=content>\n<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>鹈鹕骑�

@@ -1,0 +1,19 @@
+== dupparam-lenient evidence   ==
+[service]
+MainPID=74886
+NRestarts=0
+ActiveState=active
+SubState=running
+[deployed md5]
+b253557592c542888568f44374a258df  /home/ai-agent/builds/upgrade-test/repo/tools/fastllm_pytools/openai_server/tool_parsers/qwen3coder_tool_parser.py
+b253557592c542888568f44374a258df  /home/ai-agent/builds/upgrade-test/overlay-fix/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py
+b253557592c542888568f44374a258df  /home/ai-agent/builds/upgrade-test/overlay-r2/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py
+b253557592c542888568f44374a258df  /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py
+a67d350d062782125304cfab44ab0ee7  /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py.wheelbak-20260915-pre-dupparam
+[gpu]
+0, 88 %, 17970 MiB, 70
+1, 76 %, 16610 MiB, 66
+2, 76 %, 16610 MiB, 71
+3, 77 %, 16590 MiB, 74
+[new-window error scan] Traceback|ERROR|CUDA error|NVRM count = 0
+[restart baseline line] 91163 -> events at 91125-91129; new window from 91164

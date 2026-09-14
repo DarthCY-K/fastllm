@@ -60,3 +60,12 @@
 - **假象排除**：`NCCL_DEBUG=INFO`+`SUBSYS=INIT,TUNING` → decode 期日志洪泛（935K 行/6min）→ decode 假摔 ~120（W1r/W1D 复现）；与配置无关
 - **候选未转正**：chunk2048+间隔16（c32 −10.5%、c64 −5.6%、decode 低 1–2% 观察）；retention 2/4/8 无差异
 - **依据**：`ops/docs/推理机-NCCL预填保留扫描-2026-09-14夜.md`；证据 `ops/evidence/nccl-night-20260914/`
+
+## 增补 5：工具调用重复同值参数宽容化（2026-09-15）
+
+- **事件**：00:17 一次长单文件任务的工具块尾部复读了 `path` 参数 → `malformed_tool_block` 整块拒绝（HTML 已完整仍作废）；全日志 3797 条请求中此类 2 次。
+- **变更**：`qwen3coder_tool_parser._build_tool_call` 改为「重复且同值 → 忽略重复项；重复且异值 → 仍拒绝」（仅 Python 解析层，不动引擎/采样）。
+- **验证**：新增 3 例 RED→GREEN（含 `FunctionCallParser` 门面复刻用例），`test/toolcall` 208 tests OK (skipped=1)；部署件自检 3 项 PASS；00:27:42 重启（PID 74886、~30s、0 Traceback）；401/401/200 + 非流式/流式工具回环 + Pi write/read 落盘核验。
+- **备份/回滚**：`qwen3coder_tool_parser.py.wheelbak-20260915-pre-dupparam` → `ops/deploy/rollback_dupparam_lenient.sh`；复现部署 `ops/deploy/apply_dupparam_lenient.sh`。
+- **部署件 md5**：`b253557592c542888568f44374a258df`（repo / overlay-fix / overlay-r2 / venv 一致）。
+- **依据**：`ops/docs/推理机-工具调用重复参数宽容化-2026-09-15.md`；证据 `ops/evidence/dupparam-20260915/`。
