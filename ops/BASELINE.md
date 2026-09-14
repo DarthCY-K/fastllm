@@ -50,3 +50,13 @@
   - 分支 `sm75-2080Ti-snapshot` = 原组装史（`47db364c`，等价旧 Gitea main）；
   - tags `r2-prod-20260914` / `dflash-tailfix-prod-20260914` / `backboneforce-prod-20260914` 仍指向 snapshot 链（等同内容）。
 - 部署机 remote：已移除 `gitea`，保留 `fork`（github）；日常推送 `git push fork sm75-2080Ti`。
+
+## 增补 4：NCCL_PROTO=LL128 转正 + B4 300K（2026-09-14 夜）
+
+- **变更**：生产 launcher 插入 `os.environ['NCCL_PROTO'] = 'LL128'`（23:01:53–23:02:21，PID 63433）。NCCL 实际选中 TREE+LL128（原 auto=RING+LL）
+- **备份/回滚**：`fastllm_prod_launch.py.bak-pre-ncclll128-20260914` → `scripts/rollback_nccl_ll128.sh`
+- **窗口证据（三窗 21:56–23:00；8 LL128 栈 vs 6 基线栈，含 b3 连续三连跑控制）**：c32 预填 ttft 34.0→29.1s（−14.4%）；c64 67.9→59.7s（−12.0%）；decode 不变（232.9–237.7 vs 229.4–235.2）；输出 md5 全同
+- **B4（转正后，295K）**：294,758-token count 任务 ttft 452.0s（预填均值 652 tok/s）、decode 169.1 tok/s、md5 `0785ac9ffdae`；同日志对照转正前针测（308,216 tok、518.9s、594 tok/s）：逐位置 +4~13%，全程均值 **+10.2%**
+- **假象排除**：`NCCL_DEBUG=INFO`+`SUBSYS=INIT,TUNING` → decode 期日志洪泛（935K 行/6min）→ decode 假摔 ~120（W1r/W1D 复现）；与配置无关
+- **候选未转正**：chunk2048+间隔16（c32 −10.5%、c64 −5.6%、decode 低 1–2% 观察）；retention 2/4/8 无差异
+- **依据**：`ops/docs/推理机-NCCL预填保留扫描-2026-09-14夜.md`；证据 `ops/evidence/nccl-night-20260914/`

@@ -1,0 +1,12 @@
+--- NCCL bench phase 21:56:16 ---
+bench phase done 21:56:36
+W0 done 21:59:44
+W1 done 22:01:08
+W2 done 22:02:33
+W3 done 22:03:51
+C1 done 22:06:27
+C2 done 22:09:00
+P2 done 22:10:48
+P4 done 22:12:36
+P8 done 22:14:30
+WINDOWB_DONE prod=1 22:14:56
