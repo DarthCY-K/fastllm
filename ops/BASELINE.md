@@ -29,3 +29,15 @@
 - **验证**：重启后 `TP prepared: 5 paired MLPs ...`（prod 日志行号 84551，其后无 skipped）；d200 233.4/233.4、c32 解码 222.1（对照无 force 带 220.3–225.7 / 209.0–212.6）；输出 md5 不变（`dacc241c7db8`/`b536474ba172`）；1M 上下文保持
 - **依据**：`ops/docs/推理机-FastLLM-开关扫描-2026-09-14.md`（11 配置扫描，唯一赢家，窗口 +7.6~7.9%）
 - **其他扫描结论**：fused/MTP 关闭项全部落 ±2% 噪声带（保持默认全开）；DFlash2 checkpoint `block_size=8` = 草稿块上限；chunked_prefill_size 已为 512
+
+## 增补 3：开机自启翻转 + 封版验收（2026-09-14 19:22–19:55）
+
+- **自启翻转**：`enable fastllm-qwen38-tp4` + `disable qwen38-0.2x-tp4`（脚本 `ops/deploy/flip_autostart.sh`）；**重启演练** 19:22:10 发起 → 140s 回线 → fastllm 自动起（PID 1912，SubState=running），旧 vLLM 未起；指纹齐全（1M session / Yarn gate / TP prepared / 0 Traceback）。回退 = 反向 enable/disable。
+- **soak v3**：`ops/deploy/soak_watch_v3.sh`；样本新增 `seed=/skip=` 计数（首样本 seed=1256 skip=4）。
+- **封版验收（全过）**：
+  - 工具回环：`finish=tool_calls, get_weather{city:Beijing}`；
+  - 长输出画像：thinking 长输出 3550 tok @134.6 tok/s；32K 上下文长解码 3892 tok @219.9（md5 `fc3292b2e08d`）；
+  - **1M 针测**：308,204-token 提示（针深 120K）→ 正确答 `X9J7-QUARTZ-3312`；`seeded: tokens=308216`（>262K 走 YaRN 外推 + 种子缓存正常）；预填 520.7s（均值 ~590 tok/s、尾段 435）；
+  - 虾跑分抽查：**86.8/100**（P80、8 科全 95、反思力 95）→ 历史带 84.6–87.8 内、无回归；https://paofen.cocoloop.cn/report/ses_1789386124795_oj5qbq
+- **#734 pick**：commit `bbf154bd`（仅入库未构建；下次构建携带）。
+- **制品**：`upgrade-test/artifacts/accept-final/`；本地 `hermes/cache/etfp8-ab/r2-20260914/accept-final/`；文档 `ops/docs/推理机-封版验收-2026-09-14.md`。
