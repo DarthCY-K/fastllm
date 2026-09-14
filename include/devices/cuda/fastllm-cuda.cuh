@@ -114,6 +114,11 @@ void FastllmCudaFinishInput(const fastllm::Data &input, void *data);
 void FastllmCudaFinishOutput(fastllm::Data &output, void *data);
 cublasHandle_t getFastllmCublasHandle();
 
+// Native lossless packed W8A16; addTo fuses bias plus residual, FP32 accumulation.
+void FastllmCudaMatMulPackedInt8Group128BF16(const fastllm::Data &input,
+    const fastllm::Data &weight, const fastllm::Data &bias, fastllm::Data &output,
+    int n, int m, int k, bool addTo = false);
+
 void FastllmCudaPickInput(uint8_t *input, uint8_t *partInput, int rows, int cols, int *cudaIndex);
 void FastllmCudaPickOutputFloat(float *partOutput, float *output, int rows, int cols, int *index, float *scales);
 void FastllmCudaPickOutput(uint8_t *partOutput, uint8_t *output, int rows, int cols, int *index, float *scales, fastllm::DataType dataType);

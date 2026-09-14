@@ -24,6 +24,7 @@
 
 #include "fastllm-cuda.cuh"
 #include "fastllm-multicuda.cuh"
+#include "fastllm-multicuda-packed-int8.h"
 #include "devices/multicuda/ncclsubmitrendezvous.h"
 #include "fastllm.h"
 #include "utils.h"
@@ -598,7 +599,8 @@ static bool IsRowContiguousNumaGateUpSource(const fastllm::Data &data) {
            data.dataType == fastllm::DataType::BFLOAT16 ||
            data.dataType == fastllm::DataType::FLOAT16 ||
            data.dataType == fastllm::DataType::FP8_E4M3_BLOCK_128 ||
-           data.dataType == fastllm::DataType::FP8_E4M3_PERCHANNEL;
+           data.dataType == fastllm::DataType::FP8_E4M3_PERCHANNEL ||
+           data.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16;
 }
 
 static size_t GetRowContiguousNumaGateUpRowBytes(const fastllm::Data &data, int columns) {
@@ -608,6 +610,9 @@ static size_t GetRowContiguousNumaGateUpRowBytes(const fastllm::Data &data, int 
 
 static int GetMultiCudaSplitUnit(const fastllm::Data &data, int splitAxis) {
     int unit = data.groupCnt <= 0 ? 128 : data.groupCnt;
+    if (data.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16) {
+        unit = 128; // K shards must preserve entire inline BF16-scale groups.
+    }
     if (data.dataType == fastllm::DataType::FP8_E4M3) {
         int blockSize = splitAxis == 0 ? data.blockK : data.blockM;
         if (blockSize > 0) {
@@ -674,6 +679,10 @@ static void InitMultiCudaLocalTensorMeta(const fastllm::Data &src, fastllm::Data
     dst.directMemory = src.directMemory;
     dst.group = src.group;
     dst.groupCnt = src.groupCnt;
+    if (src.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16 && dst.dims.size() == 2) {
+        dst.groupCnt = 128;
+        dst.group = dst.dims[1] / 128;
+    }
     dst.blockK = src.blockK;
     dst.blockM = src.blockM;
     // NVFP4_BLOCK_16 stores its block scales inline.  Its scales vector only
@@ -1030,6 +1039,13 @@ bool SplitMultiCudaWeight(fastllm::Data &weight, fastllm::Data &bias,
     int deviceNum = multiCudaCurrentDevices.size();
     int rootDevice = deviceNum > 0 ? multiCudaCurrentDevices[0] : 0;
     BalanceDivisionSchemeByLayer(weight, multiCudaCurrentDevices, divisionScheme, explicitDeviceRatios);
+    if (weight.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16) {
+        fastllm::AssertInFastLLM(weight.dims.size() == 2, "packed INT8 TP requires 2D weight.");
+        // Validate all ranges before allocating or touching CUDA, including user schemes.
+        for (int device : multiCudaCurrentDevices) {
+            fastllm_packed_int8_tp::Plan(weight.dims[0], weight.dims[1], splitAxis, divisionScheme[device]);
+        }
+    }
     auto hasRequestedLocalTensors = [&]() {
         if (!weight.multiDeviceData) {
             return false;
@@ -1205,6 +1221,23 @@ bool SplitMultiCudaWeight(fastllm::Data &weight, fastllm::Data &bias,
                         }
                     }
                     curLen += copyLen;
+                }
+            } else if (weight.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16) {
+                auto plan = fastllm_packed_int8_tp::Plan(k, m, 0, div);
+                for (auto &c : plan.copies) {
+                    state = FastllmCudaMemcpy2D((uint8_t*)deviceWeightData + c.dst, c.dstPitch,
+                        (uint8_t*)sourceWeightData + c.src, c.srcPitch, c.width, c.height,
+                        GetCudaMemcpyType(mallocType, sourceWeightType), deviceId, rootDevice);
+                    if (state != cudaSuccess) break;
+                }
+                if (state == cudaSuccess && hasBias) {
+                    for (auto &range : div) {
+                        size_t count = range.second - range.first;
+                        state = cudaMemcpy(deviceBiasData + curLen, cudaBiasData + range.first,
+                            count * sizeof(float), GetCudaMemcpyType(mallocType, 1));
+                        if (state != cudaSuccess) break;
+                        curLen += count;
+                    }
                 }
             } else if (IsGGUFTensor(weight)) {
                 size_t rowBytes = GetGGUFRowBytes(weight, m);
@@ -1388,6 +1421,14 @@ bool SplitMultiCudaWeight(fastllm::Data &weight, fastllm::Data &bias,
                 // handled by the common error path below
             } else if (emptyShard) {
                 // This can happen when the number of GPUs is larger than the number of aligned TP blocks.
+            } else if (weight.dataType == fastllm::DataType::PACKED_INT8_GROUP128_BF16) {
+                auto plan = fastllm_packed_int8_tp::Plan(k, m, 1, div);
+                for (auto &c : plan.copies) {
+                    state = FastllmCudaMemcpy2D((uint8_t*)deviceWeightData + c.dst, c.dstPitch,
+                        (uint8_t*)sourceWeightData + c.src, c.srcPitch, c.width, c.height,
+                        GetCudaMemcpyType(mallocType, sourceWeightType), deviceId, rootDevice);
+                    if (state != cudaSuccess) break;
+                }
             } else if (IsGGUFTensor(weight)) {
                 size_t srcRowBytes = GetGGUFRowBytes(weight, m);
                 size_t dstRowBytes = GetGGUFRowBytes(*weight.multiDeviceDatas[deviceId], len);
