@@ -121,6 +121,13 @@ ftllm server DeepSeek-V3-0324-Q4_K_M-00001-of-00009.gguf --ori DeepSeek-V3
     - **简写**: `--device cudapp=N` 表示 N 卡均匀串行，例如 `--device cudapp=4` 等价于 `--device "{'cuda:0':1,'cuda:1':1,'cuda:2':1,'cuda:3':1}"`
     - **简写**: `--device cudapp=1:2:3` 表示三卡按 1:2:3 比例串行
 
+- `--vision_device`:
+  - **描述**: 指定 Qwen3.5 / Qwen3.6 / Qwen3.8 视觉编码器的运行设备。默认 `auto`，使用首个前向 GPU（与历史行为一致）。设为 `cpu` 时视觉塔权重常驻内存并在 CPU 上完成编码，可省下约 0.9 GB 显存，代价是图像编码速度明显下降。
+  - **取值**: `auto`、`cpu`、`cuda`、`cuda:N`
+  - **设备编号**: `cuda:N` 中的 `N` 是当前进程可见的 GPU 编号，受 `CUDA_VISIBLE_DEVICES` 影响；编号必须存在。无 CUDA 构建不能使用 `cuda` / `cuda:N`。
+  - **环境变量**: 未指定命令行参数时读取 `FASTLLM_QWEN35_VISION_DEVICE`，未设置时使用 `auto`；显式命令行参数优先。
+  - **示例**: `--vision_device cpu`、`--vision_device cuda:1`
+
 - `--moe_device`:
   - **描述**: 指定 MOE 层的计算设备。一般和 `--device` 指定为不同的设备来实现混合推理。如果模型不是 MOE 结构，此参数不会生效。
   - **示例**: `--moe_device cpu`、`--moe_device numa`
@@ -201,6 +208,18 @@ ftllm server DeepSeek-V3-0324-Q4_K_M-00001-of-00009.gguf --ori DeepSeek-V3
   - **描述**: 指定工具调用（function calling）的解析器类型。
   - **默认值**: `auto`（根据模型自动选择）
   - **示例**: `--tool_call_parser auto`
+
+### Qwen3.5 MTP 随机草稿
+
+默认 MTP 使用贪心草稿；目标模型仍按请求的 temperature/top-k/top-p 进行精确采样。对于草稿接受率较低的写作等场景，可以尝试随机草稿：
+
+```sh
+FASTLLM_QWEN35_MTP_RANDOM_DRAFT=1 ftllm server /path/to/model --tp 2 --mtp 5 --speculative_algorithm mtp
+```
+
+环境变量必须在启动前设置为 `1`；未设置或设为 `0` 时使用默认策略。该选项仅对已有 MTP 支持的单请求、非贪心 CUDA 路径生效，使用请求的温度及 top-k/top-p 过滤，最多保存 64 个草稿候选，并按实际草稿概率做拒绝验证。greedy 请求、DFlash 和多请求批处理沿用各自原有策略。
+
+随机草稿会增加过滤、抽样和候选传输开销；接受率接近 100% 的复制或固定格式输出通常没有收益。应按实际负载比较解码速度，不能只比较接受率。长预填充的首次单 token 播种仍使用贪心草稿，随后进入所选草稿策略。
 
 ### 服务部署参数
 
