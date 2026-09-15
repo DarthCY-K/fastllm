@@ -356,7 +356,8 @@ if (USE_CUDA)
     endif()
     #message(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
     set(FASTLLM_CUDA_SOURCES src/devices/cuda/cudadevice.cpp src/devices/cuda/cudadevicebatch.cpp 
-        src/devices/cuda/fastllm-cuda.cu 
+        src/devices/cuda/fastllm-cuda.cu
+        src/devices/cuda/fastllm-cuda-mtp.cu
         src/devices/cuda/fastllm-triton-cuda.cu
         src/devices/cuda/fastllm-ggml-cuda.cu
         src/devices/cuda/gguf_mmq/fastllm-gguf-mmq.cu
@@ -644,6 +645,10 @@ target_link_libraries(quant fastllm)
 
 if (UNIT_TEST)
     enable_testing()
+    add_executable(device_operator_lifetime_test test/basic/test_device_operator_lifetime.cpp)
+    target_link_libraries(device_operator_lifetime_test PRIVATE fastllm)
+    add_test(NAME device_operator_lifetime COMMAND device_operator_lifetime_test)
+
     find_package(Threads REQUIRED)
     add_executable(ncclSubmitRendezvousRegression test/ops/ncclSubmitRendezvousRegression.cpp)
     target_include_directories(ncclSubmitRendezvousRegression PRIVATE include)
@@ -708,7 +713,20 @@ if (UNIT_TEST)
         target_link_libraries(qwen35_mtp_tp_wide_test PRIVATE fastllm)
         add_test(NAME qwen35_mtp_tp_wide COMMAND qwen35_mtp_tp_wide_test --smoke)
         set_tests_properties(qwen35_mtp_tp qwen35_mtp_tp_wide
-                             PROPERTIES LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE)
+                             PROPERTIES LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE
+                             PASS_REGULAR_EXPRESSION "TOTAL [0-9]+ PASS")
+        add_executable(cuda_mtp_gumbel_test test/basic/test_cuda_mtp_gumbel.cpp)
+        target_link_libraries(cuda_mtp_gumbel_test PRIVATE fastllm)
+        target_include_directories(cuda_mtp_gumbel_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        add_test(NAME cuda_mtp_gumbel COMMAND cuda_mtp_gumbel_test)
+        set_tests_properties(cuda_mtp_gumbel PROPERTIES LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE
+                             PASS_REGULAR_EXPRESSION "MTP Gumbel/rejection: PASS")
+        add_executable(cuda_mtp_rejection_test test/basic/test_cuda_mtp_rejection.cpp)
+        target_link_libraries(cuda_mtp_rejection_test PRIVATE fastllm)
+        target_include_directories(cuda_mtp_rejection_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        add_test(NAME cuda_mtp_rejection COMMAND cuda_mtp_rejection_test)
+        set_tests_properties(cuda_mtp_rejection PROPERTIES LABELS "cuda" SKIP_RETURN_CODE 77)
+
         add_executable(qwen35_mtp_sample_row_test test/basic/test_qwen35_mtp_sample_row.cpp)
         target_link_libraries(qwen35_mtp_sample_row_test PRIVATE fastllm)
         add_test(NAME qwen35_mtp_sample_row COMMAND qwen35_mtp_sample_row_test)
@@ -770,6 +788,13 @@ if (UNIT_TEST)
                 set_tests_properties(cuda_fp8_perchannel_dispatch PROPERTIES LABELS cuda SKIP_RETURN_CODE 77)
             endif()
         endif()
+
+        add_executable(cuda_fp8_cache_tp_test test/basic/test_cuda_fp8_cache_tp.cpp)
+        target_link_libraries(cuda_fp8_cache_tp_test PRIVATE fastllm Threads::Threads)
+        target_include_directories(cuda_fp8_cache_tp_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        add_test(NAME cuda_fp8_cache_tp COMMAND cuda_fp8_cache_tp_test)
+        set_tests_properties(cuda_fp8_cache_tp PROPERTIES
+                             LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 30)
 
         add_executable(cuda_single_query_attention_test test/basic/test_cuda_single_query_attention.cpp)
         target_link_libraries(cuda_single_query_attention_test PRIVATE fastllm)
