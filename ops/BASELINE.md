@@ -69,3 +69,14 @@
 - **备份/回滚**：`qwen3coder_tool_parser.py.wheelbak-20260915-pre-dupparam` → `ops/deploy/rollback_dupparam_lenient.sh`；复现部署 `ops/deploy/apply_dupparam_lenient.sh`。
 - **部署件 md5**：`b253557592c542888568f44374a258df`（repo / overlay-fix / overlay-r2 / venv 一致）。
 - **依据**：`ops/docs/推理机-工具调用重复参数宽容化-2026-09-15.md`；证据 `ops/evidence/dupparam-20260915/`。
+
+## 增补 6：上游 61c288a9c 合并 + r5 转正（2026-09-16）
+
+- **代码基线**：fork `sm75-2080Ti` @ `e3b65d3b` = 上游 master `61c288a9c` 合并（12 提交，三方自动合并 **0 冲突**）+ r4 carry 提交（issue #726 DFlash 注意力 stream 同步 + PR #663 tool-content 结构化分支）。合并提交 `edd1b29f`（parents `72355e9e` + `61c288a9c`）；回滚 tag `pre-upstream-merge-r5-20260916` → `72355e9e`。
+- **上游增量取舍**：对本机（SM75/TP4）有效 = 空头并行卡前缀缓存恢复 `61c288a9`、推理工作区复用/显存预留 `b6efee12`、有界 CUDA 工作区 `d5c2838b`、视觉 TP 四连；**无效** = 双卡预填充加速 `ce7057ba`（官方限定 TP=2 且两卡 SM80/86 eager）、Ampere FP8 marlin 多行 GEMV `15431f65`（SM80/86）、`--mtp_fp8_draft_head` `5f35930a`（本栈 native MTP off）、custom-AR 自检 `ea7965c5`（本栈恒回落 NCCL，且 #739 实测自定义 AR 反慢 12–13%）。#726 上游**仍未修**，carry 补丁继续自带。
+- **构建**：`BUILD_OK`（5 分钟，配方同 r3/r4）；产物 `libfastllm_tools.so` **124,515,752 B** md5 `06779c196df5a944c95dd25fde8d491f`；`.so` 指纹 `ALLOW_YARN_WITH_DFLASH=2`、`selector_q=1`、`FASTLLM_TP2_MLP_OVERLAP=1`。源码身份用 `git show HEAD:<path> | sha256sum` 与盒子 `repo-r5` 逐字节对齐（5 文件全一致）。
+- **验收**：冒烟窗口（`SMOKE_DONE ready=1 prod=1`，count200 md5 `0785ac9ffdae` 与生产逐字节一致、desync=0、`role=tool`+对象 content → 200）+ 尾块收敛探针全 PASS（tail16 227.2 / tail62 225.9 / control300 213.7，md5 `813902afb70a`）+ 全量 A/B（出现 64K/128K digits「疑似回归」−3.5~4.6%）+ **定向复测推翻该结论**（3 重复 × 输出逐字节对齐：64K cold 1.002 / 64K warm 1.000 / 128K cold 1.007 / 128K warm 1.001；引擎侧 median prodA 199.0 vs r5 200.3；TTFT 持平）。
+- **转正**：10:31 `switch_to_r5.sh` → `SWITCH_DONE ready=1 pkg=r5 so=06779c19…`；转正后 post_switch_probe 与尾块探针全 PASS、desync=0、空载显存 17752/16438/16438/16418 MiB。**回滚**：`ftllm.backup-20260916-pre-r5`（617M）+ `ops/deploy/rollback_r5.sh`。
+- **仓库**：tag `r5-prod-20260916`；基线 `artifacts/R5_BASELINE_20260916.{bundle(43MB),md}`；`compare/ztxz16:master...sm75-2080Ti` = ahead 18 / behind 0。soak 标签已改 `build=r5+e3b65d3b(upstream61c288a9c)`（`build=` 是硬编码，转正后必须同步改）。
+- **依据**：`ops/docs/推理机-FastLLM-r5上游合并-验收记录-2026-09-16.md`；套件与探针 `ops/bench/ab_r5_suite.py`、`ops/bench/ab_r5_focus.py`、`ops/bench/run_ab_r5_focus.sh`、`ops/bench/r5_probe.py`、`ops/bench/r5_extra.py`、`ops/bench/r5_tail_probe2.py`；窗口编排 `ops/deploy/run_smoke_r5.sh`、`ops/deploy/run_tail_r5.sh`；证据 `ops/evidence/r5-20260916/`。
+- **新增方法学纪律**：①长上下文 decode 单次采样差不得当回归（≥3 重复 + 输出 md5 逐字节对齐 + prod 两头漂移带）；②接受率随窗口推进单调变化属位置/热效应，不归因构建；③内存探针拆 pass1/pass2（r5 稳态 +4.6 kB/req vs prod 0.6–1.0，待 >1h soak 定性）；④同一 ssh 命令行里 `pkill -f '<script>.sh'` 与 `bash <script>.sh` 并存会自杀，清理与启动必须分次、按 PID 杀。

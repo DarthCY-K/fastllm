@@ -1,0 +1,101 @@
+{
+ "tag": "POST_R5_TAIL",
+ "when": "2026-09-16 10:31:00",
+ "base": "http://127.0.0.1:8080",
+ "chunk": 512,
+ "checks": [
+  {
+   "name": "precondition_tail16",
+   "ok": true,
+   "detail": "prompt_tokens=15888 mod_512=16 attempts=2"
+  },
+  {
+   "name": "decode_tail16",
+   "ok": true,
+   "detail": "decode=227.2 tok/s (degraded ~52 / healthy ~200+), ttft=15.323"
+  },
+  {
+   "name": "precondition_tail62",
+   "ok": true,
+   "detail": "prompt_tokens=15934 mod_512=62 attempts=2"
+  },
+  {
+   "name": "decode_tail62",
+   "ok": true,
+   "detail": "decode=225.9 tok/s (degraded ~52 / healthy ~200+), ttft=14.55"
+  },
+  {
+   "name": "precondition_control300",
+   "ok": true,
+   "detail": "prompt_tokens=16256 mod_512=384 attempts=1"
+  },
+  {
+   "name": "decode_control300",
+   "ok": true,
+   "detail": "decode=213.7 tok/s (degraded ~52 / healthy ~200+), ttft=13.508"
+  },
+  {
+   "name": "turn2_ok",
+   "ok": true,
+   "detail": "TURN2_OK ttft=13.52"
+  }
+ ],
+ "probes": [
+  {
+   "ttft": 15.323,
+   "total": 16.731,
+   "ctok": 320,
+   "decode_tps_client": 227.2,
+   "finish": "length",
+   "md5": "813902afb70a",
+   "last": "7 98 99 100 101 102 103 104 105 106 107 ",
+   "kind": "tail16",
+   "attempt": 2,
+   "filler_requested": 16124,
+   "prompt_tokens_actual": 15888,
+   "mod_512": 16,
+   "accepted": true
+  },
+  {
+   "ttft": 14.55,
+   "total": 15.966,
+   "ctok": 320,
+   "decode_tps_client": 225.9,
+   "finish": "length",
+   "md5": "813902afb70a",
+   "last": "7 98 99 100 101 102 103 104 105 106 107 ",
+   "kind": "tail62",
+   "attempt": 2,
+   "filler_requested": 16180,
+   "prompt_tokens_actual": 15934,
+   "mod_512": 62,
+   "accepted": true
+  },
+  {
+   "ttft": 13.508,
+   "total": 15.005,
+   "ctok": 320,
+   "decode_tps_client": 213.7,
+   "finish": "length",
+   "md5": "813902afb70a",
+   "last": "7 98 99 100 101 102 103 104 105 106 107 ",
+   "kind": "control300",
+   "attempt": 1,
+   "filler_requested": 16503,
+   "prompt_tokens_actual": 16256,
+   "mod_512": 384,
+   "accepted": true
+  }
+ ],
+ "template_offset": 12,
+ "turn2": {
+  "ttft": 13.52,
+  "total": 13.561,
+  "ctok": 3,
+  "decode_tps_client": 74.2,
+  "finish": "stop",
+  "md5": "179838e25d7a",
+  "last": "TURN2_OK"
+ },
+ "ok": true
+}
