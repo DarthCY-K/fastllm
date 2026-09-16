@@ -1475,6 +1475,15 @@ class FastLLmCompletion:
                                       tool_call_id=tool_call_id,
                                       name=name,
                                       reasoning_content=reasoning_content)], empty_media
+      if role == "tool" and isinstance(content, dict):
+          # PR #663: OpenAI clients commonly send a JSON object as the tool
+          # message content; serialize it instead of rejecting the request.
+          return [ConversationMessage(role=role,
+                                      content=self._serialize_tool_arguments(content),
+                                      tool_calls=tool_calls,
+                                      tool_call_id=tool_call_id,
+                                      name=name,
+                                      reasoning_content=reasoning_content)], empty_media
       if isinstance(content, list):
           parsed_content, media = self._parse_openai_content_parts(content)
           return [ConversationMessage(role=role, content=parsed_content,
