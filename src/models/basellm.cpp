@@ -20,6 +20,15 @@
 
 namespace fastllm {
     namespace {
+        static bool FastllmPrefixDiagEnabled() {
+            static int v = -1;
+            if (v < 0) {
+                const char *e = getenv("FT_PREFIX_DIAG");
+                v = (e != nullptr && atoi(e) != 0) ? 1 : 0;
+            }
+            return v != 0;
+        }
+
         static bool NeedRepeatPenalty(const GenerationConfig &config) {
             float diff = config.repeat_penalty - 1.0f;
             return diff > 1e-6f || diff < -1e-6f;
@@ -585,6 +594,11 @@ namespace fastllm {
     }
 
     void ResponseContext::TryRecordPagedCache(basellm *model) {
+        if (FastllmPrefixDiagEnabled()) {
+            printf("[PrefixDiag] TryRecord: ctx=%p mm=%d allTokens=%d\n",
+                   (void *) this, (int) this->multimodalInput.size(),
+                   (int) this->allTokens.size());
+        }
         bool hasLinearAttentionCache = false;
         bool hasBoundedAttentionCache = false;
         for (int i = 0; i < (int)this->pastKeyValues.size(); i++) {
@@ -600,6 +614,11 @@ namespace fastllm {
         }
         bool recordedPrefixExtra =
             model != nullptr && model->TryRecordPagedPrefixCacheExtra(this);
+        if (FastllmPrefixDiagEnabled()) {
+            printf("[PrefixDiag] TryRecord: linear=%d bounded=%d extra=%d mm=%d\n",
+                   (int) hasLinearAttentionCache, (int) hasBoundedAttentionCache,
+                   (int) recordedPrefixExtra, (int) this->multimodalInput.size());
+        }
         if ((hasLinearAttentionCache || hasBoundedAttentionCache) &&
             !recordedPrefixExtra) {
             return;
@@ -1945,6 +1964,12 @@ namespace fastllm {
                                 };
 
                                 int minCachedPages = (int)queryManager(probeManager).size();
+                                if (FastllmPrefixDiagEnabled()) {
+                                    printf("[PrefixDiag] PagedQuery: ctx=%p mm=%d curTokens=%d pages=%d pageLen=%d\n",
+                                           (void *) ctx, (int) ctx->multimodalInput.size(),
+                                           (int) ctx->currentTokens.size(), minCachedPages,
+                                           probeManager->pageLen);
+                                }
                                 if (minCachedPages > 0) {
                                     for (int li = 0; li < model->block_cnt; li++) {
                                         if (queryUnboundedLayersOnly &&

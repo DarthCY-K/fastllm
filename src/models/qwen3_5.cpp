@@ -50,6 +50,26 @@
 
 namespace fastllm {
 
+    namespace {
+        static bool FastllmPrefixDiagEnabled() {
+            static int v = -1;
+            if (v < 0) {
+                const char *e = getenv("FT_PREFIX_DIAG");
+                v = (e != nullptr && atoi(e) != 0) ? 1 : 0;
+            }
+            return v != 0;
+        }
+
+        static bool Qwen35MmcacheSeedEnabled() {
+            static int v = -1;
+            if (v < 0) {
+                const char *e = getenv("FT_QWEN35_MM_CACHE_SEED");
+                v = (e == nullptr || atoi(e) != 0) ? 1 : 0;
+            }
+            return v != 0;
+        }
+    }
+
 #ifdef USE_CUDA
     struct Qwen35VisionTPState {
         struct Rank {
@@ -5240,12 +5260,24 @@ namespace fastllm {
                 return nullptr;
             }
             const Qwen35LinearPrefixSnapshot *best = nullptr;
+            int diagCandidates = 0;
             for (auto &snapshotPtr : it->second) {
                 Qwen35LinearPrefixSnapshot *snapshot = snapshotPtr.get();
                 if (snapshot == nullptr || snapshot->cachedLen <= 0 ||
                     snapshot->cachedLen > maxCachedLen ||
                     snapshot->cachedLen > (int)tokens.size()) {
                     continue;
+                }
+                if (FastllmPrefixDiagEnabled() && diagCandidates < 16) {
+                    diagCandidates++;
+                    bool diagTokensEq =
+                        (int) snapshot->tokens.size() == snapshot->cachedLen &&
+                        std::equal(snapshot->tokens.begin(),
+                                   snapshot->tokens.end(), tokens.begin());
+                    printf("[PrefixDiag] Find cand: len=%d dflash=%d mtp=%d tokensEq=%d reqDFlash=%d\n",
+                           snapshot->cachedLen, (int) snapshot->dflashValid,
+                           (int) snapshot->mtpValid, (int) diagTokensEq,
+                           (int) requireDFlash);
                 }
                 if (exactLen >= 0 && snapshot->cachedLen != exactLen) {
                     continue;
@@ -5275,6 +5307,11 @@ namespace fastllm {
                      snapshot->timestamp > best->timestamp)) {
                     best = snapshot;
                 }
+            }
+            if (FastllmPrefixDiagEnabled()) {
+                printf("[PrefixDiag] Find: snapshots=%d best=%d\n",
+                       (int) it->second.size(),
+                       best == nullptr ? -1 : best->cachedLen);
             }
             return best;
         }
@@ -9937,21 +9974,39 @@ namespace fastllm {
         if (context == nullptr ||
             !Qwen35LinearPrefixCacheEnabled() ||
             !Qwen35HasLinearAttentionLayers(this, this->block_cnt)) {
+            if (FastllmPrefixDiagEnabled()) {
+                printf("[PrefixDiag] Rec bail: guard ctx=%p lin=%d has=%d\n",
+                       (void *) context, (int) Qwen35LinearPrefixCacheEnabled(),
+                       (int) (context != nullptr && Qwen35HasLinearAttentionLayers(this, this->block_cnt)));
+            }
             return false;
         }
         int pageLen = fastllm::GetPageLen();
         int currentLen = Qwen35CurrentTokenGrowingCacheLen(this, this->block_cnt, context->pastKeyValues);
         if (currentLen <= 0 || currentLen > (int)context->allTokens.size() ||
             currentLen % pageLen != 0) {
+            if (FastllmPrefixDiagEnabled()) {
+                printf("[PrefixDiag] Rec bail: len cur=%d allTokens=%d pageLen=%d mm=%d\n",
+                       currentLen, (int) context->allTokens.size(), pageLen,
+                       (int) context->multimodalInput.size());
+            }
             return false;
         }
         int lastSnapshotLen = context->intParams["qwen35_linear_prefix_last_len"];
         int snapshotCount = context->intParams["qwen35_linear_prefix_count"];
         if (currentLen <= lastSnapshotLen) {
+            if (FastllmPrefixDiagEnabled()) {
+                printf("[PrefixDiag] Rec bail: no-advance cur=%d last=%d mm=%d\n",
+                       currentLen, lastSnapshotLen, (int) context->multimodalInput.size());
+            }
             return false;
         }
         int interval = Qwen35LinearPrefixSnapshotIntervalTokens();
         if (snapshotCount > 0 && currentLen % interval != 0) {
+            if (FastllmPrefixDiagEnabled()) {
+                printf("[PrefixDiag] Rec bail: interval cur=%d interval=%d cnt=%d mm=%d\n",
+                       currentLen, interval, snapshotCount, (int) context->multimodalInput.size());
+            }
             return false;
         }
         int requestId = context->intParams["qwen35_linear_prefix_request_id"];
@@ -9977,6 +10032,11 @@ namespace fastllm {
             if (i >= (int)context->pastKeyValues.size() ||
                 !Qwen35SnapshotCopyCache(context->pastKeyValues[i].first, snapshot->layers[i].first) ||
                 !Qwen35SnapshotCopyCache(context->pastKeyValues[i].second, snapshot->layers[i].second)) {
+                if (FastllmPrefixDiagEnabled()) {
+                    printf("[PrefixDiag] Rec bail: linear-copy layer=%d pkv=%d block=%d mm=%d\n",
+                           i, (int) context->pastKeyValues.size(), (int) this->block_cnt,
+                           (int) context->multimodalInput.size());
+                }
                 return false;
             }
         }
@@ -9992,6 +10052,15 @@ namespace fastllm {
                     dflashIt->second.committedTokens != currentLen ||
                     (int)dflashIt->second.draftKeyValues.size() !=
                         dflashLayers) {
+                    if (FastllmPrefixDiagEnabled()) {
+                        printf("[PrefixDiag] Rec bail: dflash state found=%d committed=%d need=%d layers=%d/%d mm=%d\n",
+                               (int) (dflashIt != dflashContexts.end()),
+                               (dflashIt != dflashContexts.end()) ? dflashIt->second.committedTokens : -1,
+                               currentLen,
+                               (dflashIt != dflashContexts.end()) ? (int) dflashIt->second.draftKeyValues.size() : -1,
+                               dflashLayers,
+                               (int) context->multimodalInput.size());
+                    }
                     return false;
                 }
                 snapshot->dflashKeyValues.resize(dflashLayers);
@@ -10013,6 +10082,12 @@ namespace fastllm {
                         !Qwen35SnapshotCopyCompactTensor(
                             value,
                             snapshot->dflashKeyValues[layer].second)) {
+                        if (FastllmPrefixDiagEnabled()) {
+                            printf("[PrefixDiag] Rec bail: dflash dims layer=%d ks=%d vs=%d need layers=%d heads=%d dim=%d mm=%d\n",
+                                   layer, (int) key.dims.size(), (int) value.dims.size(),
+                                   dflashLayers, dflashKvHeads, dflashHeadDim,
+                                   (int) context->multimodalInput.size());
+                        }
                         return false;
                     }
                 }
@@ -10049,6 +10124,11 @@ namespace fastllm {
 #endif
         }
 
+        if (FastllmPrefixDiagEnabled()) {
+            printf("[PrefixDiag] Rec OK: len=%d mm=%d dflash=%d mtp=%d\n",
+                   currentLen, (int) context->multimodalInput.size(),
+                   (int) snapshot->dflashValid, (int) snapshot->mtpValid);
+        }
         {
             std::lock_guard<std::mutex> guard(Qwen35LinearPrefixSnapshotsMutex());
             auto &items = Qwen35LinearPrefixSnapshots()[this];
@@ -10147,6 +10227,13 @@ namespace fastllm {
                 this, context->currentTokens, maxCachedLen, -1,
                 requireMtp, requireDFlash, dflashLayers,
                 dflashKvHeads, dflashHeadDim);
+        if (FastllmPrefixDiagEnabled()) {
+            printf("[PrefixDiag] Qry: mm=%d curTokens=%d maxCached=%d reqMtp=%d reqDFlash=%d -> %d\n",
+                   (int) context->multimodalInput.size(),
+                   (int) context->currentTokens.size(), maxCachedLen,
+                   (int) requireMtp, (int) requireDFlash,
+                   snapshot == nullptr ? 0 : snapshot->cachedLen);
+        }
         return snapshot == nullptr ? 0 : snapshot->cachedLen;
     }
 
@@ -33510,6 +33597,14 @@ namespace fastllm {
             !Qwen35MtpDisabledByEnv() && HasMtpWeights() &&
             Qwen35MtpDraftsPerStep() > 0;
 
+        if (FastllmPrefixDiagEnabled()) {
+            printf("[PrefixDiag] MMSeed: canSeed=%d seedDFlash=%d seedMtp=%d preTokens=%d totalLen=%d cacheLen=%d mm=%d\n",
+                   (int) canSeedDraftCache, (int) seedDFlash, (int) seedMtp,
+                   context != nullptr ? context->preTokens : -1, totalLen,
+                   context != nullptr ? context->cacheLen : -1,
+                   context != nullptr ? (int) context->multimodalInput.size() : -1);
+        }
+
         if (seedDFlash || seedMtp) {
             hiddenStates.ToDevice(DataDevice::CPU);
             FastllmCudaClearBigBuffer();
@@ -33757,6 +33852,18 @@ namespace fastllm {
                         releaseDFlashHidden();
                         if (!appended) {
                             seedDFlash = false;
+                        }
+                    }
+                    if (context != nullptr && Qwen35MmcacheSeedEnabled()) {
+                        // Mirror the text long-prefill seeding: record a paged
+                        // prefix snapshot at every page-aligned chunk boundary.
+                        // Multimodal prefill otherwise only attempts recording
+                        // at end of turn, where the length is rarely aligned,
+                        // so image requests would never seed the prefix cache.
+                        const int cachedTokens =
+                            context->cacheLen + st + curLen;
+                        if (cachedTokens % fastllm::GetPageLen() == 0) {
+                            context->TryRecordPagedCache(this);
                         }
                     }
                 }
