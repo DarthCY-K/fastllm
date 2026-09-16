@@ -1,0 +1,110 @@
+{
+  "profile": "no_yarn_262k_global_kv_1m_max_batch_4",
+  "started_at_unix": 1789551645.6818366,
+  "elapsed_s": 1459.123,
+  "target_prompt_tokens_per_stream": 200000,
+  "max_output_tokens_per_stream": 32768,
+  "stream_count": 4,
+  "results": [
+    {
+      "case": 0,
+      "planned_prompt_tokens": 200000,
+      "http": 200,
+      "elapsed_s": 1459.096,
+      "ttft_s": 1.351,
+      "usage": {
+        "prompt_tokens": 199960,
+        "total_tokens": 232728,
+        "completion_tokens": 32768,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "missed_tokens": 199960
+        }
+      },
+      "finish_reason": "length",
+      "sse_chunks": 4100,
+      "content_chars": 32768
+    },
+    {
+      "case": 1,
+      "planned_prompt_tokens": 200000,
+      "http": 200,
+      "elapsed_s": 1459.096,
+      "ttft_s": 1.35,
+      "usage": {
+        "prompt_tokens": 199960,
+        "total_tokens": 232728,
+        "completion_tokens": 32768,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "missed_tokens": 199960
+        }
+      },
+      "finish_reason": "length",
+      "sse_chunks": 4100,
+      "content_chars": 32768
+    },
+    {
+      "case": 2,
+      "planned_prompt_tokens": 200000,
+      "http": 200,
+      "elapsed_s": 1459.095,
+      "ttft_s": 1.351,
+      "usage": {
+        "prompt_tokens": 199960,
+        "total_tokens": 232728,
+        "completion_tokens": 32768,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "missed_tokens": 199960
+        }
+      },
+      "finish_reason": "length",
+      "sse_chunks": 4100,
+      "content_chars": 32768
+    },
+    {
+      "case": 3,
+      "planned_prompt_tokens": 200000,
+      "http": 200,
+      "elapsed_s": 1459.096,
+      "ttft_s": 1.352,
+      "usage": {
+        "prompt_tokens": 199960,
+        "total_tokens": 232728,
+        "completion_tokens": 32768,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "missed_tokens": 199960
+        }
+      },
+      "finish_reason": "length",
+      "sse_chunks": 4100,
+      "content_chars": 32768
+    }
+  ],
+  "gpu_peaks": [
+    {
+      "gpu": 0,
+      "peak_mem_mib": 16770,
+      "peak_util_pct": 97
+    },
+    {
+      "gpu": 1,
+      "peak_mem_mib": 14884,
+      "peak_util_pct": 96
+    },
+    {
+      "gpu": 2,
+      "peak_mem_mib": 14886,
+      "peak_util_pct": 96
+    },
+    {
+      "gpu": 3,
+      "peak_mem_mib": 14864,
+      "peak_util_pct": 96
+    }
+  ],
+  "sample_count": 1389,
+  "acceptance_pass": true
+}
