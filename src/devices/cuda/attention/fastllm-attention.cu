@@ -1645,6 +1645,13 @@ bool FastllmCudaDFlashAttention(
             (long long)valueDim * queries * group, heads / group);
     }
     cudaError_t cudaState = cudaPeekAtLastError();
+    // 2026-09-15 (upstream issue #726): the kernels above run on cudaStreamPerThread
+    // (build uses --default-stream=per-thread) and write into the borrowed shared temp
+    // buffer. cudaPeekAtLastError() only reports launch errors, so releasing the buffer
+    // here could hand in-flight memory to the next borrower. Wait for the stream first.
+    if (cudaState == cudaSuccess) {
+        cudaState = cudaStreamSynchronize(cudaStreamPerThread);
+    }
     FastllmReleaseCudaTempBuffer(scratch, scratchOwn);
     if (cublasState != CUBLAS_STATUS_SUCCESS || cudaState != cudaSuccess) {
         if (cudaState != cudaSuccess) {
