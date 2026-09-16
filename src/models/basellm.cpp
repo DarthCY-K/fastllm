@@ -591,6 +591,7 @@ namespace fastllm {
             this->OnResponseContextRemoved(context);
         }
         responseContextDict.RemoveHandle(handleId);
+        FastllmCudaRequestEndPoolTrim();
     }
 
     void ResponseContext::TryRecordPagedCache(basellm *model) {
