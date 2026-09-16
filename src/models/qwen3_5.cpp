@@ -22024,7 +22024,11 @@ namespace fastllm {
                 return 0;
             }
             int tokens = (int)ctx->currentTokens.size();
-            if (useMtpBatchScheduling && ctx->preTokens > 0 && tokens > 1) {
+            // A resumed turn can carry a large tool result. This is not a
+            // fresh prompt, but it still must not enter Qwen35MTPForward as one
+            // giant decode step when max_batch=1 (one scheduler lane).
+            // Clamp every resumed multi-token continuation, including lane=1.
+            if (ctx->preTokens > 0 && tokens > 1) {
                 tokens = std::min(tokens, mtpBatchDecodeTokens);
             }
             return tokens;
