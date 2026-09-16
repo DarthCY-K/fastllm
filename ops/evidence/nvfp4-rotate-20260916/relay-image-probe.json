@@ -1,0 +1,22 @@
+{
+ "base": "https://subapi.kjsygame.com/v1",
+ "cases": [
+  {
+   "expected": "orange",
+   "model_requested": "Qwen3.8-27B-W8A16",
+   "http": 200,
+   "served_model": "Qwen3.8-27B-W8A16",
+   "text": "Orange",
+   "ok": true
+  },
+  {
+   "expected": "blue",
+   "model_requested": "Qwen3.8-27B-W8A16",
+   "http": 200,
+   "served_model": "Qwen3.8-27B-W8A16",
+   "text": "Blue",
+   "ok": true
+  }
+ ],
+ "ok_all": true
+}
