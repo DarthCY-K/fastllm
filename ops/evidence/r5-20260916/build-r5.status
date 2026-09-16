@@ -1,0 +1,34 @@
+BUILD_R5_START 2026-09-16 08:56:56
+SRC=git-archive
+--- source identity (e3b65d3b10cc9a39029fcd8223aa39858b4bd377) ---
+expect sha256: qwen3_5.cpp      663339dcf214071836463905061946f213dd901aee50f9f758a35951e1433deb
+expect sha256: fastllm-cuda.cu   e6b5e548dc2ff9f2625e2e5ec5b30a4e23ae3a68c3d0e3e085c9e87c290b2c29
+expect sha256: qwen3_5.h         098bcfdeb4db2a54020e3b4b780440d0860203115b1b58e4360ef2e127d98fe2
+expect sha256: fastllm-attention 3467d53536f32ff61a019b6d0c5fd498c205e2de71eb346c820559cbfeee0351
+expect sha256: fastllm_completion 42843b2f8e1d1a925dd19f1ce7fe460ff18fe7059c245735571d4ab19684ee2d
+fdb44d18ec8c6be92fbebaf3d36c755a944d37200d5ce2a128cfea9f13a38785  repo-r5/src/models/qwen3_5.cpp
+b28a958de3d98cb88bd00691b8755f19051feb936f17fa5beed1cf70b38d8e50  repo-r5/src/devices/cuda/fastllm-cuda.cu
+915f37db892cbbb9a24ef2ba7fe44976cab81545c260181f88b79b76a1e72b7e  repo-r5/include/models/qwen3_5.h
+2dc70b4837cdefae5847e5fe12ea88c458e91916559c41c2b512f6d2488b63f9  repo-r5/src/devices/cuda/attention/fastllm-attention.cu
+c497a4d23f1a98402d8790d3d715af881833270d65641a92f8977af99f3f693e  repo-r5/tools/fastllm_pytools/openai_server/fastllm_completion.py
+--- local patch markers ---
+gate ALLOW_YARN_WITH_DFLASH: 0
+tailseed appendLongPrefillDFlashCache: 3
+packed-int8 headers: 2
+default_effort: 2
+#726 sync patch: 1
+#663 tool-content: 1
+upstream tp2prefill.h: 1
+upstream cudaworkspace.cpp: 1
+upstream vision source: 1
+--- tree file count ---
+2460
+CMAKE_OK 08:57:01
+BUILD_OK
+-rwxrwxr-x 1 ai-agent ai-agent 124515752 Sep 16 09:01 build-r5/tools/ftllm/libfastllm_tools.so
+06779c196df5a944c95dd25fde8d491f  build-r5/tools/ftllm/libfastllm_tools.so
+so gate ALLOW_YARN_WITH_DFLASH: 2
+so issue#726 text: 0
+so tp2 overlap switch: 1
+so selector_q/proposal_q: 1
+BUILD_R5_END 2026-09-16 09:01:55

@@ -1,0 +1,46 @@
+{
+ "tag": "POST_R5",
+ "when": "2026-09-16 10:30:53",
+ "base": "http://127.0.0.1:8080",
+ "checks": [
+  {
+   "name": "no_auth_401",
+   "ok": true,
+   "detail": "http=401"
+  },
+  {
+   "name": "models_200",
+   "ok": true,
+   "detail": "http=200 ids=['Qwen3.8-27B-W8A16']"
+  },
+  {
+   "name": "smoke_text",
+   "ok": true,
+   "detail": "UPGRADE_SMOKE_OK"
+  },
+  {
+   "name": "tool_call",
+   "ok": true,
+   "detail": "name=get_weather args={\"city\": \"Beijing\"}"
+  },
+  {
+   "name": "count200_md5_match_prod",
+   "ok": true,
+   "detail": "md5=0785ac9ffdae expect=0785ac9ffdae decode=230.5"
+  },
+  {
+   "name": "turn2_ok",
+   "ok": true,
+   "detail": "ttft=0.41 text=TURN2_OK"
+  }
+ ],
+ "count200": {
+  "ttft": 1.783,
+  "total": 4.005,
+  "ctok": 512,
+  "decode_tps": 230.5,
+  "finish": "length",
+  "md5": "0785ac9ffdae"
+ },
+ "ok": true
+}
