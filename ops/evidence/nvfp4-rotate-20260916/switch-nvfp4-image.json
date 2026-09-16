@@ -1,0 +1,55 @@
+{
+ "tag": "POST_NVFP4_IMG",
+ "base": "http://127.0.0.1:8080",
+ "cases": [
+  {
+   "expected": "orange",
+   "png_bytes": 196,
+   "http": 200,
+   "text": "Orange",
+   "usage": {
+    "prompt_tokens": 95,
+    "total_tokens": 96,
+    "completion_tokens": 1,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "missed_tokens": 95
+    }
+   },
+   "ok": true
+  },
+  {
+   "expected": "green",
+   "png_bytes": 197,
+   "http": 200,
+   "text": "Green",
+   "usage": {
+    "prompt_tokens": 95,
+    "total_tokens": 96,
+    "completion_tokens": 1,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "missed_tokens": 95
+    }
+   },
+   "ok": true
+  },
+  {
+   "expected": "purple",
+   "png_bytes": 197,
+   "http": 200,
+   "text": "Purple",
+   "usage": {
+    "prompt_tokens": 95,
+    "total_tokens": 96,
+    "completion_tokens": 1,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "missed_tokens": 95
+    }
+   },
+   "ok": true
+  }
+ ],
+ "ok_all": true
+}
