@@ -244,6 +244,8 @@ bool FastllmCudaGetGraphError();
 int FastllmCudaTryMallocBigBuffers(size_t size, int count);
 void FastllmCudaMallocBigBuffer(size_t size);
 void FastllmCudaClearBigBuffer();
+void FastllmCudaTrimIdleBigBuffers(size_t minBytes);
+void FastllmCudaRequestEndPoolTrim();
 void FastllmCudaClearBigBufferCurrentDevice();
 void FastllmCudaClearBigBufferAll();
 #ifdef __CUDACC__

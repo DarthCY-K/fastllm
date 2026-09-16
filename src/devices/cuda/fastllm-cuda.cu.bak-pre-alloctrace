@@ -5185,109 +5185,6 @@ void FastllmCudaGraphMemoryPoolRelease(const std::vector<void*> &reservedPointer
     }
 }
 
-
-// ============================================================================
-// FT_CUDA_ALLOC_TRACE — device-memory growth tracer (default off).
-//   FT_CUDA_ALLOC_TRACE=1        enable tracing
-//   FT_CUDA_ALLOC_TRACE_MIN_MB=N only trace allocations >= N MB (default 1)
-//   FT_CUDA_ALLOC_TRACE_STACK=1  also print a short caller stack per event
-// One [MTrace] line per real device allocation (pool miss) or failure, plus
-// pool totals at that moment. Env is read once on first use; with the flag
-// unset there is no extra output and no extra device call.
-// ============================================================================
-static bool FastllmCudaAllocTraceEnabled() {
-    static int v = -1;
-    if (v < 0) {
-        const char *e = getenv("FT_CUDA_ALLOC_TRACE");
-        v = (e != nullptr && atoi(e) != 0) ? 1 : 0;
-    }
-    return v != 0;
-}
-
-static bool FastllmCudaAllocTraceStackEnabled() {
-    static int v = -1;
-    if (v < 0) {
-        const char *e = getenv("FT_CUDA_ALLOC_TRACE_STACK");
-        v = (e != nullptr && atoi(e) != 0) ? 1 : 0;
-    }
-    return v != 0;
-}
-
-static size_t FastllmCudaAllocTraceMinBytes() {
-    static size_t v = 0;
-    if (v == 0) {
-        const char *e = getenv("FT_CUDA_ALLOC_TRACE_MIN_MB");
-        long long mb = (e != nullptr) ? atoll(e) : 1;
-        if (mb <= 0) {
-            mb = 1;
-        }
-        v = (size_t)mb * 1024ULL * 1024ULL;
-    }
-    return v;
-}
-
-static std::atomic<long long> fastllmCudaAllocTraceLines(0);
-static const long long FASTLLM_CUDA_ALLOC_TRACE_MAX_LINES = 20000;
-
-// 必须在持有对应设备池锁时调用（view 可为 nullptr，则省略池统计）。
-static void FastllmCudaTraceGrow(
-        int id, size_t size, const char *phase,
-        const FastllmCudaMemPoolView *view, cudaError_t state) {
-    if (!FastllmCudaAllocTraceEnabled() ||
-        size < FastllmCudaAllocTraceMinBytes()) {
-        return;
-    }
-    long long n = fastllmCudaAllocTraceLines.fetch_add(
-        1, std::memory_order_relaxed);
-    if (n >= FASTLLM_CUDA_ALLOC_TRACE_MAX_LINES) {
-        if (n == FASTLLM_CUDA_ALLOC_TRACE_MAX_LINES) {
-            fprintf(stderr, "[MTrace] line cap reached; tracing muted.\n");
-            fflush(stderr);
-        }
-        return;
-    }
-    size_t freeMem = 0, totalMem = 0;
-    cudaMemGetInfo(&freeMem, &totalMem);
-    double bigTotal = 0, bigBusy = 0, smallTotal = 0, smallIdle = 0;
-    if (view != nullptr && view->bigBuffers != nullptr &&
-        view->smallBuffers != nullptr) {
-        for (auto &b : *view->bigBuffers) {
-            bigTotal += (double)b.size;
-            if (b.busy) {
-                bigBusy += (double)b.size;
-            }
-        }
-        for (auto &b : *view->smallBuffers) {
-            smallTotal += (double)b.size;
-            if (!b.busy) {
-                smallIdle += (double)b.size;
-            }
-        }
-    }
-    fprintf(stderr,
-            "[MTrace] %s dev=%d size=%.1fMB free=%.0fMB big=%.0f/%.0fMB "
-            "small=%.0f/%.0fMB idle state=%d\n",
-            phase, id, (double)size / 1048576.0, (double)freeMem / 1048576.0,
-            bigBusy / 1048576.0, bigTotal / 1048576.0,
-            smallIdle / 1048576.0, smallTotal / 1048576.0, (int)state);
-    fflush(stderr);
-    if (FastllmCudaAllocTraceStackEnabled()) {
-#if defined(__linux__) || defined(__APPLE__)
-        void *frames[24];
-        int numFrames = backtrace(frames, 24);
-        char **symbols = backtrace_symbols(frames, numFrames);
-        if (symbols != nullptr) {
-            int skip = 2;
-            int end = std::min(numFrames, skip + 12);
-            for (int i = skip; i < end; i++) {
-                fprintf(stderr, "[MTrace]   #%d %s\n", i - skip, symbols[i]);
-            }
-            free(symbols);
-        }
-#endif
-    }
-}
-
 static void *FastllmCudaMallocImpl(
         size_t size, FastllmCudaTryMallocResult *tryResult) {
     if (tryResult != nullptr) {
@@ -5396,9 +5293,6 @@ static void *FastllmCudaMallocImpl(
                 size, &ret, id, __FILE__, __LINE__, &state)) {
             state = cudaSuccess;
         }
-        FastllmCudaTraceGrow(id, size,
-                             cudaSuccess == state ? "big-grow" : "big-FAIL",
-                             &view, state);
         if (cudaSuccess != state) {
             if (tryResult != nullptr &&
                 state == cudaErrorMemoryAllocation &&
@@ -5491,9 +5385,6 @@ static void *FastllmCudaMallocImpl(
             size, &ret, id, __FILE__, __LINE__, &state)) {
         state = cudaSuccess;
     }
-    FastllmCudaTraceGrow(id, size,
-                         cudaSuccess == state ? "small-grow" : "small-FAIL",
-                         &view, state);
     if (cudaSuccess != state) {
         if (tryResult != nullptr &&
             state == cudaErrorMemoryAllocation &&
@@ -5893,7 +5784,6 @@ int FastllmCudaTryMallocBigBuffers(size_t size, int count) {
             break;
         }
         bigBuffers.push_back(CudaMemoryBuffer(ret, size, false));
-        FastllmCudaTraceGrow(id, size, "reserve", &view, cudaSuccess);
     }
     return allocated;
 }
@@ -5912,7 +5802,6 @@ void FastllmCudaMallocBigBuffer(size_t size) {
         return;
     }
     bigBuffers.push_back(CudaMemoryBuffer(ret, size, false));
-    FastllmCudaTraceGrow(id, size, "bigbuf", &view, cudaSuccess);
 }
 
 static void FastllmCudaClearBigBufferWithRetain(size_t retainBytes, bool currentDeviceOnly) {
@@ -5978,85 +5867,6 @@ static void FastllmCudaClearBigBufferWithRetain(size_t retainBytes, bool current
         bigBuffers = temp;
     }
     cudaSetDevice(id);
-}
-
-// 请求结束回收：释放大小 >= minBytes 的空闲大块，保留小块热池复用。
-// 长会话下多模态/DFlash 临时块尺寸不断变化，空闲块在 big 池里既不重用也不
-// 回退设备，会让显存单调增长直至 OOM（2026-09-16 取证）。请求结束时调用本函数，
-// 让空闲大块退回设备，显存回到基线。busy / graphPins / 图保护的块不释放。
-void FastllmCudaTrimIdleBigBuffers(size_t minBytes) {
-    if (fastllmCudaMallocDisabled.load(std::memory_order_relaxed)) {
-        return;
-    }
-    int id = -1;
-    cudaGetDevice(&id);
-    std::vector<FastllmCudaMemPoolView> views = FastllmSnapshotCudaMemPoolViews();
-    if (views.empty()) {
-        return;
-    }
-    size_t releasedBytes = 0;
-    int releasedBlocks = 0;
-    cudaError_t state = cudaSuccess;
-    // 逐设备各自加锁清理：cudaSetDevice/cudaFree 只在对应设备锁内进行。
-    for (auto &view : views) {
-        std::lock_guard<std::mutex> lock(*view.lock);
-        state = cudaSetDevice(view.device);
-        checkCudaErrors(
-            "Error: CUDA error when switching device to trim idle big buffers!",
-            state);
-        auto &bigBuffers = *view.bigBuffers;
-        std::vector <CudaMemoryBuffer> temp;
-        for (int i = 0; i < bigBuffers.size(); i++) {
-            auto &buffer = bigBuffers[i];
-            if (!buffer.busy && buffer.graphPins == 0 &&
-                buffer.size >= minBytes &&
-                FastllmCudaBufferReadyForReuseLocked(buffer) &&
-                !FastllmCudaGraphPoolPointerProtectedLocked(buffer.data)) {
-                FastllmCudaDestroyReuseEventLocked(buffer);
-                state = cudaFree(buffer.data);
-                if (cudaSuccess == state) {
-                    releasedBytes += buffer.size;
-                    releasedBlocks++;
-                    continue;
-                }
-                printf("Error: CUDA error when releasing idle big buffer on device %d!\n",
-                       view.device);
-                fflush(stdout);
-                checkCudaErrors("", state);
-            }
-            temp.push_back(buffer);
-        }
-        bigBuffers.clear();
-        bigBuffers = temp;
-    }
-    cudaSetDevice(id);
-    if (releasedBlocks > 0) {
-        printf("[Fastllm] idle big-buffer trim: released %d block(s), %.0f MB\n",
-               releasedBlocks, (double)releasedBytes / 1048576.0);
-        fflush(stdout);
-    }
-}
-
-// 请求结束统一回收入口（env 门控：FT_QWEN35_REQUEST_POOL_TRIM 默认开，=0 关闭；
-// 阈值 FT_QWEN35_REQUEST_POOL_TRIM_MIN_MB 默认 1MB）。在请求结束/移除路径调用，
-// 避免长会话下 big 池空闲块无上限累积（2026-09-16 OOM 取证）。
-void FastllmCudaRequestEndPoolTrim() {
-    static int enabled = -1;
-    static size_t minBytes = 0;
-    if (enabled < 0) {
-        const char *e = getenv("FT_QWEN35_REQUEST_POOL_TRIM");
-        enabled = (e == nullptr || atoi(e) != 0) ? 1 : 0;
-        const char *m = getenv("FT_QWEN35_REQUEST_POOL_TRIM_MIN_MB");
-        long long mb = (m != nullptr) ? atoll(m) : 1;
-        if (mb <= 0) {
-            mb = 1;
-        }
-        minBytes = (size_t)mb * 1024ULL * 1024ULL;
-    }
-    if (!enabled) {
-        return;
-    }
-    FastllmCudaTrimIdleBigBuffers(minBytes);
 }
 
 void FastllmCudaClearBigBuffer() {

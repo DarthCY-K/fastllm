@@ -23037,6 +23037,7 @@ namespace fastllm {
                         releasePagedCachePages(ctx->pastKeyValues[i].second);
                     }
                     eraseMtpCache(ctx);
+                    FastllmCudaRequestEndPoolTrim();
                     continue;
                 }
                 if (ctx->preTokens > 0) {
@@ -23049,6 +23050,9 @@ namespace fastllm {
             }
             for (int handle : abortHandles) {
                 model->RemoveResponseContext(handle);
+            }
+            if (!abortHandles.empty()) {
+                FastllmCudaRequestEndPoolTrim();
             }
             sort(orders.begin(), orders.end(), [](const DecodeOrder &a, const DecodeOrder &b) {
                 if (a.sortKey != b.sortKey) {
