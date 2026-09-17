@@ -1,0 +1,4 @@
+Error: NCCL self-test launch failed on device %d: %s
+Error: NCCL self-test group launch failed: %s
+Error: NCCL self-test mismatch on device %d at element %d: expected %f, got %f
+NCCL self-test failed, aborting to avoid silently corrupted tensor-parallel results.

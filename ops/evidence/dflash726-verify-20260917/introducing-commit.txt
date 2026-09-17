@@ -1,0 +1,1 @@
+e3b65d3b carry r4: DFlash 注意力 stream 同步（上游 issue #726，归还借用临时缓冲前 cudaStreamSynchronize）+ PR #663 tool-content 结构化分支（role=tool 且 content 为对象时序列化，不再 400）
