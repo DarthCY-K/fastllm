@@ -1,0 +1,85 @@
+{
+ "tag": "W2",
+ "base": "http://127.0.0.1:8081",
+ "mode": "short",
+ "when": "2026-09-17 16:48:08",
+ "cases": [
+  {
+   "ttft": 1.569,
+   "total": 1.732,
+   "ctok": 4,
+   "ctok_src": "usage",
+   "md5": "b1d058032cbc",
+   "finish": "stop",
+   "last": "W2K_OK",
+   "name": "w2k",
+   "ptok_est": 1972
+  },
+  {
+   "ttft": 0.083,
+   "total": 3.281,
+   "ctok": 691,
+   "ctok_src": "usage",
+   "md5": "dacc241c7db8",
+   "finish": "stop",
+   "last": "9 190 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_a",
+   "ptok_est": 23
+  },
+  {
+   "ttft": 26.326,
+   "total": 27.792,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_w1",
+   "ptok_est": 31429
+  },
+  {
+   "ttft": 26.418,
+   "total": 27.866,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_w2",
+   "ptok_est": 31429
+  },
+  {
+   "ttft": 24.976,
+   "total": 26.445,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_m",
+   "ptok_est": 31418
+  },
+  {
+   "ttft": 54.549,
+   "total": 56.052,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c64",
+   "ptok_est": 62836
+  },
+  {
+   "ttft": 0.077,
+   "total": 3.295,
+   "ctok": 691,
+   "ctok_src": "usage",
+   "md5": "dacc241c7db8",
+   "finish": "stop",
+   "last": "9 190 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_b",
+   "ptok_est": 23
+  }
+ ]
+}
