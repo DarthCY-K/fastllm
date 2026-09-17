@@ -341,6 +341,14 @@ namespace fastllm {
         return enabled;
     }
 
+    // T2.1: 把 MTP verify 的 8 个 token 以 q1-row（虚拟 batch）元数据喂给 paged attention，
+    // 让 verify 走 decode 的可捕获 split/GQA 快核（图内外一致）。默认关。
+    static bool Qwen35MtpVerifyGraphQ1RowsEnabled() {
+        static const bool enabled = Qwen35MoeIsTrueString(
+            std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_Q1ROWS"));
+        return enabled;
+    }
+
     static bool Qwen35DFlashBackboneTpForced() {
         // "force" keeps an explicit escape hatch for benchmarking other
         // GPU/interconnect topologies.
@@ -3705,6 +3713,23 @@ namespace fastllm {
             Data pageIndexs;
             Data lastPageLens;
             Data baseTokenLens;
+            Data rowQSizes;
+            Data rowPageSizes;
+            Data rowPageIndexs;
+            Data rowLastPageLens;
+            std::vector<int> rowQSizesHost;
+            std::vector<int> rowPageSizesHost;
+            std::vector<int> rowPageIndexHost;
+            std::vector<int> rowLastPageLensHost;
+            int rowPageIndexCapacity = 0;
+            size_t rowQSizesOffset = 0;
+            size_t rowPageSizesOffset = 0;
+            size_t rowPageIndexOffset = 0;
+            size_t rowLastPageLensOffset = 0;
+            size_t rowQSizesUploadOffset = 0;
+            size_t rowPageSizesUploadOffset = 0;
+            size_t rowPageIndexUploadOffset = 0;
+            size_t rowLastPageLensUploadOffset = 0;
             std::vector<int> qSizesHost;
             std::vector<int> pageSizesHost;
             std::vector<int> pageIndexHost;
@@ -6697,6 +6722,8 @@ namespace fastllm {
                 return false;
             }
             deviceState.pagedLayers.resize(blockCnt);
+            const bool q1RowsEnabled = Qwen35MtpVerifyGraphQ1RowsEnabled() &&
+                batch == 1 && !seqLens.empty() && seqLens[0] > 0;
             size_t packedCapacity = 0;
             size_t packedSize = 0;
             for (int layer = 0; layer < blockCnt; ++layer) {
@@ -6753,6 +6780,36 @@ namespace fastllm {
                         meta.pageIndexHost.end(), key->pageIndex.begin(),
                         key->pageIndex.end());
                     meta.lastPageLensHost[b] = key->lastPageLen;
+                    if (q1RowsEnabled && b == 0) {
+                        // row t (虚拟 batch t)：可见长度 = base + t + 1，
+                        // 页表 = 同一物理页表的 chronological 前缀。
+                        const int rowsLocal = seqLens[0];
+                        const int baseTokens = meta.baseTokenLensHost[0];
+                        const size_t np0 = key->pageIndex.size();
+                        const int kvLenTotal = np0 > 0 ?
+                            ((int)np0 - 1) * pageLen + key->lastPageLen : 0;
+                        meta.rowQSizesHost.assign(rowsLocal + 1, 0);
+                        meta.rowPageSizesHost.assign(rowsLocal + 1, 0);
+                        meta.rowLastPageLensHost.assign(rowsLocal, 0);
+                        meta.rowPageIndexHost.clear();
+                        for (int t = 0; t < rowsLocal; ++t) {
+                            meta.rowQSizesHost[t + 1] = t + 1;
+                            int visible = baseTokens + t + 1;
+                            if (visible > kvLenTotal) visible = kvLenTotal;
+                            if (visible < 0) visible = 0;
+                            int np = visible > 0 ?
+                                (visible + pageLen - 1) / pageLen : 0;
+                            if ((size_t)np > np0) np = (int)np0;
+                            meta.rowPageSizesHost[t + 1] =
+                                meta.rowPageSizesHost[t] + np;
+                            for (int p = 0; p < np; ++p) {
+                                meta.rowPageIndexHost.push_back(
+                                    key->pageIndex[p]);
+                            }
+                            meta.rowLastPageLensHost[t] = np > 0 ?
+                                visible - (np - 1) * pageLen : 0;
+                        }
+                    }
                 }
                 size_t pageIndexCapacity = std::max(
                     meta.pageIndexHost.size(),
@@ -6762,6 +6819,24 @@ namespace fastllm {
                     return false;
                 }
                 meta.pageIndexCapacity = (int)pageIndexCapacity;
+                if (q1RowsEnabled && !meta.rowQSizesHost.empty()) {
+                    size_t rowIndexCapacity = std::max(
+                        meta.rowPageIndexHost.size(),
+                        (size_t)meta.rowQSizesHost.size() *
+                            (size_t)std::max(1, pageCapacityPerRequest));
+                    if (rowIndexCapacity > INT_MAX) {
+                        return false;
+                    }
+                    meta.rowPageIndexCapacity = (int)rowIndexCapacity;
+                    packedCapacity += meta.rowQSizesHost.size() +
+                        meta.rowPageSizesHost.size() +
+                        meta.rowPageIndexCapacity +
+                        meta.rowLastPageLensHost.size();
+                    packedSize += meta.rowQSizesHost.size() +
+                        meta.rowPageSizesHost.size() +
+                        meta.rowPageIndexHost.size() +
+                        meta.rowLastPageLensHost.size();
+                }
                 packedCapacity += meta.qSizesHost.size() +
                     meta.pageSizesHost.size() + meta.pageIndexCapacity +
                     meta.lastPageLensHost.size() +
@@ -6810,6 +6885,22 @@ namespace fastllm {
                        meta.baseTokenLensHost.size(),
                        meta.baseTokenLensOffset,
                        meta.baseTokenLensUploadOffset);
+                if (q1RowsEnabled && !meta.rowQSizesHost.empty()) {
+                    append(meta.rowQSizesHost, meta.rowQSizesHost.size(),
+                           meta.rowQSizesOffset, meta.rowQSizesUploadOffset);
+                    append(meta.rowPageSizesHost,
+                           meta.rowPageSizesHost.size(),
+                           meta.rowPageSizesOffset,
+                           meta.rowPageSizesUploadOffset);
+                    append(meta.rowPageIndexHost,
+                           (size_t)meta.rowPageIndexCapacity,
+                           meta.rowPageIndexOffset,
+                           meta.rowPageIndexUploadOffset);
+                    append(meta.rowLastPageLensHost,
+                           meta.rowLastPageLensHost.size(),
+                           meta.rowLastPageLensOffset,
+                           meta.rowLastPageLensUploadOffset);
+                }
             }
             if (fixedOffset != packedCapacity ||
                 packedHost.size() != packedSize ||
@@ -6860,6 +6951,19 @@ namespace fastllm {
                 addCopy(meta.baseTokenLensOffset,
                         meta.baseTokenLensUploadOffset,
                         meta.baseTokenLensHost.size());
+                if (q1RowsEnabled && !meta.rowQSizesHost.empty()) {
+                    addCopy(meta.rowQSizesOffset, meta.rowQSizesUploadOffset,
+                            meta.rowQSizesHost.size());
+                    addCopy(meta.rowPageSizesOffset,
+                            meta.rowPageSizesUploadOffset,
+                            meta.rowPageSizesHost.size());
+                    addCopy(meta.rowPageIndexOffset,
+                            meta.rowPageIndexUploadOffset,
+                            meta.rowPageIndexHost.size());
+                    addCopy(meta.rowLastPageLensOffset,
+                            meta.rowLastPageLensUploadOffset,
+                            meta.rowLastPageLensHost.size());
+                }
             }
             if (!FastllmCudaBatchCopyFromDeviceToDeviceAsyncCurrentThread(
                     copyDsts.data(), copySrcs.data(), copySizes.data(),
@@ -6896,6 +7000,25 @@ namespace fastllm {
                         meta.baseTokenLens, deviceState.packedPagedMeta,
                         deviceState.device, meta.baseTokenLensOffset,
                         meta.baseTokenLensHost)) {
+                    return false;
+                }
+                if (q1RowsEnabled && !meta.rowQSizesHost.empty() &&
+                    (!Qwen35BindMtpVerifyGraphIntView(
+                        meta.rowQSizes, deviceState.packedPagedMeta,
+                        deviceState.device, meta.rowQSizesOffset,
+                        meta.rowQSizesHost) ||
+                     !Qwen35BindMtpVerifyGraphIntView(
+                        meta.rowPageSizes, deviceState.packedPagedMeta,
+                        deviceState.device, meta.rowPageSizesOffset,
+                        meta.rowPageSizesHost) ||
+                     !Qwen35BindMtpVerifyGraphIntView(
+                        meta.rowPageIndexs, deviceState.packedPagedMeta,
+                        deviceState.device, meta.rowPageIndexOffset,
+                        meta.rowPageIndexHost) ||
+                     !Qwen35BindMtpVerifyGraphIntView(
+                        meta.rowLastPageLens, deviceState.packedPagedMeta,
+                        deviceState.device, meta.rowLastPageLensOffset,
+                        meta.rowLastPageLensHost))) {
                     return false;
                 }
             }
@@ -6998,7 +7121,11 @@ namespace fastllm {
                 Data *externalAppendBaseTokenLens = nullptr,
                 Data *inputRmsWeight = nullptr,
                 bool precomputedInputProjection = false,
-                bool repeatSinglePagedCache = false) {
+                bool repeatSinglePagedCache = false,
+                Data *q1RowQSizes = nullptr,
+                Data *q1RowPageSizes = nullptr,
+                Data *q1RowPageIndexs = nullptr,
+                Data *q1RowLastPageLens = nullptr) {
             using namespace qwen3cuda;
             const bool hasMergedQkv =
                 mergeQkvWeight != nullptr && !mergeQkvWeight->dims.empty();
@@ -7266,9 +7393,20 @@ namespace fastllm {
                         *qSizes, *pageSizes, *pageIndexs, *lastPageLens,
                         seqLens);
                 }
+                // q1-row（虚拟 batch）元数据覆盖：append 仍用整段元数据，
+                // 仅 attention 使用每行截断的页表（可捕获快核路径）。
+                Data *attnQSizes =
+                    q1RowQSizes != nullptr ? q1RowQSizes : qSizes;
+                Data *attnPageSizes =
+                    q1RowPageSizes != nullptr ? q1RowPageSizes : pageSizes;
+                Data *attnPageIndexs =
+                    q1RowPageIndexs != nullptr ? q1RowPageIndexs : pageIndexs;
+                Data *attnLastPageLens = q1RowLastPageLens != nullptr ?
+                    q1RowLastPageLens : lastPageLens;
                 Qwen3CudaAttentionPagedBatch(
                     runner, qForAttention, kCaches, vCaches,
-                    *qSizes, *pageSizes, *pageIndexs, *lastPageLens,
+                    *attnQSizes, *attnPageSizes,
+                    *attnPageIndexs, *attnLastPageLens,
                     *attenOutput, group,
                     1.0f / std::sqrt((float)headDim),
                     1, layerIdx > 0,
@@ -13185,6 +13323,10 @@ namespace fastllm {
                         &graphPagedLayer->pageIndexs : &pageIndexs;
                     Data *activeLastPageLens = graphPagedLayer != nullptr ?
                         &graphPagedLayer->lastPageLens : &lastPageLens;
+                    const bool q1RowAttentionReady =
+                        graphPagedLayer != nullptr &&
+                        Qwen35MtpVerifyGraphQ1RowsEnabled() &&
+                        !graphPagedLayer->rowQSizesHost.empty();
                     int localQHeads = localKVHeads * (num_attention_heads / num_key_value_heads);
                     if (reusePrefillScratch) {
                         uint64_t qElements = (uint64_t)seqlen * localQHeads * head_dim;
@@ -13507,7 +13649,16 @@ namespace fastllm {
                             mtpVerifyGraphDeviceState != nullptr,
                             graphPagedLayer != nullptr ?
                                 &graphPagedLayer->baseTokenLens : nullptr,
-                            &inputRmsWeight);
+                            &inputRmsWeight,
+                            false, false,
+                            q1RowAttentionReady ?
+                                &graphPagedLayer->rowQSizes : nullptr,
+                            q1RowAttentionReady ?
+                                &graphPagedLayer->rowPageSizes : nullptr,
+                            q1RowAttentionReady ?
+                                &graphPagedLayer->rowPageIndexs : nullptr,
+                            q1RowAttentionReady ?
+                                &graphPagedLayer->rowLastPageLens : nullptr);
                         Qwen3CudaLinearResidualReduce(
                             cudaRunner, attenOutput,
                             *requireLocal(weight[oWeightName], oWeightName),
