@@ -38,3 +38,9 @@ CLAUDE.md
 /vllm/
 /test/multimodal/*_probe*.png
 /test/multimodal/*_probe*.gif
+
+# 工具备份/补丁残留防复发（2026-09-17 卫生清理）
+*.bak
+*.bak-*
+*.orig
+*.orig-*
