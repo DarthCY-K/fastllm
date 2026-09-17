@@ -68,6 +68,37 @@ namespace fastllm {
             }
             return v != 0;
         }
+
+        // 视觉复原保护（默认开，FT_QWEN35_MM_RESTORE_GUARD=0 关闭）：复原分支的
+        // 增量前向不经过视觉编码（EncodeVisualItems/BuildMultimodalPositionData
+        // 只在冷算路径），增量区含图像/视频占位 token 时继续复原会让模型对着空
+        // 占位符编造内容（2026-09-17 复现）→ 此时放弃复原，走全量冷预填。
+        static bool Qwen35MmRestoreGuardEnabled() {
+            static int v = -1;
+            if (v < 0) {
+                const char *e = getenv("FT_QWEN35_MM_RESTORE_GUARD");
+                v = (e == nullptr || atoi(e) != 0) ? 1 : 0;
+            }
+            return v != 0;
+        }
+
+        static bool Qwen35RangeContainsMediaTokens(const std::vector <int> &tokens,
+                                                   int start, int imageTok,
+                                                   int videoTok) {
+            if (imageTok < 0 && videoTok < 0) {
+                return false;
+            }
+            if (start < 0) {
+                start = 0;
+            }
+            for (int i = start; i < (int)tokens.size(); i++) {
+                if ((imageTok >= 0 && tokens[i] == imageTok) ||
+                    (videoTok >= 0 && tokens[i] == videoTok)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
 #ifdef USE_CUDA
@@ -22477,6 +22508,20 @@ namespace fastllm {
                 return 0;
             }
             cachedLen = minCachedPages * probeManager->pageLen;
+            if (Qwen35MmRestoreGuardEnabled() &&
+                Qwen35RangeContainsMediaTokens(ctx->currentTokens, cachedLen,
+                                               model->image_token_id,
+                                               model->video_token_id)) {
+                // 增量区含图像/视频占位 token：复原路径（Qwen35ForwardMultimodalInternal
+                // 的 pastKeyValues 分支）不会为新图做视觉编码，继续复原会让模型对着
+                // 空占位符编造描述 → 放弃复原，走全量冷预填（正确优先）。
+                // 关闭保护：FT_QWEN35_MM_RESTORE_GUARD=0。
+                printf("[Qwen3.5 MM] prefix restore skipped: media tokens in "
+                       "delta (restore_len=%d, total=%d).\n",
+                       cachedLen, (int)ctx->currentTokens.size());
+                fflush(stdout);
+                return 0;
+            }
             if (!model->RestorePagedPrefixCacheExtra(ctx, cachedLen)) {
                 return -1;
             }

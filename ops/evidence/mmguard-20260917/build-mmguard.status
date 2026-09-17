@@ -1,0 +1,12 @@
+BUILD_MMGUARD_START 2026-09-17 09:00:14
+ALREADY_PATCHED
+CMAKE_OK 09:00:17
+BUILD_OK
+-rwxrwxr-x 1 ai-agent ai-agent 124524800 Sep 17 09:05 build-mmguard/tools/ftllm/libfastllm_tools.so
+70a04a154e97e158faac1f20a6415065  build-mmguard/tools/ftllm/libfastllm_tools.so
+so marker guard-env: 1
+so marker guard-log: 1
+carry pooltrim: 1
+carry mmcache: 1
+carry yarn gate: 2
+BUILD_MMGUARD_END 2026-09-17 09:05:16

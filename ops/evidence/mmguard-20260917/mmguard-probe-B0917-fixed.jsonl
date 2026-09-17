@@ -1,0 +1,17 @@
+{"stage": "P4a", "code": 200, "t": 1.0, "answer": "已收到口令"}
+{"stage": "P4a", "checks": {"已收到": true}}
+{"stage": "P4b", "code": 200, "t": 0.6, "answer": "PLAN-ZQ4417"}
+{"stage": "P4b", "checks": {"ZQ4417": true}}
+{"stage": "P1", "code": 200, "t": 2.3, "answer": "CAT731"}
+{"stage": "P1", "checks": {"CAT731": true, "731": true}}
+{"stage": "P2", "code": 200, "t": 0.2, "answer": "731"}
+{"stage": "P2", "checks": {"731": true}}
+{"stage": "P3", "code": 200, "t": 1.6, "answer": "DOC518"}
+{"stage": "P3", "checks": {"DOG518": false, "518": true}}
+{"stage": "P5", "code": 200, "t": 0.2, "answer": "CAT731"}
+{"stage": "P5", "checks": {"CAT731": true, "731": true}}
+{"stage": "P6a", "code": 200, "t": 0.9, "answer": "CAT731"}
+{"stage": "P6a", "checks": {"CAT731": true, "731": true}}
+{"stage": "P6b", "code": 200, "t": 0.8, "answer": "CAT731"}
+{"stage": "P6b", "checks": {"CAT731": true, "731": true}}
+PROBE_DONE tag=B0917
