@@ -1970,6 +1970,21 @@ namespace {
             half *input, half *weight, half *output, half *bias,
             int n, int m, int k, bool addTo,
             bool allowRouterSpecialization) {
+        if (std::getenv(
+                "FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr &&
+            FastllmCudaGraphIsCapturingFast()) {
+            static int capCkptPreGemm = 0;
+            int capCkptIndex = capCkptPreGemm++;
+            cudaError_t ckptState = cudaGetLastError();
+            if (capCkptIndex < 4096) {
+                fprintf(stderr,
+                        "[Fastllm][cap-ckpt] pre-fp16-gemm: %d (%s), "
+                        "shape=(n=%d,m=%d,k=%d), addTo=%d.\n",
+                        (int)ckptState, cudaGetErrorString(ckptState),
+                        n, m, k, addTo ? 1 : 0);
+                fflush(stderr);
+            }
+        }
         LaunchFastllmGemmFp16Fp16(
             input, weight, output, bias, n, m, k, addTo,
             allowRouterSpecialization);
