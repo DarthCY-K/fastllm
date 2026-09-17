@@ -1,0 +1,8 @@
+[Fastllm] graph-safe custom all-reduce is unavailable; falling back to NCCL.
+NCCL Initialized for 4 devices.
+[Fastllm] graph-safe custom all-reduce is unavailable; falling back to NCCL.
+NCCL Initialized for 4 devices.
+[Fastllm] graph-safe custom all-reduce is unavailable; falling back to NCCL.
+NCCL Initialized for 4 devices.
+[Fastllm] graph-safe custom all-reduce is unavailable; falling back to NCCL.
+NCCL Initialized for 4 devices.

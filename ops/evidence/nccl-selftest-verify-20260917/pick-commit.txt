@@ -1,0 +1,8 @@
+commit 3ad12f3d09d9080e477aeab2c3abceee86241ffd
+Author: ai-agent <ai-agent@reasoningcenter>
+Date:   Mon Sep 14 19:29:53 2026 +0800
+
+    pick #734: NCCL 初始化通信自检（带数值校验；仅入库，未构建，下次构建携带）
+
+ src/devices/multicuda/fastllm-multicuda.cu | 109 ++++++++++++++++++++++++++++-
+ 1 file changed, 108 insertions(+), 1 deletion(-)

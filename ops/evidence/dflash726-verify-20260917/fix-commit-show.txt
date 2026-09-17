@@ -1,0 +1,44 @@
+commit e3b65d3b10cc9a39029fcd8223aa39858b4bd377
+Author: DarthCY <darthcy@local>
+Date:   Wed Sep 16 08:46:44 2026 +0800
+
+    carry r4: DFlash 注意力 stream 同步（上游 issue #726，归还借用临时缓冲前 cudaStreamSynchronize）+ PR #663 tool-content 结构化分支（role=tool 且 content 为对象时序列化，不再 400）
+
+diff --git a/src/devices/cuda/attention/fastllm-attention.cu b/src/devices/cuda/attention/fastllm-attention.cu
+index 3d53deb0..a4c40f54 100644
+--- a/src/devices/cuda/attention/fastllm-attention.cu
++++ b/src/devices/cuda/attention/fastllm-attention.cu
+@@ -1645,6 +1645,13 @@ bool FastllmCudaDFlashAttention(
+             (long long)valueDim * queries * group, heads / group);
+     }
+     cudaError_t cudaState = cudaPeekAtLastError();
++    // 2026-09-15 (upstream issue #726): the kernels above run on cudaStreamPerThread
++    // (build uses --default-stream=per-thread) and write into the borrowed shared temp
++    // buffer. cudaPeekAtLastError() only reports launch errors, so releasing the buffer
++    // here could hand in-flight memory to the next borrower. Wait for the stream first.
++    if (cudaState == cudaSuccess) {
++        cudaState = cudaStreamSynchronize(cudaStreamPerThread);
++    }
+     FastllmReleaseCudaTempBuffer(scratch, scratchOwn);
+     if (cublasState != CUBLAS_STATUS_SUCCESS || cudaState != cudaSuccess) {
+         if (cudaState != cudaSuccess) {
+diff --git a/tools/fastllm_pytools/openai_server/fastllm_completion.py b/tools/fastllm_pytools/openai_server/fastllm_completion.py
+index b7c4247f..534520a6 100644
+--- a/tools/fastllm_pytools/openai_server/fastllm_completion.py
++++ b/tools/fastllm_pytools/openai_server/fastllm_completion.py
+@@ -1475,6 +1475,15 @@ class FastLLmCompletion:
+                                       tool_call_id=tool_call_id,
+                                       name=name,
+                                       reasoning_content=reasoning_content)], empty_media
++      if role == "tool" and isinstance(content, dict):
++          # PR #663: OpenAI clients commonly send a JSON object as the tool
++          # message content; serialize it instead of rejecting the request.
++          return [ConversationMessage(role=role,
++                                      content=self._serialize_tool_arguments(content),
++                                      tool_calls=tool_calls,
++                                      tool_call_id=tool_call_id,
++                                      name=name,
++                                      reasoning_content=reasoning_content)], empty_media
+       if isinstance(content, list):
+           parsed_content, media = self._parse_openai_content_parts(content)
+           return [ConversationMessage(role=role, content=parsed_content,

@@ -1,0 +1,3 @@
+repo-r5 attention.cu #726-sync: 1
+repo-r5 attention.cu cudaStreamSynchronize: 6
+547c90af1c82da89af4e6bbd76f4e8f5  /home/ai-agent/builds/upgrade-test/repo-r5/src/devices/cuda/attention/fastllm-attention.cu
