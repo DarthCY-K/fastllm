@@ -121,6 +121,20 @@ namespace fastllm {
             }
             if (allowGraphCapturePlaceholder &&
                 FastllmCudaGraphGetAllocationFailurePlaceholder(&ptr)) {
+                if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") !=
+                    nullptr) {
+                    printf("[Fastllm][alloc-dbg] graph-placeholder for %s, "
+                           "bytes=%llu, dataType=%s, dims=[",
+                           context, (unsigned long long)bytes,
+                           GetDataTypeName(data.dataType).c_str());
+                    for (int i = 0; i < (int)data.dims.size(); i++) {
+                        printf("%s%d", i == 0 ? "" : ",", data.dims[i]);
+                    }
+                    printf("]%s%s\n",
+                           data.name.empty() ? "" : ", name=",
+                           data.name.c_str());
+                    fflush(stdout);
+                }
                 return false;
             }
             std::string msg = "Error: cuda malloc failed in " + std::string(context) +

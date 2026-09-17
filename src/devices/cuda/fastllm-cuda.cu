@@ -659,6 +659,16 @@ void DeviceSync() {
 // 定义在 FastllmCudaGraphSetError 之后（它是本文件的 static）
 static bool FastllmCudaSwallowCaptureError(const char *stage, cudaError_t state);
 
+bool FastllmCudaGraphCaptureActiveOnThisThread() {
+    cudaStreamCaptureStatus captureStatus = cudaStreamCaptureStatusNone;
+    if (cudaStreamGetCaptureInfo(cudaStreamPerThread, &captureStatus,
+                                 nullptr) != cudaSuccess) {
+        cudaGetLastError();
+        return false;
+    }
+    return captureStatus != cudaStreamCaptureStatusNone;
+}
+
 void ForceDeviceSync() {
     cudaError_t state = cudaDeviceSynchronize();
     if (FastllmCudaSwallowCaptureError("cudaDeviceSynchronize", state)) {
@@ -842,6 +852,58 @@ bool FastllmCudaGraphIsCapturing() {
     const bool capturing = captureStatus != cudaStreamCaptureStatusNone;
     fastllmCudaGraphCaptureMayBeActive |= capturing;
     return capturing;
+}
+
+static const char *FastllmCudaDebugCaptureStatusName(
+        cudaStreamCaptureStatus status) {
+    switch (status) {
+        case cudaStreamCaptureStatusActive:
+            return "Active";
+        case cudaStreamCaptureStatusInvalidated:
+            return "Invalidated";
+        default:
+            return "None";
+    }
+}
+
+int FastllmCudaDebugCaptureCheckpoint(const char *tag) {
+    if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") == nullptr) {
+        return 0;
+    }
+    cudaError_t checkpointState = cudaGetLastError();
+    cudaStreamCaptureStatus checkpointCapture = cudaStreamCaptureStatusNone;
+    cudaStreamGetCaptureInfo(cudaStreamPerThread, &checkpointCapture,
+                             nullptr);
+    printf("[Fastllm][cap-ckpt] %s: err=%d (%s) capture=%s\n", tag,
+           (int)checkpointState, cudaGetErrorString(checkpointState),
+           FastllmCudaDebugCaptureStatusName(checkpointCapture));
+    fflush(stdout);
+    return (int)checkpointState;
+}
+
+int FastllmCudaDebugCaptureOpCheckpoint(const char *tag) {
+    if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") == nullptr) {
+        return 0;
+    }
+    cudaStreamCaptureStatus captureStatus = cudaStreamCaptureStatusNone;
+    if (cudaStreamGetCaptureInfo(cudaStreamPerThread, &captureStatus,
+                                 nullptr) != cudaSuccess ||
+        captureStatus == cudaStreamCaptureStatusNone) {
+        cudaGetLastError();
+        return 0;
+    }
+    static std::atomic<int> fastllmCudaDebugOpCheckpointPrinted(0);
+    cudaError_t checkpointState = cudaGetLastError();
+    cudaStreamCaptureStatus checkpointCapture = cudaStreamCaptureStatusNone;
+    cudaStreamGetCaptureInfo(cudaStreamPerThread, &checkpointCapture,
+                             nullptr);
+    if (fastllmCudaDebugOpCheckpointPrinted.fetch_add(1) < 200000) {
+        printf("[Fastllm][op-ckpt] %s: err=%d (%s) capture=%s\n", tag,
+               (int)checkpointState, cudaGetErrorString(checkpointState),
+               FastllmCudaDebugCaptureStatusName(checkpointCapture));
+        fflush(stdout);
+    }
+    return (int)checkpointState;
 }
 
 bool FastllmCudaGraphIsCapturingFast() {
@@ -5288,6 +5350,16 @@ static void FastllmCudaTraceGrow(
     }
 }
 
+static void FastllmCudaDebugAllocMiss(const char *kind, size_t size,
+                                        int device) {
+    if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") == nullptr) {
+        return;
+    }
+    printf("[Fastllm][alloc-dbg] %s size=%zu B (%.2f MB) device=%d\n",
+           kind, size, size / 1048576.0, device);
+    fflush(stdout);
+}
+
 static void *FastllmCudaMallocImpl(
         size_t size, FastllmCudaTryMallocResult *tryResult) {
     if (tryResult != nullptr) {
@@ -5316,6 +5388,7 @@ static void *FastllmCudaMallocImpl(
         // Arena suballocations have eager stream lifetimes; graph replay must
         // continue to use the existing graph-owned allocation mechanism.
         if (capturePoolOnly) {
+            FastllmCudaDebugAllocMiss("capture-refuse(workspace)", size, id);
             if (workspacePointer) fastllm::TryFreeCudaWorkspace(workspacePointer);
             FastllmCudaSetThreadError();
             return nullptr;
@@ -5380,6 +5453,7 @@ static void *FastllmCudaMallocImpl(
         if (tryResult != nullptr &&
             (capturePoolOnly || fastllmCudaMallocDisabled.load(
                                     std::memory_order_relaxed))) {
+            FastllmCudaDebugAllocMiss("capture-probe-fail(big)", size, id);
             *tryResult = FASTLLM_CUDA_TRY_MALLOC_CAPACITY_FAILURE;
             return nullptr;
         }
@@ -5387,6 +5461,7 @@ static void *FastllmCudaMallocImpl(
             FastllmCudaPrintPoolRejectStateLocked(id, size, view.bigBuffers, view.smallBuffers);
         }
         if (capturePoolOnly) {
+            FastllmCudaDebugAllocMiss("capture-refuse(big)", size, id);
             FastllmCudaSetThreadError();
             return nullptr;
         }
@@ -5475,6 +5550,7 @@ static void *FastllmCudaMallocImpl(
     if (tryResult != nullptr &&
         (capturePoolOnly || fastllmCudaMallocDisabled.load(
                                 std::memory_order_relaxed))) {
+        FastllmCudaDebugAllocMiss("capture-probe-fail(small)", size, id);
         *tryResult = FASTLLM_CUDA_TRY_MALLOC_CAPACITY_FAILURE;
         return nullptr;
     }
@@ -5482,6 +5558,7 @@ static void *FastllmCudaMallocImpl(
         FastllmCudaPrintPoolRejectStateLocked(id, size, view.bigBuffers, view.smallBuffers);
     }
     if (capturePoolOnly) {
+        FastllmCudaDebugAllocMiss("capture-refuse(small)", size, id);
         FastllmCudaSetThreadError();
         return nullptr;
     }
@@ -8080,6 +8157,7 @@ bool FastllmCudaRMSNormBFloat16WithThreadCount(
 bool FastllmCudaRMSNorm(const fastllm::Data &input, fastllm::Data &weight, fastllm::Data &output, float eps) {
     float *cudaInput = (float *) FastllmCudaPrepareInput(input);
     float *cudaOutput = (float *) FastllmCudaPrepareInput(output);
+    FastllmCudaDebugCaptureOpCheckpoint("rmsnorm-cu-post-prepare");
 
     int dimsLen = input.dims.size();
     int axis = dimsLen - 1;
@@ -8114,6 +8192,7 @@ bool FastllmCudaRMSNorm(const fastllm::Data &input, fastllm::Data &weight, fastl
             (__nv_bfloat16*)cudaOutput, outer, channels, eps, threadCount);
     }
 
+    FastllmCudaDebugCaptureOpCheckpoint("rmsnorm-cu-post-kernels");
     FastllmCudaFinishInput(input, cudaInput);
     FastllmCudaFinishOutput(output, cudaOutput);
     return true;

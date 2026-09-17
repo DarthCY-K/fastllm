@@ -5010,9 +5010,15 @@ namespace fastllm {
                         "RMSNorm error: datatype should be float32 or float16 or bfloat16.");
 
         output.Allocate(false);
+#ifdef USE_CUDA
+        FastllmCudaDebugCaptureOpCheckpoint("rmsnorm-post-alloc");
+#endif
 
         float eps = floatParams.find("eps") != floatParams.end() ? floatParams.find("eps")->second : 1e-5;
         FastllmCudaRMSNorm(input, weight, output, eps);
+#ifdef USE_CUDA
+        FastllmCudaDebugCaptureOpCheckpoint("rmsnorm-post-kernel");
+#endif
     }
 
     bool CudaRMSNormPartOp::CanRun(const std::string &opType, const fastllm::DataDict &datas,

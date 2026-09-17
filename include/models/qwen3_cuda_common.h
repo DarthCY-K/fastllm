@@ -98,7 +98,13 @@ namespace fastllm {
                                 "Qwen3 CUDA direct runner can't run " + opType + ".\n");
             }
             device->Reshape(opType, datas, floatParams, intParams);
+#ifdef USE_CUDA
+            FastllmCudaDebugCaptureOpCheckpoint("pre-op-run");
+#endif
             device->Run(opType, datas, floatParams, intParams);
+#ifdef USE_CUDA
+            FastllmCudaDebugCaptureOpCheckpoint(opType.c_str());
+#endif
         }
 
     private:

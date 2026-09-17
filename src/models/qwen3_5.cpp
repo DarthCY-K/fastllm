@@ -48,6 +48,9 @@
 #include "fastllm-tfacc.h"
 #endif
 
+// T2.1 debug: defined in fastllm-cuda.cu (raw CUDA scope).
+int FastllmCudaDebugCaptureCheckpoint(const char *tag);
+
 namespace fastllm {
 
     namespace {
@@ -12848,6 +12851,17 @@ namespace fastllm {
             if (!mtpWorkerProfileEnabled) {
                 return;
             }
+            if (FastllmCudaGraphCaptureActiveOnThisThread()) {
+                // A device-wide sync would invalidate an in-flight capture.
+                // The captured body is only recorded, so profile marks carry
+                // no timing meaning inside a graph attempt. Profiling keeps
+                // working for every eager call.
+                if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr) {
+                    printf("[Fastllm][profile-mark] device sync skipped during capture\n");
+                    fflush(stdout);
+                }
+                return;
+            }
             ForceDeviceSync();
             auto now = std::chrono::steady_clock::now();
             slot += Qwen35MtpProfileElapsedUs(mtpWorkerProfileLast, now);
@@ -12924,6 +12938,9 @@ namespace fastllm {
             hiddenStatesPtr = &embeddingOutput;
         }
         Data &hiddenStates = *hiddenStatesPtr;
+        if (FastllmCudaGraphIsCapturingFast()) {
+            FastllmCudaDebugCaptureCheckpoint("body-start");
+        }
         const int previousLinearExactBatchThreshold =
             FastllmCudaGetLinearExactBatchThreshold();
         const bool exactSmallDFlashVerifier = [&]() {
@@ -12967,6 +12984,9 @@ namespace fastllm {
         // lifetimes. Reuse owning Data objects so output preparation preserves
         // their capacity (a FakeFrom view would be detached by CUDA operators).
         Qwen35PrefillScratchArena prefillScratch(gpuId);
+        if (FastllmCudaGraphIsCapturingFast()) {
+            FastllmCudaDebugCaptureCheckpoint("post-arena");
+        }
         const bool reusePrefillScratch =
             isPrefill && batch == 1 && !all1 && num_experts == 0 &&
             !speculativeCollectAllLogits &&
@@ -17096,6 +17116,22 @@ namespace fastllm {
                         graphState.disabled = true;
                         runExternalEager();
                     }
+                    if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr) {
+                        static std::atomic<int> fastllmMtpGraphTimingPrinted(0);
+                        auto timingBegin = std::chrono::steady_clock::now();
+                        for (int device : devices) {
+                            FastllmCudaSetDevice(device);
+                            FastllmCudaSyncCurrentThreadStream();
+                        }
+                        FastllmCudaSetDevice(devices.front());
+                        auto timingEnd = std::chrono::steady_clock::now();
+                        if (fastllmMtpGraphTimingPrinted.fetch_add(1) < 2000) {
+                            printf("[Fastllm][graph-timing] caller wait-for-replay: %.2f ms\n",
+                                   std::chrono::duration<double, std::milli>(
+                                       timingEnd - timingBegin).count());
+                            fflush(stdout);
+                        }
+                    }
                     mtpVerifyGraphHandled = true;
                 } else if (!graphState.warmed) {
                     FastllmCudaClearThreadError();
@@ -17162,6 +17198,7 @@ namespace fastllm {
                                 Qwen35MtpVerifyGraphThreadContext *oldContext =
                                     qwen35MtpVerifyGraphThreadContext;
                                 qwen35MtpVerifyGraphThreadContext = &context;
+                                FastllmCudaDebugCaptureCheckpoint("pre-body");
                                 try {
                                     std::vector<std::pair<Data*, Data*> > &rankPast =
                                         tensorParallel ? localPastKeyValues[r] :

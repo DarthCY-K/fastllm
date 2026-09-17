@@ -125,6 +125,12 @@ void FastllmCudaPickOutput(uint8_t *partOutput, uint8_t *output, int rows, int c
 
 void DeviceSync();
 void ForceDeviceSync();
+
+// True when the calling thread's per-thread stream is inside a CUDA graph
+// capture. Device/stream synchronization is illegal there and would
+// invalidate the capture, so callers can use this to skip sync-only work
+// (e.g. profiling marks) while a graph attempt is being recorded.
+bool FastllmCudaGraphCaptureActiveOnThisThread();
 void FastllmCudaSyncCurrentThreadStream();
 void FastllmInitCublas(void);
 
@@ -166,6 +172,8 @@ bool FastllmCudaGraphIsCapturing();
 // and no capture has been observed on this thread, this avoids a CUDA runtime
 // call. External capturers should call the exact query above once first.
 bool FastllmCudaGraphIsCapturingFast();
+int FastllmCudaDebugCaptureCheckpoint(const char *tag);
+int FastllmCudaDebugCaptureOpCheckpoint(const char *tag);
 bool FastllmCudaGraphCaptureInvalidated();
 // Give pointer-batched kernels a stable, bounded set of device pointer tables
 // while warming/capturing one whole-step graph. Scopes may be nested and must
