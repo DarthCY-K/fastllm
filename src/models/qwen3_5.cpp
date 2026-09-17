@@ -16965,15 +16965,31 @@ namespace fastllm {
                             *localHidden);
                     }
                 }
-                for (int r = 0; r < (int)devices.size(); ++r) {
-                    std::vector<std::pair<Data*, Data*> > &rankPast =
-                        tensorParallel ? localPastKeyValues[r] : pastKeyValues;
-                    AssertInFastLLM(
-                        Qwen35PrepareMtpVerifyGraphPagedMeta(
-                            *graphState.deviceStates[r], batch, block_cnt,
-                            max_positions, seqLens, linearAttentionLayers,
-                            rankPast),
-                        "Qwen3.5 failed to prepare dynamic MTP graph paged metadata.\n");
+                double mtpGraphStagingMs = 0.0;
+                {
+                    auto stagingBegin = std::chrono::steady_clock::now();
+                    for (int r = 0; r < (int)devices.size(); ++r) {
+                        std::vector<std::pair<Data*, Data*> > &rankPast =
+                            tensorParallel ? localPastKeyValues[r] : pastKeyValues;
+                        AssertInFastLLM(
+                            Qwen35PrepareMtpVerifyGraphPagedMeta(
+                                *graphState.deviceStates[r], batch, block_cnt,
+                                max_positions, seqLens, linearAttentionLayers,
+                                rankPast),
+                            "Qwen3.5 failed to prepare dynamic MTP graph paged metadata.\n");
+                    }
+                    auto stagingEnd = std::chrono::steady_clock::now();
+                    mtpGraphStagingMs =
+                        std::chrono::duration<double, std::milli>(
+                            stagingEnd - stagingBegin).count();
+                }
+                if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr) {
+                    static std::atomic<int> mtpGraphStagingPrinted(0);
+                    if (mtpGraphStagingPrinted.fetch_add(1) < 400) {
+                        printf("[Fastllm][graph-phase] staging=%.2f ms\n",
+                               mtpGraphStagingMs);
+                        fflush(stdout);
+                    }
                 }
 
                 // Growing the shared rollback scratch for a larger batch also
@@ -17262,7 +17278,19 @@ namespace fastllm {
                 };
 
                 if (graphState.captured) {
-                    if (!launchGraphs()) {
+                    auto launchBegin = std::chrono::steady_clock::now();
+                    bool launchOk = launchGraphs();
+                    auto launchEnd = std::chrono::steady_clock::now();
+                    if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr) {
+                        static std::atomic<int> mtpGraphLaunchPrinted(0);
+                        if (mtpGraphLaunchPrinted.fetch_add(1) < 400) {
+                            printf("[Fastllm][graph-phase] launch=%.2f ms\n",
+                                   std::chrono::duration<double, std::milli>(
+                                       launchEnd - launchBegin).count());
+                            fflush(stdout);
+                        }
+                    }
+                    if (!launchOk) {
                         graphState.DestroyCapturedGraph();
                         graphState.disabled = true;
                         runExternalEager();
