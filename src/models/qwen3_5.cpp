@@ -185,6 +185,14 @@ namespace fastllm {
                std::strcmp(env, "NO") != 0;
     }
 
+    // T2.2 experiment: fp8-KV decode CUDA graph admission.
+    // Upstream rejects fp8 paged KV from graph eligibility since the first
+    // qwen3.5 graph implementation (conservative default, no comment/motive).
+    // Explicitly opt in for staging experiments; unset keeps upstream behavior.
+    static bool Qwen35CudaGraphFp8KVDisallowed() {
+        return std::getenv("FASTLLM_QWEN35_CUDA_GRAPH_FP8_KV") == nullptr;
+    }
+
     static bool Qwen35TryRunSeparateDenseMlp(
             WeightMap &weights, const std::string &prefix, Data &input,
             Data &gateOutput, Data &upOutput, Data &hiddenStates) {
@@ -11075,8 +11083,9 @@ namespace fastllm {
                     pastKey->pageIndex.empty() || pastValue->pageIndex.empty() ||
                     pastKey->dataDevice != DataDevice::CUDA ||
                     pastValue->dataDevice != DataDevice::CUDA ||
-                    pastKey->dataType == DataType::FP8_E4M3 ||
-                    pastValue->dataType == DataType::FP8_E4M3 ||
+                    (Qwen35CudaGraphFp8KVDisallowed() &&
+                     (pastKey->dataType == DataType::FP8_E4M3 ||
+                      pastValue->dataType == DataType::FP8_E4M3)) ||
                     pastKey->pageLen <= 0 || pastKey->pageLen != pastValue->pageLen ||
                     pastKey->pageIndex.size() != pastValue->pageIndex.size() ||
                     pastKey->lastPageLen != pastValue->lastPageLen) {
