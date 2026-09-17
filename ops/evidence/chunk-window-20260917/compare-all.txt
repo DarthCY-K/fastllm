@@ -1,0 +1,26 @@
+### W0/W1/W2/W3 + 转正后 prob(FT on) + 清FT后 probe
+== 各 case：total 秒 / md5前缀 ==
+case                      W0                  W1                  W2                  W3       postchunk2048               postB
+w2k              1.979s b1d0         1.711s b1d0         1.732s b1d0         1.726s b1d0         1.532s b1d0         1.761s b1d0
+d200_a           3.259s dacc         3.280s dacc         3.281s dacc         3.303s dacc         3.301s dacc         3.273s dacc
+c32_w1          29.930s b536        25.996s b536        27.792s b536        26.091s b536        26.053s b536        26.046s b536
+c32_w2          29.500s b536        26.049s b536        27.866s b536        26.037s b536        26.023s b536        31.773s b536
+c32_m           28.071s b536        26.036s b536        26.445s b536        26.144s b536        26.027s b536        26.075s b536
+c64             59.753s b536        53.858s b536        56.052s b536                   -                   -                   -
+c128           137.288s b536       118.721s b536                   -                   -                   -                   -
+d200_b           3.288s dacc         3.295s dacc         3.295s dacc         3.296s dacc         3.310s dacc         3.281s dacc
+
+== 派生指标（prefill tok/s = ptok/ttft；d200 decode t/s） ==
+case                      W0                  W1                  W2                  W3       postchunk2048               postB
+w2k               ttft=1.796          ttft=1.518          ttft=1.569          ttft=1.513          ttft=1.474          ttft=1.565
+d200_a             217.5 t/s           216.3 t/s           216.1 t/s           215.9 t/s           214.9 t/s           216.7 t/s
+c32_w1              1103 t/s            1280 t/s            1194 t/s            1275 t/s            1278 t/s            1277 t/s
+c32_w2              1119 t/s            1277 t/s            1190 t/s            1278 t/s            1279 t/s            1275 t/s
+c32_m               1181 t/s            1277 t/s            1258 t/s            1272 t/s            1278 t/s            1275 t/s
+c64                 1078 t/s            1200 t/s            1152 t/s                   -                   -                   -
+c128                 926 t/s            1073 t/s                   -                   -                   -                   -
+d200_b             215.2 t/s           214.6 t/s           214.7 t/s           214.8 t/s           213.9 t/s           215.8 t/s
+
+== mt3（多轮复原粒度探针） ==
+W0 [{"turn": 1, "ttft": 16.015, "total": 17.449, "ctok": 291, "md5": "b536474ba172"}, {"turn": 2, "ttft": 0.968, "total": 2.876, "ctok": 399, "md5": "fd9258c98a61"}, {"turn": 3, "ttft": 0.533, "total": 2.462, "ctok": 399, "md5": "079d674ab02b"}]
+W1 [{"turn": 1, "ttft": 14.577, "total": 16.003, "ctok": 291, "md5": "b536474ba172"}, {"turn": 2, "ttft": 1.41, "total": 3.336, "ctok": 399, "md5": "fd9258c98a61"}, {"turn": 3, "ttft": 1.713, "total": 3.652, "ctok": 399, "md5": "079d674ab02b"}]

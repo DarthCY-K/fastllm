@@ -1,0 +1,5 @@
+1) no-key models: 401
+2) models: 200 | default_reasoning_level: xhigh
+3) chat: 200 | UPGRADE_PROD_LIVE | finish: stop
+4) tool: 200 | finish: tool_calls | name: get_weather
+5) count200: tps=215.7 ctok=691 md5=dacc241c7db8  (历史两构建值 dacc241c7db8)

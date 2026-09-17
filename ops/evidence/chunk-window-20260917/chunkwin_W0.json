@@ -1,0 +1,119 @@
+{
+ "tag": "W0",
+ "base": "http://127.0.0.1:8081",
+ "mode": "full",
+ "when": "2026-09-17 16:36:26",
+ "cases": [
+  {
+   "ttft": 1.796,
+   "total": 1.979,
+   "ctok": 4,
+   "ctok_src": "usage",
+   "md5": "b1d058032cbc",
+   "finish": "stop",
+   "last": "W2K_OK",
+   "name": "w2k",
+   "ptok_est": 1972
+  },
+  {
+   "ttft": 0.082,
+   "total": 3.259,
+   "ctok": 691,
+   "ctok_src": "usage",
+   "md5": "dacc241c7db8",
+   "finish": "stop",
+   "last": "9 190 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_a",
+   "ptok_est": 23
+  },
+  {
+   "ttft": 28.504,
+   "total": 29.93,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_w1",
+   "ptok_est": 31429
+  },
+  {
+   "ttft": 28.078,
+   "total": 29.5,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_w2",
+   "ptok_est": 31429
+  },
+  {
+   "ttft": 26.594,
+   "total": 28.071,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c32_m",
+   "ptok_est": 31418
+  },
+  {
+   "ttft": 58.265,
+   "total": 59.753,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c64",
+   "ptok_est": 62836
+  },
+  {
+   "ttft": 135.67,
+   "total": 137.288,
+   "ctok": 291,
+   "ctok_src": "usage",
+   "md5": "b536474ba172",
+   "finish": "stop",
+   "last": "86 87 88 89 90 91 92 93 94 95 96 97 98 99 100",
+   "name": "c128",
+   "ptok_est": 125694
+  },
+  {
+   "ttft": 0.077,
+   "total": 3.288,
+   "ctok": 691,
+   "ctok_src": "usage",
+   "md5": "dacc241c7db8",
+   "finish": "stop",
+   "last": "9 190 191 192 193 194 195 196 197 198 199 200",
+   "name": "d200_b",
+   "ptok_est": 23
+  }
+ ],
+ "mt3": [
+  {
+   "turn": 1,
+   "ttft": 16.015,
+   "total": 17.449,
+   "ctok": 291,
+   "md5": "b536474ba172"
+  },
+  {
+   "turn": 2,
+   "ttft": 0.968,
+   "total": 2.876,
+   "ctok": 399,
+   "md5": "fd9258c98a61"
+  },
+  {
+   "turn": 3,
+   "ttft": 0.533,
+   "total": 2.462,
+   "ctok": 399,
+   "md5": "079d674ab02b"
+  }
+ ]
+}
