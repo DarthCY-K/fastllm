@@ -910,6 +910,22 @@ namespace fastllm {
         return enabled;
     }
 
+    static bool Qwen35MtpVerifyGraphDFlashEnabled() {
+        // T2.1 experiment: let the MTP verify graph own the DFlash
+        // hidden-state capture path (capture writes into the graph device
+        // state, replay republishes them). Unset keeps upstream behavior.
+        return std::getenv(
+            "FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DFLASH") != nullptr;
+    }
+
+    static bool Qwen35MtpVerifyGraphCpuEmbeddingEnabled() {
+        // T2.1 experiment: stage the low-GPU-mem CPU-embedding hidden states
+        // into a graph-stable per-rank buffer so the CPU-embedding data flow
+        // can also use capture/replay. Unset keeps upstream behavior.
+        return std::getenv(
+            "FASTLLM_QWEN35_MTP_VERIFY_GRAPH_CPU_EMBED") != nullptr;
+    }
+
     static bool Qwen35MtpFp8DraftHeadEnabled() {
         static bool enabled = []() {
             const char *env = std::getenv("FASTLLM_MTP_FP8_DRAFT_HEAD");
@@ -3716,6 +3732,7 @@ namespace fastllm {
                 Qwen35MtpVerifyGraphPagedLayerState> > pagedLayers;
             Data logits;
             Data hiddenStates;
+            Data preHiddenStage;
             std::vector<Data> dflashHiddenStates;
             void *graph = nullptr;
             void *exec = nullptr;
@@ -16663,17 +16680,57 @@ namespace fastllm {
         bool mtpVerifyGraphEligible =
             Qwen35CudaGraphEnabled() &&
             Qwen35MtpVerifyCudaGraphEnabled() &&
-            !speculativeCaptureDFlashHiddenStates &&
+            (Qwen35MtpVerifyGraphDFlashEnabled() ||
+             !speculativeCaptureDFlashHiddenStates) &&
             speculativeCollectAllLogits &&
             speculativeCaptureFirstTokenLinearState &&
             speculativeLinearStateCaptureSlots > 0 &&
             !speculativeCacheOnlyForward &&
-            precomputedHiddenStates == nullptr &&
+            (precomputedHiddenStates == nullptr ||
+             Qwen35MtpVerifyGraphCpuEmbeddingEnabled()) &&
             !pipelineGpuTokenHandoff &&
             batch >= 1 && !all1 && isPrefill &&
             homogeneousVerifyLength && seqLens[0] >= 2 &&
             seqLens[0] <= QWEN35_MTP_FAST_SEQ_MAX &&
             num_experts == 0;
+
+        if (std::getenv("FASTLLM_QWEN35_MTP_VERIFY_GRAPH_DEBUG") != nullptr) {
+            static std::atomic<long long> qwen35MtpVerifyGraphDebugCount{0};
+            long long debugIndex =
+                qwen35MtpVerifyGraphDebugCount.fetch_add(1);
+            if (debugIndex < 8 || debugIndex % 64 == 0) {
+                Qwen35MtpVerifyGraphState &debugState =
+                    GetQwen35MtpVerifyGraphState(
+                        this, batch,
+                        seqLens.empty() ? 1 : seqLens[0]);
+                std::printf(
+                    "[Fastllm][verify-graph-dbg] #%lld eligible=%d "
+                    "guards={graph=%d,switch=%d,dflashGate=%d,captureDFlash=%d,"
+                    "collectAll=%d,firstTokLin=%d,slots=%d,cacheOnly=%d,"
+                    "preHidden=%d,handoff=%d} "
+                    "shape={batch=%d,all1=%d,isPrefill=%d,homog=%d,seq0=%d,"
+                    "experts=%d} state={disabled=%d,warmed=%d,captured=%d}.\n",
+                    debugIndex, (int)mtpVerifyGraphEligible,
+                    (int)Qwen35CudaGraphEnabled(),
+                    (int)Qwen35MtpVerifyCudaGraphEnabled(),
+                    (int)Qwen35MtpVerifyGraphDFlashEnabled(),
+                    (int)speculativeCaptureDFlashHiddenStates,
+                    (int)speculativeCollectAllLogits,
+                    (int)speculativeCaptureFirstTokenLinearState,
+                    speculativeLinearStateCaptureSlots,
+                    (int)speculativeCacheOnlyForward,
+                    (int)(precomputedHiddenStates != nullptr),
+                    (int)pipelineGpuTokenHandoff,
+                    batch, (int)all1, (int)isPrefill,
+                    (int)homogeneousVerifyLength,
+                    seqLens.empty() ? -1 : seqLens[0],
+                    num_experts,
+                    (int)debugState.disabled,
+                    (int)debugState.warmed,
+                    (int)debugState.captured);
+                std::fflush(stdout);
+            }
+        }
 
         if (mtpVerifyGraphEligible) {
             Qwen35MtpVerifyGraphState &graphState =
@@ -16691,6 +16748,52 @@ namespace fastllm {
                         graphState.positionIds, allPositionIds, devices),
                     "Qwen3.5 failed to stage MTP verify graph inputs.\n");
 
+                if (precomputedHiddenStates != nullptr) {
+                    for (int r = 0; r < (int)devices.size(); ++r) {
+                        FastllmCudaSetDevice(devices[r]);
+                        Data *localHidden = nullptr;
+                        if (!tensorParallel ||
+                            !precomputedHiddenStates->multiDeviceData) {
+                            localHidden = precomputedHiddenStates;
+                        } else {
+                            auto hiddenIt =
+                                precomputedHiddenStates->multiDeviceDatas
+                                    .find(devices[r]);
+                            AssertInFastLLM(
+                                hiddenIt !=
+                                        precomputedHiddenStates
+                                            ->multiDeviceDatas.end() &&
+                                    hiddenIt->second != nullptr,
+                                "Qwen3.5 MTP verify graph is missing the "
+                                "local CPU-embedding hidden replica.\n");
+                            localHidden = hiddenIt->second;
+                        }
+                        Data &stage =
+                            graphState.deviceStates[r]->preHiddenStage;
+                        auto stageIt =
+                            stage.multiDeviceDatas.find(devices[r]);
+                        if (stageIt == stage.multiDeviceDatas.end() ||
+                            stageIt->second == nullptr) {
+                            stage.ResetMultiDeviceState();
+                            stage.multiDeviceData = true;
+                            stage.tpLayout = TP_LAYOUT_REPLICATED;
+                            stage.tpAxis = -1;
+                            stage.dataType = localHidden->dataType;
+                            stage.dims = localHidden->dims;
+                            stage.strides = localHidden->strides;
+                            stage.expansionDims =
+                                localHidden->expansionDims;
+                            stage.tpGlobalDims = localHidden->dims;
+                            stage.dataDevice = DataDevice::CUDA;
+                            stage.dataDeviceIds = { devices[r] };
+                            stage.multiDeviceDatas[devices[r]] =
+                                CreateQwen35CudaReplicaLike(
+                                    stage, devices[r]);
+                        }
+                        stage.multiDeviceDatas[devices[r]]->CopyFrom(
+                            *localHidden);
+                    }
+                }
                 for (int r = 0; r < (int)devices.size(); ++r) {
                     std::vector<std::pair<Data*, Data*> > &rankPast =
                         tensorParallel ? localPastKeyValues[r] : pastKeyValues;
@@ -16711,6 +16814,8 @@ namespace fastllm {
                                << ";tp=" << devices.size()
                                << ";dflash="
                                << (speculativeCaptureDFlashHiddenStates ? 1 : 0)
+                               << ";preHidden="
+                               << (precomputedHiddenStates != nullptr ? 1 : 0)
                                << ";captureSlots="
                                << speculativeLinearStateCaptureSlots
                                << ";linearScratchGeneration="
@@ -16848,10 +16953,27 @@ namespace fastllm {
                     }
                 };
 
+                struct VerifyGraphLinearExactGuard {
+                    int previous;
+                    explicit VerifyGraphLinearExactGuard(int verifyLength) {
+                        previous =
+                            FastllmCudaGetLinearExactBatchThreshold();
+                        if (Qwen35MtpVerifyGraphCpuEmbeddingEnabled()) {
+                            FastllmCudaSetLinearExactBatchThreshold(
+                                std::max(previous, verifyLength + 1));
+                        }
+                    }
+                    ~VerifyGraphLinearExactGuard() {
+                        FastllmCudaSetLinearExactBatchThreshold(previous);
+                    }
+                };
+
                 auto runExternalEager = [&]() {
                     errors.assign(devices.size(), nullptr);
                     auto runRank = [&](int r) {
                         FastllmCudaSetDevice(devices[r]);
+                        VerifyGraphLinearExactGuard verifyExactGuard(
+                            seqLens.empty() ? 0 : seqLens[0]);
                         if (graphState.deviceStates[r]
                                 ->metadataReadyRecorded) {
                             FastllmCudaCurrentThreadStreamWaitEvent(
@@ -16880,7 +17002,9 @@ namespace fastllm {
                                 tensorParallel, r == 0,
                                 threadTpPagedCacheBase + r * block_cnt,
                                 graphState.deviceStates[r]->logits,
-                                nullptr);
+                                precomputedHiddenStates != nullptr ?
+                                    &graphState.deviceStates[r]
+                                         ->preHiddenStage : nullptr);
                         } catch (...) {
                             qwen35MtpVerifyGraphThreadContext = oldContext;
                             throw;
@@ -17013,6 +17137,8 @@ namespace fastllm {
                         FastllmCudaClearGraphError();
                         auto captureRank = [&](int r) {
                             FastllmCudaSetDevice(devices[r]);
+                            VerifyGraphLinearExactGuard verifyExactGuard(
+                                seqLens.empty() ? 0 : seqLens[0]);
                             if (graphState.deviceStates[r]
                                     ->metadataReadyRecorded) {
                                 FastllmCudaCurrentThreadStreamWaitEvent(
@@ -17049,7 +17175,9 @@ namespace fastllm {
                                         threadTpPagedCacheBase +
                                             r * block_cnt,
                                         graphState.deviceStates[r]->logits,
-                                        nullptr);
+                                        precomputedHiddenStates != nullptr ?
+                                            &graphState.deviceStates[r]
+                                                 ->preHiddenStage : nullptr);
                                     bodyOk[r] = 1;
                                 } catch (...) {
                                     errors[r] = std::current_exception();
