@@ -1,0 +1,5 @@
+{"stage": "P7a", "code": 200, "t": 1.1, "answer": "KITE204"}
+{"stage": "P7a", "checks": {"KITE204": true}}
+{"stage": "P7b", "code": 200, "t": 0.9, "answer": "KITE204"}
+{"stage": "P7b", "checks": {"KITE204": true}}
+P7_DONE
