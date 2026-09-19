@@ -343,6 +343,12 @@ bool FastllmCudaMarlinHalfFP8Gemm(const void *a, const uint32_t *b_q_weight,
                                   int group_size, int *workspace);
 // SM75+ weight-only NVFP4 Marlin (W4A16, group size 16).  SM75 selects the
 // two-stage Turing specialization; SM80+ selects the four-stage kernel.
+// Small-batch residual epilogue: same Marlin FP32 reduction, no temporary output.
+bool FastllmCudaMarlinNVFP4AddSupported(int size_n, int size_k);
+bool FastllmCudaMarlinHalfNVFP4Add(const void *a, const uint32_t *b_q_weight,
+                                const void *b_scales, const float *global_scale,
+                                void *c, int size_m, int size_n, int size_k,
+                                int *workspace, void *c_tmp);
 bool FastllmCudaMarlinHalfNVFP4Gemm(const void *a,
                                     const uint32_t *b_q_weight,
                                     const void *b_scales,
@@ -475,6 +481,7 @@ bool FastllmCudaSigmoidMulTo(fastllm::Data &input,
                              const fastllm::Data &gate);
 bool FastllmCudaClamp(fastllm::Data &input, bool hasMin, float minValue, bool hasMax, float maxValue);
 bool FastllmCudaDeepSeekV41SharedSwiglu(const fastllm::Data &input, float limit, fastllm::Data &output);
+bool FastllmCudaDeepSeekV41SharedSwigluQuantized(const fastllm::Data &input, float limit, fastllm::Data &output);
 bool FastllmCudaExp(const fastllm::Data &input, fastllm::Data &output);
 bool FastllmCudaMambaSoftplus(const fastllm::Data &input, fastllm::Data &output, fastllm::Data &aLogData, fastllm::Data &dtBiasData, float outputScale = 1.0f);
 bool FastllmCudaSigmoidMambaSoftplus(fastllm::Data &sigmoidInputOutput, const fastllm::Data &softplusInput, fastllm::Data &softplusOutput, const fastllm::Data &aLogData, const fastllm::Data &dtBiasData);
@@ -1159,7 +1166,7 @@ bool FastllmCudaDeepSeekV4PrepareMoeDownInput(
                               fastllm::Data &downInput,
                               const float *routeScales,
                               float swigluLimit,
-                              bool quantize);
+                              bool quantize, int activationQuantBlock = 128);
 #ifdef FASTLLM_ENABLE_DSV4_WOA_DEEPGEMM_SM120
 extern "C" bool FastllmCudaDeepSeekV4WoADeepGemmSm120(
                               const fastllm::Data &o,
@@ -1667,6 +1674,10 @@ bool FastllmCudaMergeMOENVFP4E4M3MarlinIndexed(
 struct FastllmCudaMoeCacheLayer {
     fastllm::Data *const *weights = nullptr;
     int weightsBatch = 0;
+    // Opt in explicitly: V4.1 applies scores before FP8 block-32 activation
+    // quantization and requires BF16 rounding at both projections.
+    bool deepSeekV41 = false;
+    float swigluLimit = 0.0f;
 };
 // One anchor plus up to eight speculative tokens. Larger prefill batches
 // keep using the configured MoE backend.
@@ -1684,12 +1695,15 @@ bool FastllmCudaPrepareMoeCache(
         const std::function<void()> &registerNumaWeights = {});
 bool FastllmCudaCanRunMoeCache(
         fastllm::Data **weights, int weightsBatch);
-// Eager single-token FP32 activation decode. Weight-format adapters execute
-// disjoint CPU/CUDA subsets; scheduling and top-k reduction are shared.
+// Eager single-token decode: generic FP32 or explicitly registered V4.1
+// BF16 math. Adapters execute disjoint CPU/CUDA subsets with shared scheduling.
 bool FastllmCudaCanRunMoeHybrid(fastllm::Data **weights, int weightsBatch);
+// Optional single-token callback runs once after routing copies, never on
+// rejection. It must not reenter the cache or alter its tensor allocations.
 bool FastllmCudaMergeMOEHybrid(const fastllm::Data &input,
         const fastllm::Data &index, const fastllm::Data &score,
-        fastllm::Data &output, fastllm::Data **weights, int weightsBatch, int layer);
+        fastllm::Data &output, fastllm::Data **weights, int weightsBatch, int layer,
+        const std::function<void()> &launchParallel = {});
 bool FastllmCudaCanRunMoeCacheSmallBatch(
         const fastllm::Data &input, const fastllm::Data &index,
         const fastllm::Data &score, fastllm::Data **weights,

@@ -102,6 +102,8 @@ namespace fastllm {
     int GetCudaSlabMB();
     void SetMoeCudaCacheBytes(uint64_t bytes);
     uint64_t GetMoeCudaCacheBytes();
+    void SetMoeCpuCacheBytes(uint64_t bytes);
+    uint64_t GetMoeCpuCacheBytes();
     int GetThreads();
     bool GetKVCacheInCPU();
     bool GetHistoryCacheInCPU();
@@ -177,6 +179,8 @@ namespace fastllm {
         std::map <std::string, std::vector <std::string> > tool_call_allowed_parameter_names;
         std::vector <std::string> tool_call_parameter_name_prefixes;
         std::vector <int> tool_call_allowed_token_ids;
+        // Emitted prefix snapshot; speculative branches advance a private copy.
+        std::string tool_call_generated_text;
         bool tool_call_content_sampling_enabled = false;
         // Set on the per-step config after Kimi-K3 has drained DSpark's
         // scheduler-ahead queue. DSpark then samples from its batched target
@@ -588,6 +592,8 @@ namespace fastllm {
         void *ggmlTensor = nullptr;
         int ggmlType = -1;
         bool IsRepacked = false;
+        // CUDA-only in-place NVFP4 row-major codes + tiled E4M3 scales.
+        bool cudaNativeNvfp4Layout = false;
         bool disableGGUFRepack = false;
         bool forceGGUFFp32Dequant = false;
 

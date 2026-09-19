@@ -5,7 +5,11 @@
 #include "utils.h"
 
 #include "fastllm.h"
+#ifdef USE_CUDA
+#include "devices/cuda/fastllm-cuda-native-prefill.h"
+#endif
 #include "contextconfig.h"
+#include "devices/disk/diskdevice.h"
 
 #include "executor.h"
 
@@ -17,6 +21,7 @@
 #include <climits>
 #include <thread>
 #include <algorithm>
+#include <atomic>
 #include <queue>
 
 #ifdef USE_MMAP
@@ -300,7 +305,8 @@ namespace fastllm {
     static bool cudaEmbedding = false;
     static bool cudaSharedExpert = false;
     static int cudaSlabMB = 0;
-    static uint64_t moeCudaCacheBytes = 0;
+    static std::atomic<uint64_t> moeCudaCacheBytes{0};
+    static std::atomic<uint64_t> moeCpuCacheBytes{0};
     static bool enableAMX = false;
     static int maxTokens = -1;
     static int defaultPageLen = 128;
@@ -449,10 +455,20 @@ namespace fastllm {
 
     void SetMoeCudaCacheBytes(uint64_t bytes) {
         moeCudaCacheBytes = bytes;
+        TrimDiskMoeCache();
     }
 
     uint64_t GetMoeCudaCacheBytes() {
         return moeCudaCacheBytes;
+    }
+
+    void SetMoeCpuCacheBytes(uint64_t bytes) {
+        moeCpuCacheBytes = bytes;
+        TrimDiskMoeCache();
+    }
+
+    uint64_t GetMoeCpuCacheBytes() {
+        return moeCpuCacheBytes;
     }
 
     void SetCudaSharedExpert(bool v) {
@@ -1094,6 +1110,8 @@ namespace fastllm {
     }
 
     void Data::FakeFrom(const Data &ori, size_t offset) {
+        AssertInFastLLM(!ori.cudaNativeNvfp4Layout, "Native NVFP4 weight views require restoring the source layout first.");
+        this->cudaNativeNvfp4Layout = false;
         this->dataType = ori.dataType;
         this->UpdateUnitSize();
         this->isFake = true;
@@ -1111,6 +1129,9 @@ namespace fastllm {
     }
 
     void Data::CopyFrom(const Data &ori) {
+#ifdef USE_CUDA
+        if (this->cudaNativeNvfp4Layout) FastllmCudaRestoreNativeNvfp4(*this);
+#endif
         this->ToDevice(ori.dataDevice);
         this->name = ori.name;
         this->isKVCache = ori.isKVCache;
@@ -1188,6 +1209,9 @@ namespace fastllm {
             FastllmCudaCopyFromDeviceToDevice(this->cudaData, ori.cudaData, this->GetBytes());
 #endif
         }
+        this->cudaNativeNvfp4Layout = ori.cudaNativeNvfp4Layout;
+        this->IsRepacked = ori.IsRepacked;
+        if (ori.cudaNativeNvfp4Layout) { this->blockM = ori.blockM; this->blockK = ori.blockK; this->scales = ori.scales; }
     }
 
     BF16ToFP16Manager bf16tofp16;
@@ -1908,6 +1932,9 @@ namespace fastllm {
     }
 
     void Data::Resize(const std::vector<int> &dims) {
+#ifdef USE_CUDA
+        if (this->cudaNativeNvfp4Layout && this->dims != dims) FastllmCudaRestoreNativeNvfp4(*this);
+#endif
         std::vector <int> oldDims = this->dims;
         uint64_t oldCount = 1, newCount = 1;
         for (int v : oldDims) {
@@ -1979,6 +2006,9 @@ namespace fastllm {
         if (this->dims == dims) {
             return;
         }
+#ifdef USE_CUDA
+        if (this->cudaNativeNvfp4Layout) FastllmCudaRestoreNativeNvfp4(*this);
+#endif
         std::vector <int> oldDims = this->dims;
         std::vector <int> outputDims = dims;
         uint64_t old = 1;
@@ -2197,6 +2227,7 @@ namespace fastllm {
     void Data::FreeSpace() {
         if (isFake)
             return;
+        if (this->cudaNativeNvfp4Layout) { this->cudaNativeNvfp4Layout = false; this->IsRepacked = false; }
         this->expansionSize = 0;
         this->expansionBytes = 0;
         if (this->cpuData != nullptr) {
@@ -2281,6 +2312,9 @@ namespace fastllm {
     }
 
     void Data::Expansion(const std::vector<int> &dims) {
+#ifdef USE_CUDA
+        if (this->cudaNativeNvfp4Layout) FastllmCudaRestoreNativeNvfp4(*this);
+#endif
         if (this->dims.size() == 0) {
             this->directMemory = true;
             this->strides.resize(dims.size(), 1);
@@ -2354,6 +2388,9 @@ namespace fastllm {
     }
 
     Data::~Data() {
+        if (this->isDiskWeight) {
+            ReleaseDiskMoeCache(this);
+        }
 #ifdef USE_CUDA
         // Hash-route tables keep per-device CUDA replicas while the owning
         // Data is alive. Retire them before either this object or its CPU
@@ -2825,6 +2862,7 @@ namespace fastllm {
                 }
             } else if (this->dataDevice == DataDevice::CUDA) {
                 if (device == DataDevice::CPU) {
+                    if (this->cudaNativeNvfp4Layout) FastllmCudaRestoreNativeNvfp4(*this);
                     if (this->cpuData == nullptr) {
                         this->cpuData = new uint8_t[expansionBytes];
                     }

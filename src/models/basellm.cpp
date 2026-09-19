@@ -193,6 +193,8 @@ namespace fastllm {
 
             static const std::vector<std::string> dsmlParameterCloseTags = {
                     "</｜DSML｜parameter>",
+                    "</｜DSML｜ parameter>",
+                    "</\\DSML\\ parameter>",
                     "</\\DSML\\parameter>",
             };
             auto closePos = FindLastNeedleBefore(
@@ -260,6 +262,8 @@ namespace fastllm {
             }
             static const std::vector<std::string> dsmlInvokeCloseTags = {
                 "</｜DSML｜invoke>",
+                "</｜DSML｜ invoke>",
+                "</\\DSML\\ invoke>",
                 "</\\DSML\\invoke>",
             };
             auto closePos = FindLastNeedleBefore(
@@ -527,21 +531,25 @@ namespace fastllm {
     }
 
     void basellm::PrepareToolCallConstraint(ResponseContext *context, GenerationConfig &generationConfig) {
+        generationConfig.tool_call_generated_text = context ? context->toolCallConstraintGeneratedText : "";
+        PrepareToolCallConstraint(generationConfig);
+    }
+
+    void basellm::PrepareToolCallConstraint(GenerationConfig &generationConfig) {
         generationConfig.tool_call_allowed_token_ids.clear();
-        if (context == nullptr ||
-            (!generationConfig.tool_call_name_constraint_enabled &&
-             !generationConfig.tool_call_parameter_name_constraint_enabled)) {
+        if (!generationConfig.tool_call_name_constraint_enabled &&
+            !generationConfig.tool_call_parameter_name_constraint_enabled) {
             return;
         }
         std::string partial;
         std::vector<std::string> allowedValues;
         if (!FindActiveToolCallParameterNamePartial(
-                    context->toolCallConstraintGeneratedText,
+                    generationConfig.tool_call_generated_text,
                     generationConfig,
                     partial,
                     allowedValues)) {
             if (!FindActiveToolCallNamePartial(
-                        context->toolCallConstraintGeneratedText,
+                        generationConfig.tool_call_generated_text,
                         generationConfig,
                         partial)) {
                 return;
@@ -577,12 +585,14 @@ namespace fastllm {
             tokenId < 0) {
             return;
         }
-        context->toolCallConstraintGeneratedText += this->weight.tokenizer.DecodeTokens(std::vector<int>{tokenId});
+        AdvanceToolCallConstraintText(context->toolCallConstraintGeneratedText, tokenId);
+    }
+
+    void basellm::AdvanceToolCallConstraintText(std::string &text, int tokenId) {
+        if (tokenId < 0) return;
+        text += this->weight.tokenizer.DecodeTokens(std::vector<int>{tokenId});
         const size_t maxTrackedBytes = 8192;
-        if (context->toolCallConstraintGeneratedText.size() > maxTrackedBytes) {
-            context->toolCallConstraintGeneratedText.erase(
-                    0, context->toolCallConstraintGeneratedText.size() - maxTrackedBytes);
-        }
+        if (text.size() > maxTrackedBytes) text.erase(0, text.size() - maxTrackedBytes);
     }
 
     void basellm::RemoveResponseContext(int handleId) {
@@ -2845,6 +2855,7 @@ namespace fastllm {
                         std::vector <std::pair <Data*, Data*> > pastKeyValues;
                         std::vector <float> ids;
                         std::vector <int> seqLens;
+                        int prefillTokens = 0;
                         std::vector <int> handles;
                         std::vector <GenerationConfig> generationConfigs;
                         LastTokensManager tokensManager;
@@ -3011,6 +3022,9 @@ namespace fastllm {
                                 ToDataType(attentionMask, model->dataType);
 
                                 seqLens.push_back(inputIds.Count(0));
+                                if (isPrompt) {
+                                    prefillTokens += seqLens.back();
+                                }
                                 for (int i = 0; i < inputIds.Count(0); i++) {
                                     ids.push_back(((float *) inputIds.cpuData)[i]);
                                 }
@@ -3063,6 +3077,7 @@ namespace fastllm {
                                 profileStartTime = std::chrono::system_clock::now();
                                 ClearProfiler();
                             }
+                            auto prefillStartTime = std::chrono::steady_clock::now();
                             if (seqLens.size() > 1) {
                                 if (!model->canDoBatchForward) {
                                     dictLocker.lock();
@@ -3088,15 +3103,7 @@ namespace fastllm {
                                 if (seqLens[0] > first) {
                                     int len = seqLens[0];
                                     for (int st = 0; st < len; ) {
-                                        if (model->verbose) {
-                                            genTokens += seqLens.size();
-                                            auto nowTime = std::chrono::system_clock::now();
-                                            float spend = GetSpan(lastRecordTime, nowTime);
-                                            if (spend > 1) {
-                                                printf("Long Prefill ... (%d%%)\n", st * 100 / len);
-                                                lastRecordTime = nowTime;
-                                            }
-                                        }
+                                        auto chunkStartTime = std::chrono::steady_clock::now();
                                         int curLen = std::min(st == 0 ? first : part, len - st);
                                         Data curInput, curPositionIds;
                                         Split(inputIds, 1, st, st + curLen, curInput);
@@ -3105,6 +3112,13 @@ namespace fastllm {
                                         ret = std::vector <int> {model->Forward(curInput, Data(), curPositionIds,
                                             *pastKeyValue1, generationConfigs[0], tokensManager, logits[0])};
                                         st += curLen;
+                                        if (model->verbose) {
+                                            double spend = std::chrono::duration<double>(
+                                                std::chrono::steady_clock::now() - chunkStartTime).count();
+                                            printf("[Prompt] Long Prefill ... (%d/%d, %d%%). Speed: %.2f tokens / s.\n",
+                                                   st, len, st * 100 / len, spend > 0 ? curLen / spend : 0);
+                                            fflush(stdout);
+                                        }
                                     }
                                 } else {
                                     auto context = model->responseContextDict.dicts.begin()->second;
@@ -3121,6 +3135,13 @@ namespace fastllm {
                                     }
                                 }
                             }
+                            if (model->verbose && prefillTokens > 0) {
+                                double spend = std::chrono::duration<double>(
+                                    std::chrono::steady_clock::now() - prefillStartTime).count();
+                                printf("[Prompt] %d Tokens. Time: %.3f s. Speed: %.2f tokens / s.\n",
+                                       prefillTokens, spend, spend > 0 ? prefillTokens / spend : 0);
+                                fflush(stdout);
+                            }
                             if (printProfile) {
                                 PrintLoopProfile("old", seqLens, (int)ret.size(), profileStartTime);
                             }
@@ -3128,8 +3149,13 @@ namespace fastllm {
                             dictLocker.lock();
 
                             if (model->verbose) {
-                                genTokens += seqLens.size();
                                 auto nowTime = std::chrono::system_clock::now();
+                                if (prefillTokens > 0) {
+                                    lastRecordTime = nowTime;
+                                    genTokens = 0;
+                                } else {
+                                    genTokens += seqLens.size();
+                                }
                                 float spend = GetSpan(lastRecordTime, nowTime);
                                 if (spend > 1) {
                                     int total = 0, alive = 0, aliveLen = 0, pending = 0;
