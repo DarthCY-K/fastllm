@@ -50,6 +50,9 @@ namespace fastllm {
     extern bool FastllmGemmBFloat16NVFP4Block32E8M0_AVX512BF16(
         const void *A, long lda, const void *B, long ldb, void *C, long ldc,
         int n, int m, int k, int st, int end);
+    extern bool FastllmGemmBFloat16NVFP4Block16_AVX2(
+        const void *A, long lda, const void *B, long ldb, void *C, long ldc,
+        int n, int m, int k, int st, int end);
     extern bool FastllmGemmFloat32NVFP4Block16_AVX512BF16(
         const void *A, long lda, const void *B, long ldb, void *C, long ldc,
         int n, int m, int k, int st, int end, bool planar);
@@ -2333,6 +2336,12 @@ namespace fastllm {
                             finish = true;
                             return;
                         }
+                    }
+                    if (cpuInstructInfo.hasAVX2 && !scaleE8M0 && !planar &&
+                        FastllmGemmBFloat16NVFP4Block16_AVX2(
+                            A, lda, B, ldb, C, ldc, n, m, k, st, end)) {
+                        finish = true;
+                        return;
                     }
                     if (scaleE8M0) {
                         GemmNVFP4Block16_CPU_Run<true, true>(A, lda, B, ldb, C, ldc, n, m, st, end);
@@ -10584,16 +10593,17 @@ ops += (long long)lines * inputDim * interDim * 2;
         float *data, *positionIds;
         int bs, len, n, m, spatial, posDim, rotaryDim;
         float ropeTheta, ropeScale;
+        bool preciseFreq;
         int st, end;
 
         MultiThreadRopeEncodingFloatOp
             (DataType dataType, float *data, float *positionIds,
             int bs, int len, int n, int m, int spatial, int posDim, int rotaryDim,
-            float ropeTheta, float ropeScale,
+            float ropeTheta, float ropeScale, bool preciseFreq,
             int st, int end) :
             dataType(dataType), data(data), positionIds(positionIds),
             bs(bs), len(len), n(n), m(m), spatial(spatial), posDim(posDim), rotaryDim(rotaryDim),
-            ropeTheta(ropeTheta), ropeScale(ropeScale),
+            ropeTheta(ropeTheta), ropeScale(ropeScale), preciseFreq(preciseFreq),
             st(st), end(end) {}
 
         void Run() {
@@ -10607,7 +10617,10 @@ ops += (long long)lines * inputDim * interDim * 2;
                     float *d = (float *) data + (b * len + l) * spatial;
                     for (int i = 0; i < n; i++) {
                         for (int j = 0; j < half; j++) {
-                            float freq = position / pow(ropeTheta, (float)(2 * j) / rotaryDim);
+                            // Match the float inverse-frequency rounding of the original table.
+                            float freq = preciseFreq
+                                ? position * (float)(1.0 / ::pow((double)ropeTheta, (double)((float)(2 * j) / rotaryDim)))
+                                : position / pow(ropeTheta, (float)(2 * j) / rotaryDim);
                             float curSin = sin(freq);
                             float curCos = cos(freq);
                             float a = d[j], b = d[j + half];
@@ -10626,7 +10639,10 @@ ops += (long long)lines * inputDim * interDim * 2;
                     uint16_t *d = (uint16_t *) data + (b * len + l) * spatial;
                     for (int i = 0; i < n; i++) {
                         for (int j = 0; j < half; j++) {
-                            float freq = position / pow(ropeTheta, (float)(2 * j) / rotaryDim);
+                            // Match the float inverse-frequency rounding of the original table.
+                            float freq = preciseFreq
+                                ? position * (float)(1.0 / ::pow((double)ropeTheta, (double)((float)(2 * j) / rotaryDim)))
+                                : position / pow(ropeTheta, (float)(2 * j) / rotaryDim);
                             float curSin = sin(freq);
                             float curCos = cos(freq);
                             float a = fp16tofp32.dict[d[j]], b = fp16tofp32.dict[d[j + half]];
@@ -10642,9 +10658,9 @@ ops += (long long)lines * inputDim * interDim * 2;
 
     static void RunMultiThreadRopeEncodingFloat(DataType dataType, float *data, float *positionIds,
             int bs, int len, int n, int m, int spatial, int posDim, int rotaryDim,
-            float ropeTheta, float ropeScale, AliveThreadPool *pool) {
+            float ropeTheta, float ropeScale, bool preciseFreq, AliveThreadPool *pool) {
         if (bs * len == 1) {
-            (MultiThreadRopeEncodingFloatOp(dataType, data, positionIds, bs, len, n, m, spatial, posDim, rotaryDim, ropeTheta, ropeScale, 0, bs * len)).Run();
+            (MultiThreadRopeEncodingFloatOp(dataType, data, positionIds, bs, len, n, m, spatial, posDim, rotaryDim, ropeTheta, ropeScale, preciseFreq, 0, bs * len)).Run();
             return;
         }
 
@@ -10655,7 +10671,7 @@ ops += (long long)lines * inputDim * interDim * 2;
         for (int i = 0; i < threadNum; i++) {
             int end = (i == threadNum - 1 ? (bs * len) : cur + per + (cur + per * (threadNum - i) < (bs * len)));
             ops.push_back(new MultiThreadRopeEncodingFloatOp(
-                dataType, data, positionIds, bs, len, n, m, spatial, posDim, rotaryDim, ropeTheta, ropeScale, cur, end));
+                dataType, data, positionIds, bs, len, n, m, spatial, posDim, rotaryDim, ropeTheta, ropeScale, preciseFreq, cur, end));
             cur = end;
         }
         for (int i = 0; i < threadNum; i++) {
@@ -10675,12 +10691,13 @@ ops += (long long)lines * inputDim * interDim * 2;
         float ropeTheta = floatParams.find("ropeTheta") != floatParams.end() ? floatParams.find("ropeTheta")->second : 10000.0f;
         float ropeScale = floatParams.find("ropeScale") != floatParams.end() ? floatParams.find("ropeScale")->second : 1.0f;
 
+        const bool preciseFreq = intParams.count("preciseFreq") && intParams.at("preciseFreq");
         int bs = data.dims[0], len = data.dims[1];
         int spatial = data.Count(2);
         int n = data.dims[2], m = data.dims[3];
         RunMultiThreadRopeEncodingFloat(data.dataType, (float*)data.cpuData, (float*)positionIds.cpuData,
             bs, len, n, m, spatial,
-            positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale, GetAlivePool());
+            positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale, preciseFreq, GetAlivePool());
     }
 
     static inline float CpuLlama3InvFreq(float invFreq, float factor, float originalMaxPosition,

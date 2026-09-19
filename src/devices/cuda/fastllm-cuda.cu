@@ -7,6 +7,7 @@
 
 #define FASTLLM_CUDA_NO_MALLOC_CHECK_MACRO
 #include "fastllm-cuda.cuh"
+#include "fastllm-cuda-rope.cuh"
 #include "devices/cuda/cudaworkspace.h"
 #include "fastllm-cuda-mtp.cuh"
 #ifndef USE_ROCM
@@ -2651,7 +2652,7 @@ __global__ void FastllmLlamaRotatePosition2DKernel(__nv_bfloat16 *data, float *p
 
 __global__ void FastllmRopeEncodingKernel(float *data, float *positionIds,
                                                    int len, int bs, int spatial, int n, int m, int partStride, int rotateDim,
-                                                   float ropeTheta, float ropeScale) {
+                                                   float ropeTheta, float ropeScale, bool preciseFreq) {
     int o = (blockIdx.x / n);
     int l = o % len;
     int b = o / len;
@@ -2659,7 +2660,8 @@ __global__ void FastllmRopeEncodingKernel(float *data, float *positionIds,
     int half = rotateDim / 2;
     int index = (int) (positionIds[b * partStride + l]);
     float position = (float)index / ropeScale;
-    float freq = position / powf(ropeTheta, (float)(2 * j) / rotateDim);
+    float freq = preciseFreq ? FastllmPreciseRopeAngle(position, j, rotateDim, ropeTheta)
+                             : position / powf(ropeTheta, (float)(2 * j) / rotateDim);
     float curSin = sinf(freq);
     float curCos = cosf(freq);
     float *d = (float *) data + o * spatial + j;
@@ -2671,7 +2673,7 @@ __global__ void FastllmRopeEncodingKernel(float *data, float *positionIds,
 
 __global__ void FastllmRopeEncodingKernel(half *data, float *positionIds,
                                                    int len, int bs, int spatial, int n, int m, int partStride, int rotateDim,
-                                                   float ropeTheta, float ropeScale) {
+                                                   float ropeTheta, float ropeScale, bool preciseFreq) {
     int o = (blockIdx.x / n);
     int l = o % len;
     int b = o / len;
@@ -2679,7 +2681,8 @@ __global__ void FastllmRopeEncodingKernel(half *data, float *positionIds,
     int half_dim = rotateDim / 2;
     int index = (int) (positionIds[b * partStride + l]);
     float position = (float)index / ropeScale;
-    float freq = position / powf(ropeTheta, (float)(2 * j) / rotateDim);
+    float freq = preciseFreq ? FastllmPreciseRopeAngle(position, j, rotateDim, ropeTheta)
+                             : position / powf(ropeTheta, (float)(2 * j) / rotateDim);
     float curSin = sinf(freq);
     float curCos = cosf(freq);
     half *d = (half *) data + o * spatial + j;
@@ -2691,7 +2694,7 @@ __global__ void FastllmRopeEncodingKernel(half *data, float *positionIds,
 
 __global__ void FastllmRopeEncodingKernel(__nv_bfloat16 *data, float *positionIds,
                                                    int len, int bs, int spatial, int n, int m, int partStride, int rotateDim,
-                                                   float ropeTheta, float ropeScale) {
+                                                   float ropeTheta, float ropeScale, bool preciseFreq) {
     int o = (blockIdx.x / n);
     int l = o % len;
     int b = o / len;
@@ -2699,7 +2702,8 @@ __global__ void FastllmRopeEncodingKernel(__nv_bfloat16 *data, float *positionId
     int half_dim = rotateDim / 2;
     int index = (int) (positionIds[b * partStride + l]);
     float position = (float)index / ropeScale;
-    float freq = position / powf(ropeTheta, (float)(2 * j) / rotateDim);
+    float freq = preciseFreq ? FastllmPreciseRopeAngle(position, j, rotateDim, ropeTheta)
+                             : position / powf(ropeTheta, (float)(2 * j) / rotateDim);
     float curSin = sinf(freq);
     float curCos = cosf(freq);
     __nv_bfloat16 *d = (__nv_bfloat16 *) data + o * spatial + j;
@@ -14595,7 +14599,7 @@ bool FastllmCudaAdvanceDecodeMeta(
     return true;
 }
 
-bool FastllmCudaRopeEncoding(fastllm::Data &data, const fastllm::Data &positionIds, int rotaryDim, float ropeTheta, float ropeScale) {
+bool FastllmCudaRopeEncoding(fastllm::Data &data, const fastllm::Data &positionIds, int rotaryDim, float ropeTheta, float ropeScale, bool preciseFreq) {
     float *cudaData = (float *) FastllmCudaPrepareInput(data);
     float *cudaPositionIds = (float *) FastllmCudaPrepareInput(positionIds);
 
@@ -14608,15 +14612,15 @@ bool FastllmCudaRopeEncoding(fastllm::Data &data, const fastllm::Data &positionI
     if (data.dataType == fastllm::DataType::FLOAT32) {
         FastllmRopeEncodingKernel <<< outer * n, halfDim >>> (cudaData, cudaPositionIds,
                                                                                  len, bs, spatial, n, m,
-                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale);
+                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale, preciseFreq);
     } else if (data.dataType == fastllm::DataType::FLOAT16) {
         FastllmRopeEncodingKernel <<< outer * n, halfDim >>> ((half*)cudaData, cudaPositionIds,
                                                                                  len, bs, spatial, n, m,
-                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale);
+                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale, preciseFreq);
     } else if (data.dataType == fastllm::DataType::BFLOAT16) {
         FastllmRopeEncodingKernel <<< outer * n, halfDim >>> ((__nv_bfloat16*)cudaData, cudaPositionIds,
                                                                                  len, bs, spatial, n, m,
-                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale);
+                                                                                 (int)positionIds.dims.back(), rotaryDim, ropeTheta, ropeScale, preciseFreq);
     }
     FastllmCudaFinishInput(positionIds, cudaPositionIds);
     FastllmCudaFinishOutput(data, cudaData);

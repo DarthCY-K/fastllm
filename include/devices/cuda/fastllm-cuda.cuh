@@ -683,8 +683,7 @@ bool FastllmCudaQwen4QSAAppendCompress4(
         const fastllm::Data &rawKeys,
         const fastllm::Data &positions,
         const fastllm::Data &normWeight,
-        const fastllm::Data &sinData,
-        const fastllm::Data &cosData,
+        float ropeTheta,
         int previousLength,
         fastllm::Data &tailKeys,
         fastllm::Data &tailPositions,
@@ -694,8 +693,7 @@ bool FastllmCudaQwen4QSAAppendCompress4Graph(
         const fastllm::Data &rawKeys,
         const fastllm::Data &positions,
         const fastllm::Data &normWeight,
-        const fastllm::Data &sinData,
-        const fastllm::Data &cosData,
+        float ropeTheta,
         const int32_t *decodeMeta,
         fastllm::Data &tailKeys,
         fastllm::Data &tailPositions,
@@ -1389,7 +1387,7 @@ bool FastllmCudaLlamaRotatePosition2D(fastllm::Data &data, const fastllm::Data &
                                  const fastllm::Data &sinData, const fastllm::Data &cosData, int rotaryDim);
 bool FastllmCudaLlamaRotatePosition2DPart(fastllm::Data &data, const fastllm::Data &positionIds,
                                  const fastllm::Data &sinData, const fastllm::Data &cosData, int rotaryDim, int part);
-bool FastllmCudaRopeEncoding(fastllm::Data &data, const fastllm::Data &positionIds, int rotaryDim, float ropeTheta, float ropeScale);
+bool FastllmCudaRopeEncoding(fastllm::Data &data, const fastllm::Data &positionIds, int rotaryDim, float ropeTheta, float ropeScale, bool preciseFreq = false);
 bool FastllmCudaLlama3RopeEncoding(fastllm::Data &data, const fastllm::Data &positionIds, int rotaryDim,
                                    float ropeTheta, float factor, float originalMaxPosition,
                                    float lowFreqFactor, float highFreqFactor);
@@ -2206,5 +2204,12 @@ extern __global__ void FastllmCudaBiasKernel(__nv_bfloat16* a, __nv_bfloat16* bi
 #define cudaMalloc(ptr, size) FastllmCudaCheckedMalloc((void **)(ptr), (size), __FILE__, __LINE__)
 #endif
 #endif
+
+// Exact small-batch FP32 activation / FP16 weight shared expert fusion.
+bool FastllmCudaQwen4SharedExpert(
+    const fastllm::Data &input, fastllm::Data &gateUpWeight,
+    fastllm::Data &downWeight, fastllm::Data &gateWeight,
+    fastllm::Data &gateUp, fastllm::Data &hidden,
+    fastllm::Data &gate, fastllm::Data &output);
 
 #endif // FASTLLM_CUDA_CUH
