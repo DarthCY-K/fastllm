@@ -344,10 +344,31 @@ def _configure_multicuda_worker_affinity(tp, threads):
         target_node = min(target_node, len(node_paths) - 1)
 
         used_cpus = set()
-        per_node_threads = max(0, int(threads) // len(node_paths))
-        for node_path in node_paths:
+        numa_count = int(os.environ.get("FT_NUMAS", len(node_paths)))
+        if not 0 < numa_count <= len(node_paths):
+            numa_count = len(node_paths)
+        numa_threads = threads
+        if "FASTLLM_NUMA_THREADS" in os.environ:
+            numa_threads = int(os.environ["FASTLLM_NUMA_THREADS"]) * numa_count
+        numa_threads = int(os.environ.get("FT_THREADS", numa_threads))
+        if numa_threads <= 0:
+            return
+        per_node_threads = max(0, numa_threads // numa_count)
+        for node_path in node_paths[:numa_count]:
             with open(os.path.join(node_path, "cpulist"), "r", encoding="utf-8") as f:
-                used_cpus.update(_parse_cpu_list(f.read())[:per_node_threads])
+                node_cpus = _parse_cpu_list(f.read())
+            if "FASTLLM_NUMAS_DISABLE_LLC_SPREAD" not in os.environ:
+                cache_ids = set()
+                for cpu in node_cpus:
+                    with open(f"/sys/devices/system/cpu/cpu{cpu}/cache/index3/id",
+                              "r", encoding="utf-8") as f:
+                        cache_ids.add(int(f.read()))
+                if len(cache_ids) > 1:
+                    # NumaConfig spreads workers across LLCs instead of taking
+                    # the first N CPUs. Do not reserve a falsely "unused" core.
+                    print("[tp] NUMA uses LLC-spread placement; MultiCuda launch workers keep inherited CPU affinity")
+                    return
+            used_cpus.update(node_cpus[:per_node_threads])
 
         allowed = set(os.sched_getaffinity(0))
         physical_cpus = []
@@ -825,6 +846,8 @@ def make_normal_parser(des: str, add_help = True) -> argparse.ArgumentParser:
     parser.add_argument('--kv_cache_limit', type = str, default = "auto",  help = 'kv缓存最大使用量')
     parser.add_argument('--max_batch', type = int, default = -1,  help = '每次最多同时推理的询问数量')
     parser.add_argument('--chunked_prefill_size', type = int, default = -1, help = '分块 prefill 的切片大小（首块与后续块相同），如 8192')
+    parser.add_argument('--fast_prefill', '--fast-prefill', action = 'store_true',
+                        help = '启用DeepSeek-V4.1近似 prefill：后段层只计算末尾滑窗，可能改变 logits；默认关闭')
     parser.add_argument('--device', type = str, help = '使用的设备')
     parser.add_argument('--vision_device', '--vision-device', dest = 'vision_device',
                         type = _vision_device, default = None,
@@ -838,12 +861,16 @@ def make_normal_parser(des: str, add_help = True) -> argparse.ArgumentParser:
                         dest = 'moe_cuda_cache', type = _memory_size_bytes,
                         default = 0,
                         help = '混合推理时用于缓存MoE专家的CUDA显存，如3g；0表示关闭')
+    parser.add_argument('--moe_cpu_cache', '--moe-cpu-cache',
+                        dest = 'moe_cpu_cache', type = _memory_size_bytes,
+                        default = 0,
+                        help = 'moe_device=disk 时的专家内存缓存总上限，如32g；0表示关闭')
     parser.add_argument('--image-embedding-cache', '--image_embedding_cache',
                         dest = 'image_embedding_cache', type = _memory_size_bytes, default = None,
                         help = 'Qwen3.5图片embedding的CPU缓存上限，如512m或1g；默认512m，0关闭')
     parser.add_argument('--ngram_device', '--ngram-device', dest = 'ngram_device',
                         choices = ['cpu', 'disk'], default = 'cpu',
-                        help = 'ngram表存放位置；disk从checkpoint按行读取以显著降低内存占用')
+                        help = 'ngram表存放位置；cpu常驻内存（默认），disk从checkpoint按行读取以降低内存占用')
     parser.add_argument('--moe_experts', type = int, default = -1, help = 'moe使用的专家数')
     parser.add_argument("--cache_history", type = str, default = "", help = "缓存历史对话")
     parser.add_argument("--cache_fast", type = str, default = "", help = "是否启用快速缓存（会消耗一定显存）")
@@ -1261,7 +1288,7 @@ def make_normal_llm_model(args, startup_progress = None):
                 model_type == "deepseek_v4"
             )
             # DeepSeek-V4.1 的内置 DSpark 草稿层同样存放在 mtp.*，但配置在 text_config 里，
-            # 且运行时的 block 可以小于 checkpoint 的训练 block（每轮少校验几个候选）
+            # 校验较短前缀时保留训练 block；候选数更大时扩展整个运行时草稿 block。
             is_deepseek_v41_model = (
                 architecture in ("DeepseekV41ForCausalLM",
                                  "DeepSeekV41ForCausalLM") or
@@ -1296,11 +1323,10 @@ def make_normal_llm_model(args, startup_progress = None):
                             "DeepSeek-V4 checkpoint is missing embedded DSpark "
                             "configuration")
                     if is_deepseek_v41_model:
-                        if not 1 <= dspark_tokens <= checkpoint_block:
+                        if dspark_tokens < 1:
                             raise ValueError(
-                                "DeepSeek-V4.1 DSpark draft tokens must be in "
-                                "[1, checkpoint block size] (requested=%d, checkpoint=%d)" %
-                                (dspark_tokens, checkpoint_block))
+                                "DeepSeek-V4.1 DSpark draft tokens must be positive "
+                                "(requested=%d)" % dspark_tokens)
                     elif dspark_tokens < checkpoint_block:
                         raise ValueError(
                             "DSpark draft tokens must be at least the checkpoint training "
@@ -1595,12 +1621,16 @@ def make_normal_llm_model(args, startup_progress = None):
         args.moe_device = expand_cudapp_device(args.moe_device)
     _configure_sm89_fp8_linear_triton(args)
     _configure_qwen35_auto_fast_paths(args, is_qwen35_model, mtp)
+    os.environ["FASTLLM_DSV41_DECODER_SWA_BOUNDED_REPLAY"] = (
+        "1" if _arg_enabled(getattr(args, "fast_prefill", False)) else "0")
     from ftllm import llm
     if hasattr(llm, "set_cuda_graph"):
         llm.set_cuda_graph(_fastllm_env_flag_enabled("FASTLLM_CUDA_GRAPH"))
     llm.set_moe_device_layers(-1)
     llm.set_moe_cuda_cache(
         _memory_size_bytes(getattr(args, "moe_cuda_cache", 0)))
+    llm.set_moe_cpu_cache(
+        _memory_size_bytes(getattr(args, "moe_cpu_cache", 0)))
     llm.set_ngram_device(args.ngram_device)
     if (args.device and args.device != ""):
         try:

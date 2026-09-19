@@ -1,3 +1,8 @@
+#include "devices/cuda/fastllm-cuda-gdn.h"
+#include "devices/cuda/fastllm-cuda-rmsnorm-small-linear.h"
+#include "devices/cuda/fastllm-cuda-fp8-linear-add.h"
+#include "devices/cuda/fastllm-cuda-nvfp4-fused.h"
+#include "devices/cuda/fastllm-cuda-native-prefill.h"
 //
 // Created by huangyuyang on 6/14/23.
 //
@@ -4578,6 +4583,8 @@ namespace fastllm {
         this->ops["Linear"] = (BaseOperator*)(new CudaLinearOp());
         this->ops["LinearAdd"] = (BaseOperator*)(new CudaLinearAddOp());
         this->ops["SwigluLinearAdd"] = (BaseOperator*)(new CudaSwigluLinearAddOp());
+        this->ops["RMSNormSmallLinear"] = new CudaRMSNormSmallLinearOp();
+        this->ops["GdnInputConv"] = new CudaGdnInputConvOp();
         this->ops["LinearSwiglu"] = (BaseOperator*)(new CudaLinearSwigluOp());
         this->ops["Conv1DPerChannel"] = (BaseOperator*)(new CudaConv1DPerChannel());
         this->ops["Conv2D"] = (BaseOperator*)(new CudaConv2DOp());
@@ -6243,6 +6250,7 @@ namespace fastllm {
     }
 
     void DoCudaLinear(Data &input, Data &weight, const Data &bias, Data &output) {
+        if (weight.cudaNativeNvfp4Layout && input.dataType != DataType::FLOAT16) FastllmCudaRestoreNativeNvfp4(weight);
         output.Allocate(false);
         int n = input.Count(0) / input.dims.back();
         int m = input.dims.back();
@@ -6391,6 +6399,10 @@ namespace fastllm {
                 input.Count(0) / input.dims.back(), input.dims.back(), output.dims.back(), true);
             return true;
         }
+        if (FastllmCudaFP8LinearAddCanRun(input, weight, bias, output)) {
+            FastllmCudaFP8LinearAdd(input, weight, bias, output);
+            return true;
+        }
         int n = input.Count(0) / input.dims.back();
         int m = input.dims.back();
         int k = output.dims.back();
@@ -6465,6 +6477,12 @@ namespace fastllm {
         Data &middle = *(datas.find("middle")->second);
         Data &bias = *(datas.find("bias")->second);
 
+        if (FastllmCudaNativeFp8FusedCanRun(input, weight, bias, output, false) &&
+            FastllmCudaNativeFp8Fused(input, weight, output, false)) return;
+        if (weight.dataType == DataType::NVFP4_BLOCK_16) {
+            CudaNvfp4LinearAddBlock(input, weight, bias, middle, output);
+            return;
+        }
         if (DoCudaLinearAdd(input, weight, bias, output)) { 
             return;
         } else {
@@ -6642,6 +6660,12 @@ namespace fastllm {
         Data &middle = *(datas.find("middle")->second);
         Data &bias = *(datas.find("bias")->second);
 
+        if (FastllmCudaNativeFp8FusedCanRun(input, weight, bias, output, true) &&
+            FastllmCudaNativeFp8Fused(input, weight, output, true)) return;
+        if (weight.dataType == DataType::NVFP4_BLOCK_16) {
+            CudaNvfp4LinearSwigluBlock(input, weight, bias, middle, output);
+            return;
+        }
         if (DoCudaLinearSwiglu(input, weight, bias, middle, output)) {
             return;
         } else {
@@ -8822,7 +8846,9 @@ namespace fastllm {
 
     void DoCudaMergeMOEFromCPU (Data &input, Data &output, Data &index, Data &score, Data &w1, Data &w2, Data &w3, 
         Data **weights, Data **biass, float sharedScale, bool setZero, const std::unordered_set<int> &experts, bool isCrossSwiglu,
-        MoeGateType gateType, bool deepSeekV4Mode, float swigluLimit) {
+        MoeGateType gateType, bool deepSeekV4Mode, float swigluLimit,
+        int activationQuantBlock, bool quantizeSharedExpert) {
+        const bool deepSeekV41Mode = deepSeekV4Mode && activationQuantBlock == 32;
         int curDeviceId = FastllmCudaGetDevice();
         CudaMergeMoeFromCpuWorkspace &workspace =
             GetCudaMergeMoeFromCpuWorkspace(curDeviceId);
@@ -9046,13 +9072,36 @@ namespace fastllm {
             tempOutput.Allocate();
         }
 
+        if (deepSeekV41Mode) {
+            AssertInFastLLM(input.dataType == DataType::BFLOAT16 && output.dataType == DataType::BFLOAT16,
+                            "V4.1 NUMA GPU prefill requires BF16 activations.");
+            tempFloatOutput.dataType = DataType::FLOAT32;
+            tempFloatOutput.Resize(output.dims);
+            tempFloatOutput.ToDevice(DataDevice::CUDA, {curDeviceId}, false);
+            tempFloatOutput.Allocate(false);
+            floatOutput.dataType = DataType::FLOAT32;
+            floatOutput.Resize(output.dims);
+            floatOutput.ToDevice(DataDevice::CUDA, {curDeviceId}, false);
+            floatOutput.Allocate(false);
+            if (setZero) FastllmCudaMemset0(floatOutput.cudaData, floatOutput.GetBytes());
+            else FastllmBF16ToFloat(output.cudaData, floatOutput.cudaData, output.Count(0));
+        }
+
+        // Temporary uploads preserve host storage; disk-cache residents have
+        // none and must keep their device allocation after this invocation.
+        auto uploadWeight = [](Data *weight, void *stream = nullptr) {
+            if (weight->cpuData || !weight->numasData.empty()) weight->ToCudaTemporary({}, true, stream);
+        };
+        auto releaseWeight = [](Data *weight) {
+            if (weight->cpuData || !weight->numasData.empty()) weight->FreeCudaTemporary({}, false);
+        };
         void *copyStream = FastllmCudaStreamCreate(true);
         void *computeDoneEvent = FastllmCudaEventCreate();
         int curExpert = findNextValidExpert(-1);
 
         if (curExpert >= 0) {
-            weights[curExpert * 2]->ToCudaTemporary({}, true);
-            weights[curExpert * 2 + 1]->ToCudaTemporary({}, true);
+            uploadWeight(weights[curExpert * 2]);
+            uploadWeight(weights[curExpert * 2 + 1]);
         }
 
         int prevExpert = -1;
@@ -9060,8 +9109,8 @@ namespace fastllm {
             int nextExpert = findNextValidExpert(curExpert);
 
             if (nextExpert >= 0) {
-                weights[nextExpert * 2]->ToCudaTemporary({}, true, copyStream);
-                weights[nextExpert * 2 + 1]->ToCudaTemporary({}, true, copyStream);
+                uploadWeight(weights[nextExpert * 2], copyStream);
+                uploadWeight(weights[nextExpert * 2 + 1], copyStream);
             }
 
             int i = curExpert;
@@ -9073,6 +9122,10 @@ namespace fastllm {
                 GetDataBytes(input.dataType, 1, input.dims[1]), 
                 cudaIndex + startIdx[i]
             );
+            if (deepSeekV41Mode && (i != 0 || quantizeSharedExpert)) {
+                AssertInFastLLM(FastllmCudaDeepSeekV41QuantizeActivation(tempInput, tempInput),
+                                "V4.1 GPU prefill input quantization failed.");
+            }
             if (accurateFp8Moe) {
                 int expertBatch = (int)expertTasks[i].size();
                 int hidden = tempInput.dims[1];
@@ -9116,8 +9169,8 @@ namespace fastllm {
                         FastllmCudaDeepSeekV4PrepareMoeDownInput(
                             tempMiddle, tempSwiglu,
                             cudaScales + startIdx[i], swigluLimit,
-                            IsDeepSeekV4CudaQuantizedWeight(
-                                *weights[i * 2 + 1])),
+                            IsDeepSeekV4CudaQuantizedWeight(*weights[i * 2 + 1]) ||
+                                (i == 0 && quantizeSharedExpert), activationQuantBlock),
                         "DeepSeek-V4 failed to prepare its CUDA MoE down input.");
                 } else {
                     ApplyCudaMoeGate(
@@ -9131,7 +9184,12 @@ namespace fastllm {
                     *GetEmptyData(), tempOutput);
             }
 
-            if (accurateFp8Moe) {
+            if (deepSeekV41Mode) {
+                tempFloatOutput.Resize(tempOutput.dims);
+                FastllmBF16ToFloat(tempOutput.cudaData, tempFloatOutput.cudaData, tempOutput.Count(0));
+                FastllmCudaPickOutputFloat((float*)tempFloatOutput.cudaData, (float*)floatOutput.cudaData,
+                    expertTasks[i].size(), output.dims[1], cudaIndex + startIdx[i], cudaUnitScales + startIdx[i]);
+            } else if (accurateFp8Moe) {
                 FastllmCudaPickOutputFloat(
                     (float*)tempFloatOutput.cudaData,
                     (float*)floatOutput.cudaData,
@@ -9159,8 +9217,8 @@ namespace fastllm {
             }
 
             if (prevExpert >= 0) {
-                weights[prevExpert * 2]->FreeCudaTemporary({}, false);
-                weights[prevExpert * 2 + 1]->FreeCudaTemporary({}, false);
+                releaseWeight(weights[prevExpert * 2]);
+                releaseWeight(weights[prevExpert * 2 + 1]);
             }
 
             prevExpert = curExpert;
@@ -9169,10 +9227,10 @@ namespace fastllm {
 
         if (prevExpert >= 0) {
             FastllmCudaEventSynchronize(computeDoneEvent);
-            weights[prevExpert * 2]->FreeCudaTemporary({}, false);
-            weights[prevExpert * 2 + 1]->FreeCudaTemporary({}, false);
+            releaseWeight(weights[prevExpert * 2]);
+            releaseWeight(weights[prevExpert * 2 + 1]);
         }
-        if (accurateFp8Moe) {
+        if (accurateFp8Moe || deepSeekV41Mode) {
             FastllmFloatToBF16(
                 floatOutput.cudaData, output.cudaData,
                 output.Count(0));

@@ -448,6 +448,9 @@ namespace fastllm {
 
         virtual void PrepareToolCallConstraint(ResponseContext *context, GenerationConfig &generationConfig);
 
+        void PrepareToolCallConstraint(GenerationConfig &generationConfig);
+        void AdvanceToolCallConstraintText(std::string &text, int tokenId);
+
         virtual void UpdateToolCallConstraintState(ResponseContext *context, int tokenId);
 
         virtual void OnResponseContextCreated(ResponseContext *context) {}
