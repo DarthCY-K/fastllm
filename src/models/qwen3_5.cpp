@@ -8455,9 +8455,16 @@ namespace fastllm {
 #endif
     }
 
-    static void SwapSingleTokenSeqHeadByReshape(Data &input) {
-        AssertInFastLLM(input.dims.size() == 3 || input.dims.size() == 4,
-                        "Single-token seq/head reshape only supports 3D or 4D tensors.");
+    static void SwapSingleTokenSeqHeadByReshapeImpl(Data &input, const char *swapTag) {
+        if (input.dims.size() != 3 && input.dims.size() != 4) {
+            std::string msg = std::string("Single-token seq/head reshape only supports 3D or 4D tensors. by=") + swapTag + " rank=" + std::to_string(input.dims.size()) + " dims=[";
+            for (size_t di = 0; di < input.dims.size(); di++) {
+                msg += std::to_string(input.dims[di]);
+                if (di + 1 < input.dims.size()) msg += ",";
+            }
+            msg += "] dtype=" + std::to_string((int)input.dataType) + " device=" + std::to_string((int)input.dataDevice) + "\n";
+            ErrorInFastLLM(msg);
+        }
         AssertInFastLLM(input.dims.size() >= 3 && input.dims[0] == 1 && (input.dims[1] == 1 || input.dims[2] == 1),
                         "Single-token seq/head reshape expects batch=1 and one singleton seq/head axis.");
 
@@ -8465,6 +8472,9 @@ namespace fastllm {
         std::swap(dims[1], dims[2]);
         input.Reshape(dims);
     }
+#define DIAG_STR2(x) #x
+#define DIAG_STR(x) DIAG_STR2(x)
+#define SwapSingleTokenSeqHeadByReshape(x) SwapSingleTokenSeqHeadByReshapeImpl(x, #x " @" DIAG_STR(__LINE__))
 
 #ifdef USE_CUDA
     static bool Qwen35EnsureCudaLinearAttnStateTransposed(Data &state) {
@@ -13924,7 +13934,10 @@ namespace fastllm {
                 if (!combinedGdnZCandidate) {
                     ensureProjectedZSplit();
                 }
-                if (batchedConvSequence) {
+                if (projectedConvBlock) {
+                    // The fused GDN input-conv block already produced convOutput
+                    // and updated the conv cache; no projected QKV is materialized.
+                } else if (batchedConvSequence) {
                     // Keep the flattened token-major projection. Each request
                     // is handled independently before its cache update.
                 } else if (batch == 1 && all1 && pastKey.dims.size() > 0) {
@@ -14077,6 +14090,9 @@ namespace fastllm {
                         Qwen3CudaPermuteSelf(cudaRunner, convOutput, {0, 2, 1});
                     }
                     convOutput.Reshape({1, seqlen, convOutput.dims.back()});
+                } else if (projectedConvBlock) {
+                    // Conv (and the single cache update) already done by the fused
+                    // GDN input-conv block; convOutput is [1, batch, localQkvDim].
                 } else if (bsz == 1 && seqlen == 1 && pastKey.dims.size() > 0) {
                     bool fusedDecodeConvSilu = false;
                     bool canTryFusedDecodeConvSilu =
@@ -14234,6 +14250,9 @@ namespace fastllm {
                 if (batchedConvSequence) {
                     // Request-local outputs are already [1, seq, channels]
                     // and concatenated in flattened request order.
+                } else if (projectedConvBlock) {
+                    // Fused block output is already [1, batch, localQkvDim]; the
+                    // single-token seq/head swap below must not re-apply.
                 } else if (batch == 1 && all1 && pastKey.dims.size() > 0) {
                     SwapSingleTokenSeqHeadByReshape(convOutput);
                 } else if (batch > 1 && all1) {
