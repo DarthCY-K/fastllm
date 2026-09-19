@@ -4072,12 +4072,69 @@ bool FastllmCudaHalfMatMulFloatNVFP4Block16E8M0(const fastllm::Data &input, fast
     return true;
 }
 
+__global__ void FastllmCudaBFloat16ToHalfCastKernel(const __nv_bfloat16 *in, half *out, int count) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < count) {
+        out[i] = __float2half(__bfloat162float(in[i]));
+    }
+}
+
+__global__ void FastllmCudaHalfToBFloat16CastKernel(const half *in, __nv_bfloat16 *out, int count) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < count) {
+        out[i] = __float2bfloat16(__half2float(in[i]));
+    }
+}
+
 bool FastllmCudaBFloat16MatMulNVFP4Block16(const fastllm::Data &input, fastllm::Data &weight, const fastllm::Data &bias, fastllm::Data &output, int n, int m, int k) {
     FastllmCudaFP8E4M3Block128EnsureBFloat16BiasOnDevice(weight, bias, k);
 
     __nv_bfloat16 *cudaBiasData = bias.dims.size() == 0 ? nullptr : (__nv_bfloat16 *) weight.extraCudaHalfData[0];
     __nv_bfloat16 *cudaInput = (__nv_bfloat16*)FastllmCudaPrepareInput(input);
     __nv_bfloat16 *cudaOutput = (__nv_bfloat16*)FastllmCudaPrepareOutput(output);
+
+    // Repacked NVFP4 weights (native / SM70 TurboMind / Marlin layouts) are
+    // only consumable through the half-input pipeline, which dispatches per
+    // layout before any raw 12-byte-group kernel reads cudaData. The marlin
+    // GEMM there tile-selects only single-row calls on this arch, so route
+    // row by row, casting BF16 -> half in and half -> BF16 out.
+    if (weight.dataType == fastllm::DataType::NVFP4_BLOCK_16 &&
+        (weight.IsRepacked || weight.cudaNativeNvfp4Layout)) {
+        fastllm::Data rowIn(fastllm::DataType::FLOAT16, {1, m});
+        rowIn.ToDevice(input.dataDevice, input.dataDeviceIds);
+        fastllm::Data rowOut(fastllm::DataType::FLOAT16, {1, k});
+        rowOut.ToDevice(output.dataDevice, output.dataDeviceIds);
+        if (rowIn.cudaData == nullptr) {
+            rowIn.cudaData = FastllmCudaMalloc((size_t)m * sizeof(half));
+            rowIn.cudaDataBorrowed = false;
+            rowIn.dataDevice = fastllm::DataDevice::CUDA;
+            rowIn.dataDeviceIds = input.dataDeviceIds;
+        }
+        if (rowOut.cudaData == nullptr) {
+            rowOut.cudaData = FastllmCudaMalloc((size_t)k * sizeof(half));
+            rowOut.cudaDataBorrowed = false;
+            rowOut.dataDevice = fastllm::DataDevice::CUDA;
+            rowOut.dataDeviceIds = output.dataDeviceIds;
+        }
+        if (rowIn.cudaData == nullptr || rowOut.cudaData == nullptr) {
+            printf("Error: BF16 repack hop buffers unavailable.\n");
+            throw("bf16 nvfp4 hop buffer error");
+        }
+        const int castThreads = 256;
+        for (int rr = 0; rr < n; rr++) {
+            FastllmCudaBFloat16ToHalfCastKernel <<< (m - 1) / castThreads + 1, castThreads >>>(
+                cudaInput + (size_t)rr * m, (half *)rowIn.cudaData, m);
+            if (!FastllmCudaHalfMatMulFloatNVFP4Block16(rowIn, weight, bias, rowOut, 1, m, k)) {
+                printf("Error: BF16 NVFP4 rowwise repack hop failed (n=%d m=%d k=%d).\n", n, m, k);
+                throw("bf16 nvfp4 rowwise repack hop error");
+            }
+            FastllmCudaHalfToBFloat16CastKernel <<< (k - 1) / castThreads + 1, castThreads >>>(
+                (half *)rowOut.cudaData, cudaOutput + (size_t)rr * k, k);
+        }
+        FastllmCudaFinishInput(input, cudaInput);
+        FastllmCudaFinishOutput(output, cudaOutput);
+        return true;
+    }
 
     const bool planar = weight.dataType == fastllm::DataType::NVFP4_BLOCK_16_PLANAR;
     const size_t packedBytesPerRow = FastllmCudaNVFP4Block16BytesPerRow(m);
