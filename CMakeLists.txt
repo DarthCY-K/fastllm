@@ -354,6 +354,9 @@ if (USE_CUDA)
     else()
         message(STATUS "CUTLASS FP8 kernels: OFF (${FASTLLM_CUTLASS_DIR})")
     endif()
+    # Local(SM75) build fix: nvcc 12.8 C++20 frontend ICE on this TU; compile as C++17 (last -std wins).
+    set_source_files_properties(src/devices/cuda/linear/fastllm-native-lowbit-prefill.cu
+        PROPERTIES COMPILE_OPTIONS "--std=c++17")
     #message(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
     set(FASTLLM_CUDA_SOURCES src/devices/cuda/cudadevice.cpp src/devices/cuda/cudadevicebatch.cpp 
         src/devices/cuda/cudaworkspace.cpp
