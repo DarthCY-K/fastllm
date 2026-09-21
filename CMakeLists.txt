@@ -743,6 +743,10 @@ if (UNIT_TEST)
         target_link_libraries(disk_prefix_cache_test PRIVATE OpenSSL::Crypto SQLite::SQLite3 Threads::Threads)
         add_test(NAME disk_prefix_cache COMMAND disk_prefix_cache_test)
         set_tests_properties(disk_prefix_cache PROPERTIES TIMEOUT 90)
+        add_executable(lazy_recover_bench test/basic/lazy_recover_bench.cpp
+            src/utils/disk_prefix_cache.cpp third_party/lmcache_fs/fs/connector.cpp
+            third_party/json11/json11.cpp)
+        target_link_libraries(lazy_recover_bench PRIVATE OpenSSL::Crypto SQLite::SQLite3 Threads::Threads)
     endif()
     add_test(NAME multimodal_prefix_cache COMMAND multimodal_prefix_cache_test)
     add_executable(paged_media_identity_test test/basic/test_paged_media_identity.cpp)

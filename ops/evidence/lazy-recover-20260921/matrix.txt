@@ -1,0 +1,32 @@
+# lazy-recover CPU 级验收矩阵（2026-09-21 夜）
+# 环境: reasoning build-lazy (wt-lazy @ lazy-recover-20260921), 副本=/var/cache/lmcache/.lazy-test-store (16G/17391 文件/硬链接)
+# 命令: ./lazy_recover_bench <store> [--force|--dirty]
+
+=== T1 快路径（干净索引） ===
+[Prefix SSD] index ok: fast startup, full recovery skipped.
+ctor_ms=56.7 checkpoints=29
+intents_after=0
+progress_file={"detail": "existing index accepted", "phase": "fast-skip", ...}
+real    0m0.062s
+
+=== T2 强制全量恢复 ===
+[Prefix SSD] full recovery starting: commits=29 (index missing or dirty).
+[Prefix SSD] full recovery done: commits=29 refs=74914 objects_removed=0 elapsed=17.03s.
+ctor_ms=17571.2 checkpoints=29
+intents_after=0
+progress_file={"commits_done": 29, "commits_total": 29, "detail": "recovery complete", "objects_removed": 0, "phase": "done", "refs_checked": 74914, ...}
+real    0m17.598s
+
+=== T3 脏索引（intents 残留 → 应全量恢复并清零） ===
+dirty_marker_inserted intents=1
+[Prefix SSD] full recovery starting: commits=29 (index missing or dirty).
+[Prefix SSD] full recovery done: commits=29 refs=74914 objects_removed=0 elapsed=17.03s.
+ctor_ms=17593.0 checkpoints=29
+intents_after=0
+real    0m17.629s
+
+=== T4 单元测试全套 ===
+UNIT_TEST_PASS
+[Prefix SSD] full recovery starting: commits=0 (index missing or dirty).
+[Prefix SSD] full recovery done: commits=0 refs=0 objects_removed=0 elapsed=0.00s.
+SSD storage: cross-process, branches, shared refs, concurrent commits, SIGKILL, corruption, index recovery, FIFO: PASS

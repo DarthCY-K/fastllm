@@ -6,11 +6,13 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <fstream>
 #include <poll.h>
 #include <unistd.h>
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <cstdlib>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
@@ -246,7 +248,13 @@ struct DiskPrefixCache::Impl {
         Lease lease(root / ".lease", LOCK_EX);
         PrivateDirectory(base); PrivateDirectory(transport); PrivateDirectory(commits);
         SyncDirectory(root); SyncDirectory(base);
-        Recover();
+        if (IndexUsable()) {
+            printf("[Prefix SSD] index ok: fast startup, full recovery skipped.\n"); fflush(stdout);
+            WriteProgress(Json::object{{"phase", "fast-skip"}, {"started_ns", (double)NowNs()},
+                {"updated_ns", (double)NowNs()}, {"detail", "existing index accepted"}});
+        } else {
+            Recover();
+        }
         connector.reset(new lmcache::connector::FSConnector(transport.string(), workers, "", false));
     }
     fs::path CommitPath(const std::string &id, const std::string &key) const {
@@ -342,6 +350,30 @@ struct DiskPrefixCache::Impl {
         Statement query(db.value, add ? "INSERT OR IGNORE INTO intents VALUES(?)" : "DELETE FROM intents WHERE id=?");
         query.Text(1, id); query.Run();
     }
+    bool ForceRecover() const {
+        const char *value = std::getenv("FASTLLM_PREFIX_CACHE_FORCE_RECOVER");
+        return value != nullptr && value[0] != '\0' && std::string(value) != "0";
+    }
+    bool IndexUsable() {
+        if (ForceRecover()) return false;
+        try {
+            Database db(dbPath);
+            Statement check(db.value, "PRAGMA quick_check");
+            if (!(check.Row() && check.Text(0) == "ok")) return false;
+            if (db.Scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN "
+                          "('objects','checkpoints','refs')") != 3) return false;
+            if (db.Scalar("SELECT COUNT(*) FROM intents") != 0) return false;
+            return true;
+        } catch (...) { return false; }
+    }
+    void WriteProgress(const Json &state) const {
+        try {
+            auto path = base / "recover-progress.json";
+            auto temporary = path.string() + ".tmp";
+            { std::ofstream out(temporary, std::ios::binary | std::ios::trunc); out << state.dump(); }
+            fs::rename(temporary, path);
+        } catch (...) {}
+    }
     void Recover() {
         // Caller owns exclusive lifecycle lease, so every uncommitted object is
         // unreachable and no live writer's temporary file can be collected.
@@ -359,6 +391,22 @@ struct DiskPrefixCache::Impl {
         Schema(*db);
         db->Exec("DELETE FROM refs; DELETE FROM checkpoints; DELETE FROM objects; DELETE FROM reservations; DELETE FROM intents;");
         std::set<std::string> reachable;
+        std::uint64_t totalCommits = 0, doneCommits = 0, refsChecked = 0, objectsRemoved = 0;
+        for (const auto &directory : fs::directory_iterator(commits)) {
+            if (!directory.is_directory() || directory.is_symlink() || !IsDigest(directory.path().filename().string())) continue;
+            for (const auto &file : fs::directory_iterator(directory.path()))
+                if (file.is_regular_file() && !file.is_symlink() && file.path().extension() == ".commit") ++totalCommits;
+        }
+        const auto recoveryStarted = NowNs();
+        auto progress = [&](const char *phase, const char *detail) {
+            WriteProgress(Json::object{{"phase", phase}, {"commits_done", (double)doneCommits},
+                {"commits_total", (double)totalCommits}, {"refs_checked", (double)refsChecked},
+                {"objects_removed", (double)objectsRemoved}, {"started_ns", (double)recoveryStarted},
+                {"updated_ns", (double)NowNs()}, {"detail", detail}});
+        };
+        progress("recover", "start");
+        printf("[Prefix SSD] full recovery starting: commits=%llu (index missing or dirty).\n",
+               (unsigned long long)totalCommits); fflush(stdout);
         for (const auto &directory : fs::directory_iterator(commits)) {
             if (!directory.is_directory() || directory.is_symlink() || !IsDigest(directory.path().filename().string())) continue;
             auto id = directory.path().filename().string();
@@ -371,25 +419,37 @@ struct DiskPrefixCache::Impl {
                 try {
                     record = LoadRecord(file.path(), id, key);
                     CollectRefs(record["objects"], refs);
-                    for (const auto &ref : refs) Check(HeaderValid(ref.first, ref.second), "incomplete_checkpoint");
-                } catch (...) { fs::remove(file.path()); continue; }
+                    for (const auto &ref : refs) {
+                        Check(HeaderValid(ref.first, ref.second), "incomplete_checkpoint");
+                        ++refsChecked;
+                    }
+                } catch (...) { fs::remove(file.path()); ++doneCommits; progress("recover", "pruned invalid commit"); continue; }
                 // SQL/storage failures abort maintenance, never delete an
                 // otherwise valid commit merely because indexing failed.
                 IndexRecord(*db, record, FileSize(file.path()));
                 for (const auto &ref : refs) reachable.insert(BlobFilename(ref.first));
+                ++doneCommits;
+                if (doneCommits % 4 == 0 || doneCommits == totalCommits) progress("recover", "indexing commits");
             }
             SyncDirectory(directory.path());
         }
         for (const auto &file : fs::directory_iterator(transport)) {
-            if (file.is_regular_file() && !file.is_symlink() && !reachable.count(file.path().filename().string())) fs::remove(file.path());
+            if (file.is_regular_file() && !file.is_symlink() && !reachable.count(file.path().filename().string())) {
+                fs::remove(file.path());
+                ++objectsRemoved;
+            }
         }
         SyncDirectory(transport); SyncDirectory(commits);
         db->Exec("PRAGMA wal_checkpoint(TRUNCATE)");
+        progress("done", "recovery complete");
+        printf("[Prefix SSD] full recovery done: commits=%llu refs=%llu objects_removed=%llu elapsed=%.2fs.\n",
+               (unsigned long long)doneCommits, (unsigned long long)refsChecked,
+               (unsigned long long)objectsRemoved, (NowNs() - recoveryStarted) / 1e9); fflush(stdout);
     }
     bool Maintain(uint64_t required) {
         try {
             Lease lease(root / ".lease", LOCK_EX | LOCK_NB);
-            Recover();
+            if (!IndexUsable()) Recover();
             Lease metadata(root / ".metadata", LOCK_EX);
             Database db(dbPath);
             while (true) {
