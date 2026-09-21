@@ -682,6 +682,9 @@ target_link_libraries(quant fastllm)
 
 if (UNIT_TEST)
     enable_testing()
+    add_executable(moe_expert_partition_test test/basic/test_moe_expert_partition.cpp)
+    target_include_directories(moe_expert_partition_test PRIVATE src)
+    add_test(NAME moe_expert_partition COMMAND moe_expert_partition_test)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64|i[3-6]86)$")
         add_executable(cpu_isa_compat_test test/basic/test_cpu_isa_compat.cpp)
         target_link_libraries(cpu_isa_compat_test PRIVATE fastllm)
@@ -878,6 +881,12 @@ if (UNIT_TEST)
         set_tests_properties(qwen35_streaming_tp_weights qwen35_streaming_single_gpu_weights
                              PROPERTIES LABELS cuda SKIP_RETURN_CODE 77)
 
+        add_executable(qwen4_streaming_weights_test test/basic/test_qwen4_streaming_weights.cpp)
+        target_link_libraries(qwen4_streaming_weights_test PRIVATE fastllm)
+        add_test(NAME qwen4_streaming_weights COMMAND qwen4_streaming_weights_test)
+        set_tests_properties(qwen4_streaming_weights PROPERTIES
+                             LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 120)
+
         target_include_directories(regressionOps PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         target_include_directories(contextExtensionRegression PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         add_test(NAME context_extension_cuda COMMAND contextExtensionRegression --cuda)
@@ -890,6 +899,18 @@ if (UNIT_TEST)
         target_include_directories(cuda_data_transfer_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         add_test(NAME cuda_data_transfer COMMAND cuda_data_transfer_test)
         set_tests_properties(cuda_data_transfer PROPERTIES LABELS cuda SKIP_RETURN_CODE 77)
+
+        add_executable(cuda_prefill_paths_test test/basic/test_cuda_prefill_paths.cpp)
+        target_link_libraries(cuda_prefill_paths_test PRIVATE fastllm)
+        target_include_directories(cuda_prefill_paths_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        add_test(NAME cuda_prefill_gdn_long COMMAND cuda_prefill_paths_test gdn)
+        add_test(NAME cuda_prefill_sparse_strides COMMAND cuda_prefill_paths_test sparse)
+        set_tests_properties(cuda_prefill_gdn_long cuda_prefill_sparse_strides PROPERTIES
+                             LABELS "cuda;triton" SKIP_RETURN_CODE 77)
+        add_test(NAME cuda_prefill_gdn_large_fp32 COMMAND cuda_prefill_paths_test gdn_large_fp32)
+        add_test(NAME cuda_prefill_gdn_large_fp16 COMMAND cuda_prefill_paths_test gdn_large_fp16)
+        set_tests_properties(cuda_prefill_gdn_large_fp32 cuda_prefill_gdn_large_fp16 PROPERTIES
+                             LABELS "cuda;triton;large_memory" SKIP_RETURN_CODE 77 RUN_SERIAL TRUE)
 
         if (NOT WIN32)
             add_executable(cuda_swiglu_fp8_test test/basic/test_cuda_swiglu_fp8.cpp)

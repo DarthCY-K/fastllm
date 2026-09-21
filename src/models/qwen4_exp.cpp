@@ -2552,6 +2552,17 @@ namespace fastllm {
                  !Qwen4StartsWith(weightName, "mtp."))) {
                 return;
             }
+            // GPU experts can retain their source layout until warmup repacks
+            // them. Streaming all dense weights now would overlap those sources
+            // and consume the headroom needed by loading and repacking.
+            // Keep the host-memory optimization for CPU/NUMA/disk experts.
+            for (int i = 0; i < this->block_cnt; ++i) {
+                const std::string moeDevice = this->SelectMoeDeviceForLayer(i);
+                if (moeDevice == "cuda" || Qwen4StartsWith(moeDevice, "cuda:") ||
+                    moeDevice == "multicuda" || Qwen4StartsWith(moeDevice, "multicuda:")) {
+                    return;
+                }
+            }
             auto found = this->weight.weight.find(weightName);
             if (found == this->weight.weight.end()) return;
             Data &data = found->second;
@@ -10901,6 +10912,9 @@ namespace fastllm {
         Data embedding, hiddenBuffers[2];
         Data *hiddenStates = &hiddenBuffers[0];
         Data *nextHiddenStates = &hiddenBuffers[1];
+        // The previous request/chunk may have left the last layer's device
+        // selected. Expand the embedding on the first layer's device.
+        ApplyDeviceMap(this->deviceMap, 1, this->block_cnt);
         DumpTensorIfRequested("input_ids", inputIds);
         DumpTensorIfRequested("position_ids", positionIds);
         if (precomputedEmbedding != nullptr) {
@@ -11227,7 +11241,11 @@ namespace fastllm {
                     *nextHiddenStates, finalHyperNorm);
                 hasFinalHyperNorm = true;
                 hasCarriedAttentionNorm = false;
-            } else if (layer + 1 != this->pleLayer) {
+            } else if (layer + 1 != this->pleLayer &&
+                       SelectDeviceFromMap(this->deviceMap, layer + 1,
+                                           this->block_cnt) ==
+                       SelectDeviceFromMap(this->deviceMap, layer + 2,
+                                           this->block_cnt)) {
                 const std::string nextAttentionHyperPrefix =
                     languagePrefix + "layers." +
                     std::to_string(layer + 1) +
@@ -11246,8 +11264,10 @@ namespace fastllm {
                 hasCarriedAttentionProjection =
                     carriedProjectionStorage != nullptr;
             } else {
-                // PLE changes the residual before the next attention norm, so
-                // this single boundary cannot be normalized ahead of time.
+                // PLE changes the residual before the next attention norm.
+                // At a device boundary, carry only the residual and compute
+                // the norm/projection on the receiving device; carrying both
+                // intermediates would transfer the large activation again.
                 HyperCombine(*hiddenStates, mlpOutput, mlpInjection,
                              *nextHiddenStates);
                 hasCarriedAttentionNorm = false;
