@@ -91,3 +91,9 @@
 - **历史擦洗**：`ops/deploy/scrub_old_key.py`（同长度就地替换、保持 inode，排除 live 日志/env/备份）→ **68 文件 68 处**已抹；复扫只剩当前 env。**遗留**：live 生产日志 47 处**已失效**旧 key，下次停服务窗口清理。
 - **后续**：①`apply_nslog_redact.py` 是 venv 层补丁，**每次升级 ftllm 后必须重跑**；②NVFP4 质量重尾（虾跑分 n=8 中一场 64.7）未排除，建议补同日 n≥3 对照；③本轮新坑：`scp` 端口是 `-P`（`-p` 会报 `stat local "11453"`）。
 - **依据**：`ops/docs/推理机-NVFP4转正与密钥轮换-2026-09-16.md`；脚本 `ops/deploy/{switch_prod_nvfp4.sh,rollback_prod_nvfp4.sh,apply_nslog_redact.py,rotate_prod_key.sh,scrub_old_key.py,scan_key_files.py,make_sub2api_key_sql.sh,fix_account13.sql}`；探针 `ops/bench/{nvfp4_image_probe.py,relay_image_probe.py}`；证据 `ops/evidence/nvfp4-rotate-20260916/`。
+
+## 增补：r9b 转正（2026-09-21）
+- 生产引擎由 r8（so `1c7fc3f3`）切换为 **r9b**（r9 上游全量合并 + PR#747；so `66f68772abe34a596bbe187addb0451a`）。
+- 切换脚本 `ops/deploy/switch_to_r9b.sh`；venv 备份 `ftllm.backup-20260921-pre-r9b`；回滚 `ops/deploy/rollback_r9b.sh`。
+- 转正验证：启动门禁行齐（Yarn 允许 / 1M 上下文 / DFlash2 TP prepared）；功能电池 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 与基线逐位一致；dec 232.2/200.1、237.5/201.9）；产线 tail64=218.5 t/s（seeded=1）；errors=0、desync=0。
+- 生产 launcher 未开 SSD 持久前缀（`FASTLLM_PREFIX_CACHE_DIR` 未设，功能休眠）；启用方式见 `docs/qwen35-persistent-prefix-cache.md`。
