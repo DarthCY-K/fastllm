@@ -116,3 +116,10 @@
 - 转正验证：门禁行齐；回归 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 逐位一致；dec 229.6/200.7、239.9/202.6）；errors=0、desync=0。
 - **暖机兜底启用**：重启后由 `ops/deploy/warmup_prod.sh` 吸收 SSD 首请求全量读取校验（本次 96s）→ 用户侧无感。
 - 配额 64→16GiB（launcher `.bak-pre-16g-20260921`；约束首请求校验成本上限 ≈55s）。
+## 增补：r11 候选链（2026-09-21 晚）——全绿，待转正
+- r11 = r10 线 + API key env 加固（`64fc6245`，摘取 maoyufeng1985 `d2f3e937`）+ 上游 `3f1dcc42` 4 提交（merge `b5c45839`）。
+- 构建 BUILD_OK：so=`eea71a8fc7a37faca37decb47369db48`；单测 9/9（#747 四项 + NVFP4 回归三项 + 新 MoE 分区；CUDA 两新测试只编不跑；planar 观察项延续）。
+- 窗口（19:31–19:34）：三配置 md5 3/3、errs=0、ssd_boot=5、prod 自动恢复。
+- 验收（19:36–19:47）：prod 基线（暖机 97s 吸收）md5 3/3、tail64 212.2；cand 3/3、tail64 219.4；308K 针测 found=true 408.6s；seeded=2/desync=0/errs=0。
+- 转正物料：`ops/deploy/switch_to_r11.sh` + `rollback_r11.sh`（含暖机）；窗口/验收脚本恢复点已固化暖机。
+- 状态：**待转正决策**（转正后推 sm75 + tag）。

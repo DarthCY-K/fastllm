@@ -1,0 +1,44 @@
+========= R11 WINDOW START 2026-09-21 19:31:26 =========
+testing so=eea71a8fc7a37faca37decb47369db48
+--- stop prod 19:31:26 ---
+--- [r11-force] start stack (argv-swift-trial.json) 19:31:32 ---
+[r11-force] READY http=401 ~35s
+[r11-force] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.15
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=230.4
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=202.9 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r11-force.json
+[r11-force] ssd_boot: 0
+[r11-force] accept: 
+[r11-force] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r11-ns] start stack (argv-swift-trial-ns.json) 19:32:11 ---
+[r11-ns] READY http=401 ~30s
+[r11-ns] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.15
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=56.7
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=65.5 ttft=0.1
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r11-ns.json
+[r11-ns] ssd_boot: 0
+[r11-ns] accept: 
+[r11-ns] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r11-ssd] start stack (argv-swift-trial.json) 19:32:48 ---
+[r11-ssd] READY http=401 ~35s
+[r11-ssd] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.24
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=228.7
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=201.2 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r11-ssd.json
+[r11-ssd] ssd_boot: 5
+[r11-ssd] accept: 
+[r11-ssd] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- restore prod 19:33:28 ---
+PROD_READY after ~35s
+prod_ready=1
+R11_WINDOW_DONE 2026-09-21 19:33:58 prod=1
+========= R11 WINDOW END 2026-09-21 19:33:58 =========

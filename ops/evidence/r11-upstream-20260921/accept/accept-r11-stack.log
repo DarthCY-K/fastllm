@@ -1,0 +1,410 @@
+2026-09-21 19:38:30,405 217434 server.py[line:318] INFO: Namespace(command='server', version=False, model='/home/ai-agent/staging/swift-qwen38-nvfp4', path='', threads=-1, low=False, low_gpu_mem=True, dtype='auto', moe_dtype='', moe_atype='', atype='auto', kv_cache_dtype='fp8_e4m3', cuda_embedding=False, kv_cache_limit='auto', max_batch=4, chunked_prefill_size=2048, fast_prefill=False, device=None, vision_device=None, multimodal=False, tp='0,1,2,3', moe_device='', moe_device_layers=-1, moe_cuda_cache=0, moe_cpu_cache=0, image_embedding_cache=None, ngram_device='cpu', moe_experts=-1, cache_history='', cache_fast='', enable_thinking='', cuda_shared_expert='true', enable_amx='false', max_context_length=1048576, rope_scaling='{"rope_type": "yarn", "factor": 4.0, "original_max_position_embeddings": 262144}', tokens=1048576, page_size=-1, prefix_cache='', prefix_cache_dir=None, prefix_cache_disk_gb=None, prefix_cache_restore_policy=None, prefix_cache_snapshot_interval_pages=16, prefix_cache_snapshot_max_per_request=-1, prefix_cache_snapshot_max_records=-1, gpu_mem_ratio=0.96, cuda_slab=0, mtp=0, mtp_fp8_draft_head=None, dspark=0, speculative_algorithm='dflash', speculative_draft_model_path='/home/ai-agent/fastllm-video-repro/models/z-lab/Qwen3.8-27B-DFlash2', draft_tokens=-1, speculative_num_draft_tokens=8, speculative_dspark_block_size=-1, speculative_dspark_confidence_threshold=0.5, triton=False, custom='', lora='', cache_dir='', dtype_config='', ori='', mmproj='', tool_call_parser='auto', chat_template='', model_name='Qwen3.8-27B', host='127.0.0.1', port=8081, api_key='[REDACTED]', temperature=None, top_p=None, top_k=None, repeat_penalty=None, think='false', hide_input=False, dev_mode=False, startup_progress='off')
+[tp] --tp 0,1,2,3: completed as CUDA device list => cuda:0,1,2,3
+[Fastllm] --low_gpu_mem: CUDA embedding and GPU token handoff disabled; CUDA graph selection is unchanged.
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+Load libfastllm_tools.so
+[fastllm-experimental] Yarn + external DFlash/DSpark draft explicitly allowed by FASTLLM_ALLOW_YARN_WITH_DFLASH
+Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 0 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 1 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 2 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 3 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 4 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 5 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 6 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 7 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 8 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 9 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 10 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 11 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 12 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 13 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 14 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 15 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 16 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 17 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 18 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 19 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 20 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 21 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 22 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 23 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 24 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 25 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 26 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 27 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 28 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 29 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 30 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 31 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 32 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 33 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 34 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 35 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 36 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 37 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 38 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 39 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 40 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 41 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 42 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 43 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 44 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 45 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 46 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 47 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 48 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 49 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 50 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 51 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 52 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 53 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 54 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 55 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 56 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 57 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 58 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 59 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 60 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 61 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 62 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 63 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 64 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 65 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 66 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 67 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 68 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 69 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 70 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 71 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 72 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 73 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 74 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 75 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 76 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 77 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 78 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 79 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 80 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 81 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 82 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 83 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 84 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 85 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 86 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 87 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 88 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 89 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 90 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 91 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 92 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 93 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 94 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 95 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 96 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 97 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 98 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 99 Load 100 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 0 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 1 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 2 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 3 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 4 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 5 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 6 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 7 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 8 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 9 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 10 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 11 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 12 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 13 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 14 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 15 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 16 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 17 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 18 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 19 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 20 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 21 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 22 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 23 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 24 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 25 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 26 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 27 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 28 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 29 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 30 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 31 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 32 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 33 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 34 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 35 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 36 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 37 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 38 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 39 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 40 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 41 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 42 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 43 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 44 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 45 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 46 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 47 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 48 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 49 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 50 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 51 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 52 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 53 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 54 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 55 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 56 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 57 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 58 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 59 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 60 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 61 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 62 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 63 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 64 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 65 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 66 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 67 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 68 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 69 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 70 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 71 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 72 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 73 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 74 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 75 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 76 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 77 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 78 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 79 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 80 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 81 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 82 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 83 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 84 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 85 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 86 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 87 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 88 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 89 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 90 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 91 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 92 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 93 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 94 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 95 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 96 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 97 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 98 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 99 Loading 100 
+[Fastllm] default generation config: {'repetition_penalty': 1.0, 'top_p': 0.95, 'top_k': 20, 'temperature': 1.0}
+[Fastllm] Per-session context window limit: 1048576 tokens (requested=1048576, model max=262144).
+Warmup...
+[Fastllm] graph-safe custom all-reduce is unavailable; falling back to NCCL.
+NCCL Initialized for 4 devices.
+[Quantized prefill cuBLAS] GPU 0: borrowed FlashInfer float 256 MiB scratch at 0x7fe284000000 + 8 MiB cuBLAS workspace during force-sync warmup.
+[Quantized prefill cuBLAS] GPU 1: borrowed FlashInfer float 256 MiB scratch at 0x7fe274000000 + 8 MiB cuBLAS workspace during force-sync warmup.
+[Quantized prefill cuBLAS] GPU 2: borrowed FlashInfer float 256 MiB scratch at 0x7fe25c000000 + 8 MiB cuBLAS workspace during force-sync warmup.
+[Quantized prefill cuBLAS] GPU 3: borrowed FlashInfer float 256 MiB scratch at 0x7fe24c000000 + 8 MiB cuBLAS workspace during force-sync warmup.
+[NVFP4 prefill cuBLAS] GPU 1: active, rows=2048 N=8704 K=5120; FP32 accumulation, FP32 tensor scale, capacity=268435456.
+[NVFP4 prefill cuBLAS] GPU 2: active, rows=2048 N=8704 K=5120; FP32 accumulation, FP32 tensor scale, capacity=268435456.
+[NVFP4 prefill cuBLAS] GPU 3: active, rows=2048 N=8704 K=5120; FP32 accumulation, FP32 tensor scale, capacity=268435456.
+[NVFP4 prefill cuBLAS] GPU 0: active, rows=2048 N=8704 K=5120; FP32 accumulation, FP32 tensor scale, capacity=268435456.
+[Fastllm] AutoWarmup CUDA pre-page buffer warmup up to 4 before cache sizing.
+[Fastllm] AutoWarmup CUDA sampling small prefill warmup: tokens 2.
+[Fastllm] AutoWarmup CUDA sampling small prefill warmup: tokens 4.
+[Fastllm] AutoWarmup CUDA sampling small prefill warmup: tokens 8.
+[Fastllm] AutoWarmup CUDA sampling small prefill warmup: tokens 16.
+[Fastllm] AutoWarmup CUDA sampling prefill warmup (pre-page): batch 4, total tokens 2048, max tokens/request 512.
+[Fastllm] AutoWarmup GPU 0: free=16.70 GB, total=23.08 GB, reserved=0.92 GB, runtimeHeadroom=536.87 MB, servingReserve=1708.79 MB, availForKV=13.53 GB, localKVPerPage=1.05 MB, tokenGrowingLayers=16.
+[Fastllm] AutoWarmup GPU 1: free=16.77 GB, total=23.08 GB, reserved=0.92 GB, runtimeHeadroom=536.87 MB, servingReserve=678.95 MB, availForKV=14.63 GB, localKVPerPage=1.05 MB, tokenGrowingLayers=16.
+[Fastllm] AutoWarmup GPU 2: free=16.75 GB, total=23.08 GB, reserved=0.92 GB, runtimeHeadroom=536.87 MB, servingReserve=678.95 MB, availForKV=14.61 GB, localKVPerPage=1.05 MB, tokenGrowingLayers=16.
+[Fastllm] AutoWarmup GPU 3: free=16.75 GB, total=23.08 GB, reserved=0.92 GB, runtimeHeadroom=536.87 MB, servingReserve=678.95 MB, availForKV=14.61 GB, localKVPerPage=1.05 MB, tokenGrowingLayers=16.
+[Fastllm] AutoWarmup CUDA batch warmup up to 4.
+[Fastllm] AutoWarmup CUDA sampling batch warmup at 4.
+[Fastllm] AutoWarmup CUDA sampling prefill warmup (max-batch): batch 4, total tokens 2048, max tokens/request 512.
+[Fastllm] AutoWarmup Qwen3.5 CUDA sampling buffers: batch 4, vocab 248320, reserve 73.07 MB on GPU 0.
+finish.
+[Fastllm] KV Cache Token limit: 1048576 tokens (totalPages=8192, pageLen=128).
+[Fastllm] AddPrefill Pages limit: 6553 pages (80% of 8192).
+[Fastllm] Batch limit: 4.
+[Qwen3.5 DFlash2] converted 18 BF16 linear weights to FP16 for the pre-Ampere mixed GEMM path.
+[Qwen3.5 DFlash2] TP prepared: 5 paired MLPs, 0 output-gather weights, 10 weights total, 2.49 GiB logical, 4 CUDA ranks, min_weight=32 MiB.
+[Qwen3.5 DFlash2] converted 10 sharded BF16 linear weights to FP16 after TP split.
+[Qwen3.5 DFlash2] warmup: weights and rotary table on cuda:0.
+2026-09-21 19:38:55,344 217434 server.py[line:339] INFO: Model context window: 1048576 tokens per session (model=262144, shared KV cache=1048576, configured limit=1048576)
+INFO:     Started server process [217434]
+2026-09-21 19:38:55,359 217434 server.py[line:136] INFO: FastLLM API request thread pool: workers=32, prewarmed=32
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8081 (Press CTRL+C to quit)
+auth
+INFO:     127.0.0.1:40534 - "GET /v1/models HTTP/1.1" 401 Unauthorized
+auth
+INFO:     127.0.0.1:40542 - "GET /v1/models HTTP/1.1" 200 OK
+auth
+Fastllm KV Cache Token limit: 1048576 tokens (pageLen=128).
+Fastllm AddPrefill Pages limit: 6553 pages.
+Fastllm Scheduler: Qwen3.5 MTP (lane=4).
+INFO:     127.0.0.1:40552 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Qwen3.5 DFlash2] enabled: layers=5, drafts_per_step=7, root_device=cuda:0, tp_devices=4, acceptance=exact(greedy)/rejection(selector_q,target_p)(sampling), log_interval=64 validations.
+[Prompt] 19 Tokens. Speed: 215.079926 tokens / s.
+[Fastllm] idle big-buffer trim: released 86 block(s), 809 MB
+auth
+INFO:     127.0.0.1:40558 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] 30 Tokens. Speed: 300.900299 tokens / s.
+[Qwen3.5 MTP worker profile] samples=64 first_rank=16 avg={seq_tokens=8.00} avg_ms={total=34.214,setup=0.005,layers=33.767,head=0.441,other=0.001}.
+[Fastllm] idle big-buffer trim: released 5 block(s), 9 MB
+auth
+INFO:     127.0.0.1:40564 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[Prompt] 29 Tokens. Speed: 331.643860 tokens / s.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 128.577728 tokens / s.
+[Fastllm] idle big-buffer trim: released 5 block(s), 9 MB
+auth
+INFO:     127.0.0.1:40574 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[PrefixCache] snapshot recorded: tokens=2048 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (2048/16139, 12%). Speed: 1236.020264 tokens / s.
+[PrefixCache] snapshot recorded: tokens=4096 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (4096/16139, 25%). Speed: 1253.011230 tokens / s.
+[PrefixCache] snapshot recorded: tokens=6144 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (6144/16139, 38%). Speed: 1236.999512 tokens / s.
+[PrefixCache] snapshot recorded: tokens=8192 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (8192/16139, 50%). Speed: 1233.804565 tokens / s.
+[PrefixCache] snapshot recorded: tokens=10240 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (10240/16139, 63%). Speed: 1209.571899 tokens / s.
+[PrefixCache] snapshot recorded: tokens=12288 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (12288/16139, 76%). Speed: 1216.633179 tokens / s.
+[PrefixCache] snapshot recorded: tokens=14336 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (14336/16139, 88%). Speed: 1210.213745 tokens / s.
+[Prompt] Long Prefill ... (16139/16139, 100%). Speed: 1195.770386 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=16139, chunk=2048.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 2.259729 tokens / s.
+[Qwen3.5 MTP worker profile] samples=128 first_rank=32 avg={seq_tokens=8.00} avg_ms={total=29.171,setup=0.005,layers=28.755,head=0.410,other=0.001}.
+[Qwen3.5 MTP worker profile] samples=192 first_rank=48 avg={seq_tokens=8.00} avg_ms={total=27.663,setup=0.005,layers=27.257,head=0.400,other=0.001}.
+[Decode] alive = 1, pending = 0, context usages: 1.6%, Speed: 229.212952 tokens / s.
+[Qwen3.5 MTP profile] samples=64 paths={seed=3,tp_inplace=61,tp_copy=0,single=0} accept={spec=61,full=58,partial=3,reject0=0} avg_tokens={commit=7.48,matched_draft=6.48,draft_slots=6.67} avg_ms={total=40.525,setup=0.003,cache_prep=0.508,target=29.939,match=0.000,commit=0.000,rollback=0.024,retry=0.000,draft=10.048,draft_first=10.019,draft_extra=0.000,other=0.003}.
+[Qwen3.5 MTP worker profile] samples=256 first_rank=64 avg={seq_tokens=8.00} avg_ms={total=26.980,setup=0.005,layers=26.579,head=0.395,other=0.001}.
+[Qwen3.5 MTP target profile] samples=64 tp_calls=64 avg={seq_tokens=8.00,logit_rows=8.00} avg_ms={total=27.610,setup=0.006,weight_prep=0.002,input_prep=0.094,embedding=0.126,cache_local=0.032,worker=27.190,meta_sync=0.024,sampling=0.133,other=0.004}.
+[Qwen3.5 DFlash2] pos_accept_rate=[100.00%, 98.44%, 98.44%, 98.44%, 95.31%, 95.31%, 95.31%].
+[Decode] alive = 1, pending = 0, context usages: 1.6%, Speed: 212.316025 tokens / s.
+[Qwen3.5 MTP worker profile] samples=320 first_rank=80 avg={seq_tokens=8.00} avg_ms={total=26.518,setup=0.004,layers=26.121,head=0.392,other=0.001}.
+[Fastllm] idle big-buffer trim: released 95 block(s), 1188 MB
+auth
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (308216 > 262144). Running this sequence through the model will result in indexing errors
+INFO:     127.0.0.1:46774 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+[PrefixCache] snapshot recorded: tokens=2048 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (2048/308216, 0%). Speed: 1229.931274 tokens / s.
+[PrefixCache] snapshot recorded: tokens=4096 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (4096/308216, 1%). Speed: 1255.728149 tokens / s.
+[PrefixCache] snapshot recorded: tokens=6144 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (6144/308216, 1%). Speed: 1250.530640 tokens / s.
+[PrefixCache] snapshot recorded: tokens=8192 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (8192/308216, 2%). Speed: 1236.116211 tokens / s.
+[PrefixCache] snapshot recorded: tokens=10240 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (10240/308216, 3%). Speed: 1226.051514 tokens / s.
+[PrefixCache] snapshot recorded: tokens=12288 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (12288/308216, 3%). Speed: 1217.141724 tokens / s.
+[PrefixCache] snapshot recorded: tokens=14336 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (14336/308216, 4%). Speed: 1209.072876 tokens / s.
+[PrefixCache] snapshot recorded: tokens=16384 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (16384/308216, 5%). Speed: 1201.260010 tokens / s.
+[PrefixCache] snapshot recorded: tokens=18432 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (18432/308216, 5%). Speed: 1191.785522 tokens / s.
+[PrefixCache] snapshot recorded: tokens=20480 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (20480/308216, 6%). Speed: 1183.571655 tokens / s.
+[PrefixCache] snapshot recorded: tokens=22528 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (22528/308216, 7%). Speed: 1167.312500 tokens / s.
+[PrefixCache] snapshot recorded: tokens=24576 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (24576/308216, 7%). Speed: 1153.383789 tokens / s.
+[PrefixCache] snapshot recorded: tokens=26624 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (26624/308216, 8%). Speed: 1146.188354 tokens / s.
+[PrefixCache] snapshot recorded: tokens=28672 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (28672/308216, 9%). Speed: 1137.047607 tokens / s.
+[PrefixCache] snapshot recorded: tokens=30720 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (30720/308216, 9%). Speed: 1127.482544 tokens / s.
+[PrefixCache] snapshot recorded: tokens=32768 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (32768/308216, 10%). Speed: 1121.294189 tokens / s.
+[PrefixCache] snapshot recorded: tokens=34816 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (34816/308216, 11%). Speed: 1044.131226 tokens / s.
+[PrefixCache] snapshot recorded: tokens=36864 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (36864/308216, 11%). Speed: 1099.464722 tokens / s.
+[PrefixCache] snapshot recorded: tokens=38912 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (38912/308216, 12%). Speed: 1088.820435 tokens / s.
+[PrefixCache] snapshot recorded: tokens=40960 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (40960/308216, 13%). Speed: 1078.063843 tokens / s.
+[PrefixCache] snapshot recorded: tokens=43008 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (43008/308216, 13%). Speed: 1069.244385 tokens / s.
+[PrefixCache] snapshot recorded: tokens=45056 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (45056/308216, 14%). Speed: 1060.738892 tokens / s.
+[PrefixCache] snapshot recorded: tokens=47104 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (47104/308216, 15%). Speed: 1051.246704 tokens / s.
+[PrefixCache] snapshot recorded: tokens=49152 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (49152/308216, 15%). Speed: 1047.162476 tokens / s.
+[PrefixCache] snapshot recorded: tokens=51200 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (51200/308216, 16%). Speed: 1037.221802 tokens / s.
+[PrefixCache] snapshot recorded: tokens=53248 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (53248/308216, 17%). Speed: 1029.378052 tokens / s.
+[PrefixCache] snapshot recorded: tokens=55296 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (55296/308216, 17%). Speed: 1019.723999 tokens / s.
+[PrefixCache] snapshot recorded: tokens=57344 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (57344/308216, 18%). Speed: 1016.473816 tokens / s.
+[PrefixCache] snapshot recorded: tokens=59392 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (59392/308216, 19%). Speed: 1008.138855 tokens / s.
+[PrefixCache] snapshot recorded: tokens=61440 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (61440/308216, 19%). Speed: 998.634766 tokens / s.
+[PrefixCache] snapshot recorded: tokens=63488 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (63488/308216, 20%). Speed: 991.635986 tokens / s.
+[PrefixCache] snapshot recorded: tokens=65536 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (65536/308216, 21%). Speed: 986.299255 tokens / s.
+[PrefixCache] snapshot recorded: tokens=67584 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (67584/308216, 21%). Speed: 859.601990 tokens / s.
+[PrefixCache] snapshot recorded: tokens=69632 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (69632/308216, 22%). Speed: 993.717407 tokens / s.
+[PrefixCache] snapshot recorded: tokens=71680 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (71680/308216, 23%). Speed: 986.815918 tokens / s.
+[PrefixCache] snapshot recorded: tokens=73728 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (73728/308216, 23%). Speed: 981.166443 tokens / s.
+[PrefixCache] snapshot recorded: tokens=75776 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (75776/308216, 24%). Speed: 973.374939 tokens / s.
+[PrefixCache] snapshot recorded: tokens=77824 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (77824/308216, 25%). Speed: 966.605469 tokens / s.
+[PrefixCache] snapshot recorded: tokens=79872 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (79872/308216, 25%). Speed: 959.497253 tokens / s.
+[PrefixCache] snapshot recorded: tokens=81920 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (81920/308216, 26%). Speed: 954.263306 tokens / s.
+[PrefixCache] snapshot recorded: tokens=83968 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (83968/308216, 27%). Speed: 945.551514 tokens / s.
+[PrefixCache] snapshot recorded: tokens=86016 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (86016/308216, 27%). Speed: 939.195496 tokens / s.
+[PrefixCache] snapshot recorded: tokens=88064 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (88064/308216, 28%). Speed: 933.156921 tokens / s.
+[PrefixCache] snapshot recorded: tokens=90112 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (90112/308216, 29%). Speed: 928.330750 tokens / s.
+[PrefixCache] snapshot recorded: tokens=92160 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (92160/308216, 29%). Speed: 920.830566 tokens / s.
+[PrefixCache] snapshot recorded: tokens=94208 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (94208/308216, 30%). Speed: 914.479187 tokens / s.
+[PrefixCache] snapshot recorded: tokens=96256 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (96256/308216, 31%). Speed: 908.516113 tokens / s.
+[PrefixCache] snapshot recorded: tokens=98304 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (98304/308216, 31%). Speed: 905.209167 tokens / s.
+[PrefixCache] snapshot recorded: tokens=100352 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (100352/308216, 32%). Speed: 898.656372 tokens / s.
+[PrefixCache] snapshot recorded: tokens=102400 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (102400/308216, 33%). Speed: 891.642944 tokens / s.
+[PrefixCache] snapshot recorded: tokens=104448 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (104448/308216, 33%). Speed: 884.359619 tokens / s.
+[PrefixCache] snapshot recorded: tokens=106496 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (106496/308216, 34%). Speed: 881.081299 tokens / s.
+[PrefixCache] snapshot recorded: tokens=108544 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (108544/308216, 35%). Speed: 875.448547 tokens / s.
+[PrefixCache] snapshot recorded: tokens=110592 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (110592/308216, 35%). Speed: 868.172546 tokens / s.
+[PrefixCache] snapshot recorded: tokens=112640 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (112640/308216, 36%). Speed: 863.468201 tokens / s.
+[PrefixCache] snapshot recorded: tokens=114688 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (114688/308216, 37%). Speed: 859.525146 tokens / s.
+[PrefixCache] snapshot recorded: tokens=116736 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (116736/308216, 37%). Speed: 853.876526 tokens / s.
+[PrefixCache] snapshot recorded: tokens=118784 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (118784/308216, 38%). Speed: 847.674683 tokens / s.
+[PrefixCache] snapshot recorded: tokens=120832 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (120832/308216, 39%). Speed: 842.583374 tokens / s.
+[PrefixCache] snapshot recorded: tokens=122880 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (122880/308216, 39%). Speed: 838.877869 tokens / s.
+[PrefixCache] snapshot recorded: tokens=124928 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (124928/308216, 40%). Speed: 833.153381 tokens / s.
+[PrefixCache] snapshot recorded: tokens=126976 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (126976/308216, 41%). Speed: 827.289795 tokens / s.
+[PrefixCache] snapshot recorded: tokens=129024 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (129024/308216, 41%). Speed: 823.158752 tokens / s.
+[PrefixCache] snapshot recorded: tokens=131072 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (131072/308216, 42%). Speed: 818.784485 tokens / s.
+[PrefixCache] snapshot recorded: tokens=133120 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (133120/308216, 43%). Speed: 660.109375 tokens / s.
+[PrefixCache] snapshot recorded: tokens=135168 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (135168/308216, 43%). Speed: 809.306335 tokens / s.
+[PrefixCache] snapshot recorded: tokens=137216 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (137216/308216, 44%). Speed: 803.694519 tokens / s.
+[PrefixCache] snapshot recorded: tokens=139264 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (139264/308216, 45%). Speed: 800.048889 tokens / s.
+[PrefixCache] snapshot recorded: tokens=141312 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (141312/308216, 45%). Speed: 794.493469 tokens / s.
+[PrefixCache] snapshot recorded: tokens=143360 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (143360/308216, 46%). Speed: 789.464172 tokens / s.
+[PrefixCache] snapshot recorded: tokens=145408 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (145408/308216, 47%). Speed: 786.093628 tokens / s.
+[PrefixCache] snapshot recorded: tokens=147456 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (147456/308216, 47%). Speed: 781.901733 tokens / s.
+[PrefixCache] snapshot recorded: tokens=149504 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (149504/308216, 48%). Speed: 776.336365 tokens / s.
+[PrefixCache] snapshot recorded: tokens=151552 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (151552/308216, 49%). Speed: 771.267273 tokens / s.
+[PrefixCache] snapshot recorded: tokens=153600 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (153600/308216, 49%). Speed: 768.362366 tokens / s.
+[PrefixCache] snapshot recorded: tokens=155648 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (155648/308216, 50%). Speed: 763.896606 tokens / s.
+[PrefixCache] snapshot recorded: tokens=157696 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (157696/308216, 51%). Speed: 758.421204 tokens / s.
+[PrefixCache] snapshot recorded: tokens=159744 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (159744/308216, 51%). Speed: 754.084473 tokens / s.
+[PrefixCache] snapshot recorded: tokens=161792 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (161792/308216, 52%). Speed: 750.490601 tokens / s.
+[PrefixCache] snapshot recorded: tokens=163840 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (163840/308216, 53%). Speed: 746.549133 tokens / s.
+[PrefixCache] snapshot recorded: tokens=165888 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (165888/308216, 53%). Speed: 742.583618 tokens / s.
+[PrefixCache] snapshot recorded: tokens=167936 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (167936/308216, 54%). Speed: 739.302795 tokens / s.
+[PrefixCache] snapshot recorded: tokens=169984 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (169984/308216, 55%). Speed: 734.909485 tokens / s.
+[PrefixCache] snapshot recorded: tokens=172032 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (172032/308216, 55%). Speed: 731.328552 tokens / s.
+[PrefixCache] snapshot recorded: tokens=174080 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (174080/308216, 56%). Speed: 726.595215 tokens / s.
+[PrefixCache] snapshot recorded: tokens=176128 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (176128/308216, 57%). Speed: 721.950806 tokens / s.
+[PrefixCache] snapshot recorded: tokens=178176 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (178176/308216, 57%). Speed: 718.641541 tokens / s.
+[PrefixCache] snapshot recorded: tokens=180224 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (180224/308216, 58%). Speed: 715.925598 tokens / s.
+[PrefixCache] snapshot recorded: tokens=182272 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (182272/308216, 59%). Speed: 711.362000 tokens / s.
+[PrefixCache] snapshot recorded: tokens=184320 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (184320/308216, 59%). Speed: 708.176208 tokens / s.
+[PrefixCache] snapshot recorded: tokens=186368 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (186368/308216, 60%). Speed: 704.485901 tokens / s.
+[PrefixCache] snapshot recorded: tokens=188416 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (188416/308216, 61%). Speed: 702.044067 tokens / s.
+[PrefixCache] snapshot recorded: tokens=190464 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (190464/308216, 61%). Speed: 698.391724 tokens / s.
+[PrefixCache] snapshot recorded: tokens=192512 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (192512/308216, 62%). Speed: 695.074646 tokens / s.
+[PrefixCache] snapshot recorded: tokens=194560 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (194560/308216, 63%). Speed: 691.044556 tokens / s.
+[PrefixCache] snapshot recorded: tokens=196608 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (196608/308216, 63%). Speed: 688.066406 tokens / s.
+[PrefixCache] snapshot recorded: tokens=198656 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (198656/308216, 64%). Speed: 684.033142 tokens / s.
+[PrefixCache] snapshot recorded: tokens=200704 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (200704/308216, 65%). Speed: 681.522339 tokens / s.
+[PrefixCache] snapshot recorded: tokens=202752 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (202752/308216, 65%). Speed: 677.250793 tokens / s.
+[PrefixCache] snapshot recorded: tokens=204800 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (204800/308216, 66%). Speed: 675.776428 tokens / s.
+[PrefixCache] snapshot recorded: tokens=206848 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (206848/308216, 67%). Speed: 670.954590 tokens / s.
+[PrefixCache] snapshot recorded: tokens=208896 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (208896/308216, 67%). Speed: 667.675964 tokens / s.
+[PrefixCache] snapshot recorded: tokens=210944 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (210944/308216, 68%). Speed: 664.416016 tokens / s.
+[PrefixCache] snapshot recorded: tokens=212992 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (212992/308216, 69%). Speed: 662.277344 tokens / s.
+[PrefixCache] snapshot recorded: tokens=215040 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (215040/308216, 69%). Speed: 658.546997 tokens / s.
+[PrefixCache] snapshot recorded: tokens=217088 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (217088/308216, 70%). Speed: 654.992676 tokens / s.
+[PrefixCache] snapshot recorded: tokens=219136 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (219136/308216, 71%). Speed: 651.739441 tokens / s.
+[PrefixCache] snapshot recorded: tokens=221184 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (221184/308216, 71%). Speed: 648.724548 tokens / s.
+[PrefixCache] snapshot recorded: tokens=223232 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (223232/308216, 72%). Speed: 645.282959 tokens / s.
+[PrefixCache] snapshot recorded: tokens=225280 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (225280/308216, 73%). Speed: 642.540100 tokens / s.
+[PrefixCache] snapshot recorded: tokens=227328 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (227328/308216, 73%). Speed: 640.314575 tokens / s.
+[PrefixCache] snapshot recorded: tokens=229376 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (229376/308216, 74%). Speed: 637.597229 tokens / s.
+[PrefixCache] snapshot recorded: tokens=231424 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (231424/308216, 75%). Speed: 634.518677 tokens / s.
+[PrefixCache] snapshot recorded: tokens=233472 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (233472/308216, 75%). Speed: 631.880493 tokens / s.
+[PrefixCache] snapshot recorded: tokens=235520 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (235520/308216, 76%). Speed: 628.610474 tokens / s.
+[PrefixCache] snapshot recorded: tokens=237568 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (237568/308216, 77%). Speed: 625.999939 tokens / s.
+[PrefixCache] snapshot recorded: tokens=239616 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (239616/308216, 77%). Speed: 623.079346 tokens / s.
+[PrefixCache] snapshot recorded: tokens=241664 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (241664/308216, 78%). Speed: 620.087097 tokens / s.
+[PrefixCache] snapshot recorded: tokens=243712 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (243712/308216, 79%). Speed: 616.983582 tokens / s.
+[PrefixCache] snapshot recorded: tokens=245760 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (245760/308216, 79%). Speed: 614.201355 tokens / s.
+[PrefixCache] snapshot recorded: tokens=247808 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (247808/308216, 80%). Speed: 611.115723 tokens / s.
+[PrefixCache] snapshot recorded: tokens=249856 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (249856/308216, 81%). Speed: 608.927063 tokens / s.
+[PrefixCache] snapshot recorded: tokens=251904 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (251904/308216, 81%). Speed: 606.386047 tokens / s.
+[PrefixCache] snapshot recorded: tokens=253952 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (253952/308216, 82%). Speed: 604.210571 tokens / s.
+[PrefixCache] snapshot recorded: tokens=256000 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (256000/308216, 83%). Speed: 601.579590 tokens / s.
+[PrefixCache] snapshot recorded: tokens=258048 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (258048/308216, 83%). Speed: 598.655334 tokens / s.
+[PrefixCache] snapshot recorded: tokens=260096 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (260096/308216, 84%). Speed: 596.758972 tokens / s.
+[PrefixCache] snapshot recorded: tokens=262144 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (262144/308216, 85%). Speed: 594.333801 tokens / s.
+[PrefixCache] snapshot recorded: tokens=264192 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (264192/308216, 85%). Speed: 445.122864 tokens / s.
+[PrefixCache] snapshot recorded: tokens=266240 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (266240/308216, 86%). Speed: 590.225708 tokens / s.
+[PrefixCache] snapshot recorded: tokens=268288 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (268288/308216, 87%). Speed: 587.242737 tokens / s.
+[PrefixCache] snapshot recorded: tokens=270336 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (270336/308216, 87%). Speed: 584.630188 tokens / s.
+[PrefixCache] snapshot recorded: tokens=272384 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (272384/308216, 88%). Speed: 582.119080 tokens / s.
+[PrefixCache] snapshot recorded: tokens=274432 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (274432/308216, 89%). Speed: 579.631226 tokens / s.
+[PrefixCache] snapshot recorded: tokens=276480 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (276480/308216, 89%). Speed: 576.669739 tokens / s.
+[PrefixCache] snapshot recorded: tokens=278528 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (278528/308216, 90%). Speed: 574.723206 tokens / s.
+[PrefixCache] snapshot recorded: tokens=280576 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (280576/308216, 91%). Speed: 572.159668 tokens / s.
+[PrefixCache] snapshot recorded: tokens=282624 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (282624/308216, 91%). Speed: 569.577576 tokens / s.
+[PrefixCache] snapshot recorded: tokens=284672 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (284672/308216, 92%). Speed: 567.183899 tokens / s.
+[PrefixCache] snapshot recorded: tokens=286720 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (286720/308216, 93%). Speed: 565.152588 tokens / s.
+[PrefixCache] snapshot recorded: tokens=288768 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (288768/308216, 93%). Speed: 561.803528 tokens / s.
+[PrefixCache] snapshot recorded: tokens=290816 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (290816/308216, 94%). Speed: 560.311096 tokens / s.
+[PrefixCache] snapshot recorded: tokens=292864 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (292864/308216, 95%). Speed: 558.634094 tokens / s.
+[PrefixCache] snapshot recorded: tokens=294912 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (294912/308216, 95%). Speed: 555.520325 tokens / s.
+[PrefixCache] snapshot recorded: tokens=296960 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (296960/308216, 96%). Speed: 553.848938 tokens / s.
+[PrefixCache] snapshot recorded: tokens=299008 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (299008/308216, 97%). Speed: 551.911865 tokens / s.
+[PrefixCache] snapshot recorded: tokens=301056 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (301056/308216, 97%). Speed: 549.412476 tokens / s.
+[PrefixCache] snapshot recorded: tokens=303104 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (303104/308216, 98%). Speed: 547.413574 tokens / s.
+[PrefixCache] snapshot recorded: tokens=305152 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (305152/308216, 99%). Speed: 545.400146 tokens / s.
+[PrefixCache] snapshot recorded: tokens=307200 multimodal=0 dflash=1.
+[Prompt] Long Prefill ... (307200/308216, 99%). Speed: 543.465210 tokens / s.
+[Prompt] Long Prefill ... (308216/308216, 100%). Speed: 457.136963 tokens / s.
+[Qwen3.5 DFlash2] long prefill cache seeded: tokens=308216, chunk=2048.
+[Decode] alive = 0, pending = 1, context usages: 0.0%, Speed: 0.158292 tokens / s.
+[Fastllm] idle big-buffer trim: released 112 block(s), 1599 MB
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [217434]
