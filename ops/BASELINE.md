@@ -95,5 +95,5 @@
 ## 增补：r9b 转正（2026-09-21）
 - 生产引擎由 r8（so `1c7fc3f3`）切换为 **r9b**（r9 上游全量合并 + PR#747；so `66f68772abe34a596bbe187addb0451a`）。
 - 切换脚本 `ops/deploy/switch_to_r9b.sh`；venv 备份 `ftllm.backup-20260921-pre-r9b`；回滚 `ops/deploy/rollback_r9b.sh`。
-- 转正验证：启动门禁行齐（Yarn 允许 / 1M 上下文 / DFlash2 TP prepared）；功能电池 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 与基线逐位一致；dec 232.2/200.1、237.5/201.9）；产线 tail64=218.5 t/s（seeded=1）；errors=0、desync=0。
+- 转正验证：启动门禁行齐（Yarn 允许 / 1M 上下文 / DFlash2 TP prepared）；功能回归检查 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 与基线逐位一致；dec 232.2/200.1、237.5/201.9）；产线 tail64=218.5 t/s（seeded=1）；errors=0、desync=0。
 - 生产 launcher 未开 SSD 持久前缀（`FASTLLM_PREFIX_CACHE_DIR` 未设，功能休眠）；启用方式见 `docs/qwen35-persistent-prefix-cache.md`。

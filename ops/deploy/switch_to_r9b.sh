@@ -65,7 +65,7 @@ if [ "$RP" != "1" ]; then echo "PROD_NOT_READY — 回滚：bash $W/scripts/roll
 echo "--- PHASE5 新启动窗口关键行 ---"
 tail -n +$((W0+1)) $PLOG | grep -aE "fastllm-experimental|context window limit|KV Cache Token limit|TP prepared|Traceback" | head -14
 
-echo "--- PHASE6 功能电池 run1 ---"
+echo "--- PHASE6 功能回归检查 run1 ---"
 $VPY $W/trial_probe2.py http://127.0.0.1:8080 $W/switch-r9b-probe.json || echo PROBE_INCOMPLETE
 echo "--- PHASE7 复跑 run2 + 错误扫描 ---"
 $VPY $W/trial_probe2.py http://127.0.0.1:8080 $W/switch-r9b-probe2.json || echo PROBE2_INCOMPLETE
