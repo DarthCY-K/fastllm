@@ -1,0 +1,17 @@
+--- /home/ai-agent/fastllm-video-repro/fastllm_prod_launch.py.bak-pre-ssdprefix-20260921	2026-09-19 22:02:06.087547917 +0800
++++ /home/ai-agent/fastllm-video-repro/fastllm_prod_launch.py	2026-09-21 11:29:48.289134864 +0800
+@@ -40,6 +40,14 @@
+ os.environ['FASTLLM_CUDA_NVFP4_PREFILL_FP16_ACCUM'] = '1'
+ # Forensics: on a malformed tool-call stream final state, log raw output head/tail
+ os.environ['FT_TOOLCALL_DEBUG_OUTPUT'] = '1'
++# 2026-09-21: SSD 持久前缀缓存（r9b PR#747）产线启用。
++# 预验证：ops/evidence/r9-747-20260921/b（跨重启恢复 14336tok/840ms、md5 一致）；
++# 产线启用复验：ops/evidence/r9-747-20260921/ssd-prod/。撤销=删本块+重启。
++os.environ['FASTLLM_PREFIX_CACHE'] = 'true'
++os.environ['FASTLLM_MULTIMODAL_PREFIX_CACHE'] = '1'
++os.environ['FASTLLM_PREFIX_CACHE_DIR'] = '/home/ai-agent/prefix_ssd_prod'
++os.environ['FASTLLM_PREFIX_CACHE_DISK_BYTES'] = str(64 << 30)
++os.environ['FASTLLM_PREFIX_CACHE_RESTORE_POLICY'] = 'always'
+ # 2026-09-19: 前缀缓存遥测（测量淘汰/复用税；print-only，撤除=删本行+重启）
+ os.environ['FT_PREFIX_DIAG'] = '1'
+ os.execv(argv[0], argv)

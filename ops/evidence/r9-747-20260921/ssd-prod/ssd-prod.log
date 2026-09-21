@@ -1,0 +1,38 @@
+===== SSD-PROD ENABLE START 2026-09-21 11:30:05 =====
+--- restart #1 (SSD on) 11:30:05 ---
+READY ~35s
+--- startup window SSD/Traceback lines ---
+[Prefix SSD] hashing model/runtime contents for format v2...
+[Prefix SSD] tensor hashing: models=2, workers=8, max_in_flight=16, read_buffers=64.00 MiB
+[Prefix SSD] hashing swift-qwen38-nvfp4: 20.42 GiB read, tensors=2194/2194, elapsed=2.7s
+[Prefix SSD] hashing Qwen3.8-27B-DFlash2: 3.58 GiB read, tensors=81/81, elapsed=2.7s
+[Prefix SSD] identity=45bd46c814d66d743982c8a0ed408b230d6cab6796bbf3c9499bece68af3cdb3, family=077cc6d8338c29e2a077bfd2553ec1adf757527bea62d806813e827a6186bf42, format=v2, directory=/home/ai-agent/prefix_ssd_prod, quota=68719476736, restore=always
+--- probe1 (md5 parity) ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.36
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=230.6
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=200.7 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/ssd-prod-probe1.json
+--- ssd e2e run1 cold 11:30:39 ---
+{"tag": "ssdprod-run1-cold", "total": 11.79, "prompt": 15094, "cached": 0, "md5": "6ed2fc28eda2", "text": "SSD_TEST_OK"}
+--- wait committed (<=150s) ---
+committed_count=1
+[Prefix SSD] committed: tokens=8192 key=1f46f6c62b0c1a89020d08f71bd75488a12b53c9a5fc2ab045bc5a57d8995851.
+--- restart #2 (persistence test) 11:30:51 ---
+READY ~35s
+--- ssd e2e run2 (expect restored) 11:31:27 ---
+{"tag": "ssdprod-run2-restart", "total": 2.31, "prompt": 15094, "cached": 14336, "md5": "6ed2fc28eda2", "text": "SSD_TEST_OK"}
+--- restored/loaded lines ---
+[Prefix SSD] loaded: tokens=14336 source_dtype=fp8_e4m3 target_dtype=fp8_e4m3 ms=868.872.
+[Prefix SSD] restored: tokens=14336 source_dtype=fp8_e4m3 target_dtype=fp8_e4m3.
+--- probe2 (md5 parity after restore) ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.08
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=234.4
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=196.8 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/ssd-prod-probe2.json
+errors_w1=0 errors_w2=0
+desync=0
+ssd_dir=690M files=1271
+SSD_PROD_DONE ready=1
+===== SSD-PROD ENABLE END 2026-09-21 11:31:31 =====

@@ -97,3 +97,8 @@
 - 切换脚本 `ops/deploy/switch_to_r9b.sh`；venv 备份 `ftllm.backup-20260921-pre-r9b`；回滚 `ops/deploy/rollback_r9b.sh`。
 - 转正验证：启动门禁行齐（Yarn 允许 / 1M 上下文 / DFlash2 TP prepared）；功能回归检查 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 与基线逐位一致；dec 232.2/200.1、237.5/201.9）；产线 tail64=218.5 t/s（seeded=1）；errors=0、desync=0。
 - 生产 launcher 未开 SSD 持久前缀（`FASTLLM_PREFIX_CACHE_DIR` 未设，功能休眠）；启用方式见 `docs/qwen35-persistent-prefix-cache.md`。
+
+## 增补：SSD 持久前缀缓存产线启用（2026-09-21 11:30）
+- launcher 增 5 行 env（`FASTLLM_PREFIX_CACHE_*`，目录 `/home/ai-agent/prefix_ssd_prod`、quota 64GiB、restore=always），备份 `fastllm_prod_launch.py.bak-pre-ssdprefix-20260921`；**撤销=删块+重启**。
+- 产线复验（按 #747 文档流程）：固定 16K 前缀冷跑 11.79s/cached 0 → 提交检查点（停服等待提交 ≤30s 生效，含 14336）→ 重启 → **run2 2.31s/cached 14336、md5 与冷跑一致（6ed2fc28eda2）**；功能回归 ×2 md5 全同基线；errors=0、desync=0；目录 690M/1271 文件。
+- 证据：ops/evidence/r9-747-20260921/ssd-prod/。
