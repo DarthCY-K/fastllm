@@ -1,0 +1,13 @@
+{
+ "state": "done",
+ "started": "1790007154",
+ "engine_pid": "260813",
+ "store_bytes": "16922551208",
+ "expected_s": "57",
+ "rc": "0",
+ "note": "ok",
+ "ready_s": "30",
+ "elapsed_s": "0",
+ "finished": "1790007184",
+ "updated": 1790007184
+}

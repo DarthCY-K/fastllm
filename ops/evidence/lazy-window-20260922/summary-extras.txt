@@ -1,0 +1,13 @@
+== journal ==
+2026-09-22T00:12:34+08:00 AI-ReasoningCenter systemd[1]: Starting fastllm-qwen38-tp4.service - FastLLM Qwen3.8 27B FP8 + DFlash2 TP4 (production test switch; alias Qwen3.8-27B-W8A16)...
+2026-09-22T00:12:34+08:00 AI-ReasoningCenter systemd[1]: Started fastllm-qwen38-tp4.service - FastLLM Qwen3.8 27B FP8 + DFlash2 TP4 (production test switch; alias Qwen3.8-27B-W8A16).
+
+== warmup.log tail ==
+[2026-09-21 22:59:24] start: pid=221718 store_bytes=16136742121 expected_s=55
+[2026-09-21 22:59:24] failed: engine not ready within 450s
+[2026-09-21 22:59:36] start: pid=221718 store_bytes=16136742121 expected_s=55
+[2026-09-21 22:59:36] ready after 0s; sending warmup request
+[2026-09-21 22:59:36] done: rc=0 warmup_elapsed=0s total=0s
+[2026-09-22 00:12:34] start: pid=260813 store_bytes=16922551208 expected_s=57
+[2026-09-22 00:13:04] ready after 30s; sending warmup request
+[2026-09-22 00:13:04] done: rc=0 warmup_elapsed=0s total=30s

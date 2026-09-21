@@ -1,0 +1,17 @@
+{
+ "url": "http://127.0.0.1:8081",
+ "model": "Qwen3.8-27B",
+ "total_s": 18.823,
+ "md5": "a9b7ba70783b617e9998dc4dd82eb3c5",
+ "content": "1000",
+ "usage": {
+  "prompt_tokens": 17803,
+  "total_tokens": 17807,
+  "completion_tokens": 4,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "missed_tokens": 17803
+  }
+ },
+ "ts": "2026-09-22 00:10:13"
+}
