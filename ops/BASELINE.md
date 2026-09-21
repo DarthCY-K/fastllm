@@ -102,3 +102,10 @@
 - launcher 增 5 行 env（`FASTLLM_PREFIX_CACHE_*`，目录 `/home/ai-agent/prefix_ssd_prod`、quota 64GiB、restore=always），备份 `fastllm_prod_launch.py.bak-pre-ssdprefix-20260921`；**撤销=删块+重启**。
 - 产线复验（按 #747 文档流程）：固定 16K 前缀冷跑 11.79s/cached 0 → 提交检查点（停服等待提交 ≤30s 生效，含 14336）→ 重启 → **run2 2.31s/cached 14336、md5 与冷跑一致（6ed2fc28eda2）**；功能回归 ×2 md5 全同基线；errors=0、desync=0；目录 690M/1271 文件。
 - 证据：ops/evidence/r9-747-20260921/ssd-prod/。
+
+## 增补：提交署名重写（GitHub 身份归位，2026-09-21）
+- 目标：fork 上本机产生的提交统一署名为 **`DarthCY <452710557@qq.com>`**（邮箱与账号 DarthCY-K 关联已核实；上游提交与上游 PR 署名保持原样）。
+- 方法（修正版）：**逐字节外科手术**——只重建邮箱命中的 71 个提交/标签对象，其余对象（含上游经 GitHub 网页签名的提交 gpgsig 头）原封保留。
+- **教训**：首次误用 `git filter-branch`——其重建会**剥离 GPG 签名**，149+ 个签名提交 SHA 变化并级联 2595 个提交重哈希，与真上游分叉点从 `2236e001` 退至 `cb7d3fcf`（GitHub 显示 2580 ahead / 2556 behind）。已从镜像 `repo-mirror-pre-idfix-20260921.git` 恢复全部 refs 后重做。
+- 修正后关键 SHA：重写头 = `a7e82e23`（本节提交前）；tag `r9b-prod-20260921` → `8edb6859`；上游头 `2236e001` 重新成为祖先；树内容逐位不变（diff 为空）；残留旧身份 = 0。
+- 仓库 git 身份已设 `DarthCY <452710557@qq.com>`（后续提交自动署名）。
