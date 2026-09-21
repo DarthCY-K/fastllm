@@ -1,0 +1,30 @@
+========= R9B ACCEPT START 2026-09-21 10:50:03 =========
+--- PHASE A: prod baseline probes (8080, r8) 10:50:03 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.22
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=228.7
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=201.8 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-prod-probe.json
+prod tail64: {"ttft": 12.459, "total": 14.776, "ctok": 512, "decode_tps": 221.1}
+--- stop prod 10:50:20 ---
+--- PHASE B: candidate stack (r9b, accept argv) 10:50:25 ---
+READY ~35s
+--- PHASE C: candidate probes 10:50:56 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.16
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=224.3
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=198.7 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-cand-probe.json
+cand tail64: {"ttft": 13.258, "total": 15.663, "ctok": 512, "decode_tps": 212.9}
+--- PHASE D: needle 320K/depth120K 10:51:13 ---
+prompt_tokens= 308204 depth= 120000
+{"ttft": -1, "total": 1.7, "answer": "", "found": false}
+--- PHASE E: fingerprints 10:51:17 ---
+seeded=1 desync=0
+pos_accept_rate=[100.00%, 98.44%, 98.44%, 98.44%, 95.31%, 93.75%, 93.75%]
+errs=0
+--- restore prod 10:51:27 ---
+PROD_READY ~30s
+prod_ready=1
+R9B_ACCEPT_DONE 2026-09-21 10:51:52 prod=1
+========= R9B ACCEPT END 2026-09-21 10:51:52 =========

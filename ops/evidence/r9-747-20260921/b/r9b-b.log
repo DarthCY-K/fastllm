@@ -1,0 +1,40 @@
+========= R9B-B START 2026-09-21 11:04:09 =========
+--- stop prod 11:04:09 ---
+--- STACK A (SSD on) 11:04:15 ---
+A READY ~35s
+--- SSD boot lines ---
+[Prefix SSD] hashing model/runtime contents for format v2...
+[Prefix SSD] tensor hashing: models=2, workers=8, max_in_flight=16, read_buffers=64.00 MiB
+[Prefix SSD] hashing swift-qwen38-nvfp4: 20.42 GiB read, tensors=2194/2194, elapsed=2.7s
+[Prefix SSD] hashing Qwen3.8-27B-DFlash2: 3.58 GiB read, tensors=81/81, elapsed=2.7s
+[Prefix SSD] identity=4b9cfc19f61cd7d917f0ac13c47bb88a131b1dd211200334f4427185a28a7ce5, family=4c7888952923cda6d0340f8c45b2496577a43ee48b23385f76f2fbfa4a3cd218, format=v2, directory=/home/ai-agent/prefix_ssd_r9b, quota=68719476736, restore=always
+--- MM regression probe 11:04:45 ---
+[T1-text-cold]   29.0s usage={"prompt_tokens": 33525, "total_tokens": 33526, "completion_tokens": 1, "prompt_tokens_details": {"cached_tokens": 0, "missed_tokens": 33525}}
+[T2-text-warm]    1.0s usage={"prompt_tokens": 33525, "total_tokens": 33526, "completion_tokens": 1, "prompt_tokens_details": {"cached_tokens": 32768, "missed_tokens": 757}}
+[I1-img-cold]   30.8s usage={"prompt_tokens": 33594, "total_tokens": 33595, "completion_tokens": 1, "prompt_tokens_details": {"cached_tokens": 0, "missed_tokens": 33594}}
+[I2-img-warm]   29.2s usage={"prompt_tokens": 33594, "total_tokens": 33595, "completion_tokens": 1, "prompt_tokens_details": {"cached_tokens": 0, "missed_tokens": 33594}}
+[I3-img-append]   29.0s usage={"prompt_tokens": 33613, "total_tokens": 33614, "completion_tokens": 1, "prompt_tokens_details": {"cached_tokens": 0, "missed_tokens": 33613}}
+[T3-text-again]    1.2s usage={"prompt_tokens": 33525, "total_tokens": 33527, "completion_tokens": 2, "prompt_tokens_details": {"cached_tokens": 32768, "missed_tokens": 757}}
+DONE
+--- SSD text run1 (cold) 11:06:46 ---
+{"tag": "run1-cold", "total": 12.48, "prompt": 15094, "cached": 0, "md5": "6ed2fc28eda2", "text": "SSD_TEST_OK"}
+--- SSD text run2 (warm same proc) 11:06:59 ---
+{"tag": "run2-warm", "total": 0.86, "prompt": 15094, "cached": 14336, "md5": "6ed2fc28eda2", "text": "SSD_TEST_OK"}
+--- wait committed (<=120s) ---
+committed_count=9
+[Prefix SSD] committed: tokens=32768 key=719f1964305e6dc47ad0edfaa7f7331e079e945b9b5e4ec058fba6f7074d6f0d.
+[Prefix SSD] committed: tokens=8192 key=1f46f6c62b0c1a89020d08f71bd75488a12b53c9a5fc2ab045bc5a57d8995851.
+--- stop A (graceful TERM) 11:07:00 ---
+--- STACK B (SSD on, restart) 11:07:09 ---
+B READY ~35s
+--- SSD text run3 (restart; expect restored) 11:07:39 ---
+{"tag": "run3-restart", "total": 3.94, "prompt": 15094, "cached": 14336, "md5": "6ed2fc28eda2", "text": "SSD_TEST_OK"}
+--- restored/loaded lines ---
+[Prefix SSD] loaded: tokens=14336 source_dtype=fp8_e4m3 target_dtype=fp8_e4m3 ms=840.036.
+[Prefix SSD] restored: tokens=14336 source_dtype=fp8_e4m3 target_dtype=fp8_e4m3.
+--- errs A=0 B=0 ---
+--- restore prod 11:07:45 ---
+PROD_READY ~30s
+prod_ready=1
+R9B_B_DONE 2026-09-21 11:08:11 prod=1
+========= R9B-B END 2026-09-21 11:08:11 =========

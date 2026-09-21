@@ -1,0 +1,6 @@
+同一探针，现产 r8@8080 与 r9b@8081（2026-09-21 11:04-11:12）
+prod: T1 29.7s cached=0 | T2 1.7s cached=34816 | I1 30.7s 0 | I2 28.9s 0 | I3 28.8s 0 | T3 1.8s cached=34816
+r9b : T1 29.0s cached=0 | T2 1.0s cached=32768 | I1 30.8s 0 | I2 29.2s 0 | I3 29.0s 0 | T3 1.2s cached=32768
+prod log: [Qwen3.5 MM] prefix restore skipped: media tokens in delta (restore_len=34816, total=36594); [Vision] Image embedding cache hit x2
+r9b  log: [Qwen3.5 MM] prefix restore skipped: media tokens in delta (restore_len=32768, total=33594); multimodal=1 snapshots x48; [Vision] Image embedding cache hit
+结论: 图片会话 cached=0 为「含媒体复原跳过」保护的设计行为（两版本一致），非回归。

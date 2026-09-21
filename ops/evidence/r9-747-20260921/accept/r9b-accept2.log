@@ -1,0 +1,27 @@
+========= R9B ACCEPT2 START 2026-09-21 10:55:05 =========
+--- stop prod 10:55:05 ---
+--- candidate stack (accept2 = prod 同参) 10:55:11 ---
+READY ~35s
+--- gate/yarn fingerprint ---
+2026-09-21 10:55:12,175 37985 server.py[line:318] INFO: Namespace(command='server', version=False, model='/home/ai-agent/staging/swift-qwen38-nvfp4', path='', threads=-1, low=False, low_gpu_mem=True, dtype='auto', moe_dtype='', moe_atype='', atype='auto', kv_cache_dtype='fp8_e4m3', cuda_embedding=False, kv_cache_limit='auto', max_batch=4, chunked_prefill_size=2048, fast_prefill=False, device=None, vision_device=None, multimodal=False, tp='0,1,2,3', moe_device='', moe_device_layers=-1, moe_cuda_cache=0, moe_cpu_cache=0, image_embedding_cache=None, ngram_device='cpu', moe_experts=-1, cache_history='', cache_fast='', enable_thinking='', cuda_shared_expert='true', enable_amx='false', max_context_length=1048576, rope_scaling='{"rope_type": "yarn", "factor": 4.0, "original_max_position_embeddings": 262144}', tokens=1048576, page_size=-1, prefix_cache='', prefix_cache_dir=None, prefix_cache_disk_gb=None, prefix_cache_restore_policy=None, prefix_cache_snapshot_interval_pages=16, prefix_cache_snapshot_max_per_request=-1, prefix_cache_snapshot_max_records=-1, gpu_mem_ratio=0.96, cuda_slab=0, mtp=0, mtp_fp8_draft_head=None, dspark=0, speculative_algorithm='dflash', speculative_draft_model_path='/home/ai-agent/fastllm-video-repro/models/z-lab/Qwen3.8-27B-DFlash2', draft_tokens=-1, speculative_num_draft_tokens=8, speculative_dspark_block_size=-1, speculative_dspark_confidence_threshold=0.5, triton=False, custom='', lora='', cache_dir='', dtype_config='', ori='', mmproj='', tool_call_parser='auto', chat_template='', model_name='Qwen3.8-27B', host='127.0.0.1', port=8081, api_key='[REDACTED]', temperature=None, top_p=None, top_k=None, repeat_penalty=None, think='false', hide_input=False, dev_mode=False, startup_progress='off')
+[fastllm-experimental] Yarn + external DFlash/DSpark draft explicitly allowed by FASTLLM_ALLOW_YARN_WITH_DFLASH
+[Fastllm] Per-session context window limit: 1048576 tokens (requested=1048576, model max=262144).
+--- quick probes 10:55:41 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.13
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=231.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=198.9 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept2-cand-probe.json
+cand tail64: {"ttft": 13.224, "total": 15.57, "ctok": 512, "decode_tps": 218.2}
+--- needle 308K 10:55:58 ---
+prompt_tokens= 308204 depth= 120000
+{"ttft": 408.4, "total": 408.8, "answer": "X9J7-QUARTZ-3312", "found": true}
+--- fingerprints 11:02:49 ---
+seeded=2 desync=0
+pos_accept_rate=[100.00%, 98.44%, 98.44%, 98.44%, 95.31%, 95.31%, 95.31%]
+errs=0
+--- restore prod 11:02:59 ---
+PROD_READY ~35s
+prod_ready=1
+R9B_ACCEPT2_DONE 2026-09-21 11:03:29 prod=1
+========= R9B ACCEPT2 END 2026-09-21 11:03:29 =========
