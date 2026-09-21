@@ -1,0 +1,37 @@
+========= R9/R9B WINDOW START 2026-09-21 10:39:49 =========
+--- stop prod 10:39:49 ---
+--- [r9-force] start stack (argv-swift-trial.json) 10:39:55 ---
+[r9-force] READY http=401 ~35s
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.16
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=228.3
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=202.1 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r9-force.json
+[r9-force] accept: 
+[r9-force] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r9b-force] start stack (argv-swift-trial.json) 10:40:35 ---
+[r9b-force] READY http=401 ~35s
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.16
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=232.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=203.9 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r9b-force.json
+[r9b-force] accept: 
+[r9b-force] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r9b-ns] start stack (argv-swift-trial-ns.json) 10:41:14 ---
+[r9b-ns] READY http=401 ~30s
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.15
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=56.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=65.4 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r9b-ns.json
+[r9b-ns] accept: 
+[r9b-ns] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- restore prod 10:41:51 ---
+PROD_READY after ~30s
+prod_ready=1
+R9_WINDOW_DONE 2026-09-21 10:42:16 prod=1
+========= R9/R9B WINDOW END 2026-09-21 10:42:16 =========
