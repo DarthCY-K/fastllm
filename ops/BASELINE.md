@@ -123,3 +123,9 @@
 - 验收（19:36–19:47）：prod 基线（暖机 97s 吸收）md5 3/3、tail64 212.2；cand 3/3、tail64 219.4；308K 针测 found=true 408.6s；seeded=2/desync=0/errs=0。
 - 转正物料：`ops/deploy/switch_to_r11.sh` + `rollback_r11.sh`（含暖机）；窗口/验收脚本恢复点已固化暖机。
 - 状态：**待转正决策**（转正后推 sm75 + tag）。
+
+## 增补：r11 转正（2026-09-21 20:01）
+- 生产由 r10 → **r11**（so `eea71a8fc7a37faca37decb47369db48`）；切换 `ops/deploy/switch_to_r11.sh`；备份 `ftllm.backup-20260921-pre-r11`；回滚 `ops/deploy/rollback_r11.sh`（回 r10，so 17586d35）。
+- 转正验证：门禁行齐；暖机吸收 95s；回归 ×2 全 PASS（md5 逐位一致；dec 233.5/197.9、240.0/203.4）；errors=0、desync=0；部署态 so 复核一致。
+- 随带上线：API key 环境变量鉴权加固（r11 含）。
+- AR 线评估 Step0 结论=不适用（拓扑硬约束），见提案文档文末节。
