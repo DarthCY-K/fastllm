@@ -1,0 +1,24 @@
+{
+ "engine": {
+  "active": "active",
+  "sub": "running",
+  "main_pid": "221718",
+  "active_since": "Mon 2026-09-21 19:59:42 HKT",
+  "nrestarts": "0"
+ },
+ "warmup": {
+  "state": "done",
+  "started": "1790002776",
+  "engine_pid": "221718",
+  "store_bytes": "16136742121",
+  "expected_s": "55",
+  "rc": "0",
+  "note": "ok",
+  "ready_s": "0",
+  "elapsed_s": "0",
+  "finished": "1790002776",
+  "updated": 1790002776
+ },
+ "recover_progress": null,
+ "store_bytes": 16136742121
+}

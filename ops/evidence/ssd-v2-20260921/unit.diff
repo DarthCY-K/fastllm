@@ -1,0 +1,19 @@
+--- /etc/systemd/system/fastllm-qwen38-tp4.service.bak-pre-warmup-20260921	2026-09-11 20:04:58.135853068 +0800
++++ /etc/systemd/system/fastllm-qwen38-tp4.service	2026-09-21 22:58:58.170640654 +0800
+@@ -1,6 +1,8 @@
+ [Unit]
+ Description=FastLLM Qwen3.8 27B FP8 + DFlash2 TP4 (production test switch; alias Qwen3.8-27B-W8A16)
+ After=network-online.target nvidia-persistenced.service
++Wants=var-cache-lmcache.mount
++After=var-cache-lmcache.mount
+ Wants=network-online.target
+ ConditionPathExists=/home/ai-agent/builds/fastllm-video-venv/bin/python
+ ConditionPathExists=/home/ai-agent/fastllm-video-repro/fastllm_prod_launch.py
+@@ -12,6 +14,7 @@
+ Group=ai-agent
+ WorkingDirectory=/home/ai-agent/fastllm-video-repro
+ ExecStart=/home/ai-agent/builds/fastllm-video-venv/bin/python /home/ai-agent/fastllm-video-repro/fastllm_prod_launch.py
++ExecStartPost=/home/ai-agent/ops/warmup_on_start.sh
+ Environment=PYTHONUNBUFFERED=1
+ StandardOutput=append:/home/ai-agent/fastllm-video-repro/results/server-prod.service.log
+ StandardError=append:/home/ai-agent/fastllm-video-repro/results/server-prod.service.log

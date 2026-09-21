@@ -14,4 +14,4 @@ t0=$(date +%s)
 curl -s -o /tmp/warmup_resp.json -m $T -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d @/tmp/warmup_ping.json http://127.0.0.1:8080/v1/chat/completions
 rc=$?
 t1=$(date +%s)
-echo "warmup: rc=$rc elapsed=$((t1-t0))s store=$(du -sh /home/ai-agent/prefix_ssd_prod 2>/dev/null | cut -f1)"
+echo "warmup: rc=$rc elapsed=$((t1-t0))s store=$(du -sh /var/cache/lmcache/prefix_ssd_prod 2>/dev/null | cut -f1)"
