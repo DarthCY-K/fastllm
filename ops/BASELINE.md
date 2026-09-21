@@ -109,3 +109,10 @@
 - **教训**：首次误用 `git filter-branch`——其重建会**剥离 GPG 签名**，149+ 个签名提交 SHA 变化并级联 2595 个提交重哈希，与真上游分叉点从 `2236e001` 退至 `cb7d3fcf`（GitHub 显示 2580 ahead / 2556 behind）。已从镜像 `repo-mirror-pre-idfix-20260921.git` 恢复全部 refs 后重做。
 - 修正后关键 SHA：重写头 = `a7e82e23`（本节提交前）；tag `r9b-prod-20260921` → `8edb6859`；上游头 `2236e001` 重新成为祖先；树内容逐位不变（diff 为空）；残留旧身份 = 0。
 - 仓库 git 身份已设 `DarthCY <452710557@qq.com>`（后续提交自动署名）。
+
+## 增补：r10 转正（2026-09-21 17:07–17:11）
+- 生产由 r9b → **r10**（r9b + 上游 7a369c9d 11 提交；so `17586d35f49dc99fc622592d3bc0878a`）。
+- 切换脚本 `ops/deploy/switch_to_r10.sh`；备份 `ftllm.backup-20260921-pre-r10`；回滚 `ops/deploy/rollback_r10.sh`。
+- 转正验证：门禁行齐；回归 ×2 全 PASS（md5 f5de00c5/30f8a5c9ee88/2adaf2269e77 逐位一致；dec 229.6/200.7、239.9/202.6）；errors=0、desync=0。
+- **暖机兜底启用**：重启后由 `ops/deploy/warmup_prod.sh` 吸收 SSD 首请求全量读取校验（本次 96s）→ 用户侧无感。
+- 配额 64→16GiB（launcher `.bak-pre-16g-20260921`；约束首请求校验成本上限 ≈55s）。
