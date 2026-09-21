@@ -6,6 +6,15 @@
 
 #include "qwen3_5.h"
 #include "models/qwen3_5_paged_cache.h"
+#include "utils/disk_prefix_cache.h"
+#include <deque>
+#include <numeric>
+#include <fstream>
+#if defined(FASTLLM_DISK_PREFIX_CACHE)
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #include "blocks/baseblock.h"
 #include "executor.h"
 
@@ -31,6 +40,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
+#if defined(__linux__)
+#include <dlfcn.h>
+#endif
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 #endif
@@ -4823,6 +4835,7 @@ namespace fastllm {
             int requestId = 0;
             long long timestamp = 0;
             std::vector<int> tokens;
+            std::vector<std::string> mediaPageKeys;
             std::vector<Qwen35LinearPrefixSnapshotLayer> layers;
             bool mtpValid = false;
             int mtpTokens = 0;
@@ -4837,10 +4850,10 @@ namespace fastllm {
             return *mutex;
         }
 
-        static std::map<const Qwen3_5Model*, std::vector<std::unique_ptr<Qwen35LinearPrefixSnapshot> > >
+        static std::map<const Qwen3_5Model*, std::vector<std::shared_ptr<Qwen35LinearPrefixSnapshot> > >
                 &Qwen35LinearPrefixSnapshots() {
             static auto *snapshots =
-                new std::map<const Qwen3_5Model*, std::vector<std::unique_ptr<Qwen35LinearPrefixSnapshot> > >();
+                new std::map<const Qwen3_5Model*, std::vector<std::shared_ptr<Qwen35LinearPrefixSnapshot> > >();
             return *snapshots;
         }
 
@@ -5281,6 +5294,7 @@ namespace fastllm {
         static const Qwen35LinearPrefixSnapshot *Qwen35FindLinearPrefixSnapshotLocked(
                 const Qwen3_5Model *model,
                 const std::vector<int> &tokens,
+                const std::vector<std::string> &mediaPageKeys,
                 int maxCachedLen,
                 int exactLen = -1,
                 bool requireMtp = false,
@@ -5318,6 +5332,12 @@ namespace fastllm {
                 }
                 if ((int)snapshot->tokens.size() != snapshot->cachedLen ||
                     !std::equal(snapshot->tokens.begin(), snapshot->tokens.end(), tokens.begin())) {
+                    continue;
+                }
+                if (snapshot->mediaPageKeys.size() > mediaPageKeys.size() ||
+                    snapshot->mediaPageKeys.empty() != mediaPageKeys.empty() ||
+                    !std::equal(snapshot->mediaPageKeys.begin(), snapshot->mediaPageKeys.end(),
+                                mediaPageKeys.begin())) {
                     continue;
                 }
                 if (requireMtp &&
@@ -8032,6 +8052,7 @@ namespace fastllm {
             int requestId = 0;
             long long timestamp = 0;
             std::vector<int> tokens;
+            std::vector<std::string> mediaPageKeys;
             std::vector<Qwen35LinearPrefixSnapshotLayer> layers;
             bool mtpValid = false;
             int mtpTokens = 0;
@@ -8046,10 +8067,10 @@ namespace fastllm {
             return *mutex;
         }
 
-        static std::map<const Qwen3_5Model*, std::vector<std::unique_ptr<Qwen35LinearPrefixSnapshot> > >
+        static std::map<const Qwen3_5Model*, std::vector<std::shared_ptr<Qwen35LinearPrefixSnapshot> > >
                 &Qwen35LinearPrefixSnapshots() {
             static auto *snapshots =
-                new std::map<const Qwen3_5Model*, std::vector<std::unique_ptr<Qwen35LinearPrefixSnapshot> > >();
+                new std::map<const Qwen3_5Model*, std::vector<std::shared_ptr<Qwen35LinearPrefixSnapshot> > >();
             return *snapshots;
         }
 
@@ -8122,6 +8143,7 @@ namespace fastllm {
         static const Qwen35LinearPrefixSnapshot *Qwen35FindLinearPrefixSnapshotLocked(
                 const Qwen3_5Model *model,
                 const std::vector<int> &tokens,
+                const std::vector<std::string> &mediaPageKeys,
                 int maxCachedLen,
                 int exactLen = -1,
                 bool requireMtp = false,
@@ -8983,7 +9005,10 @@ namespace fastllm {
                          pagedPastKeyValues, generationConfigs, lastTokens, &batchLogits)[0];
     }
 
+    #include "qwen3_5_persistent.inc"
+
     Qwen3_5Model::Qwen3_5Model() {
+        persistentPrefixCache = Qwen35PersistentCache::Create(this);
         this->model_struct = "qwen3_5";
         this->model_type = "qwen3_5";
         this->use_new_engine = true;
@@ -9060,6 +9085,21 @@ namespace fastllm {
                   std::vector <std::pair <std::string, DataType> > > result;
         std::vector <std::string> targetNames;
         targetNames.reserve(tensorNames.size());
+        std::map<std::string, std::string> textWeightAliases;
+        auto canonicalQwen35TextWeightName = [&](const std::string &name) {
+            if (name == "model.embed_tokens.weight") {
+                return language_prefix + "embed_tokens.weight";
+            }
+            if (name == "model.norm.weight") {
+                return language_prefix + "norm.weight";
+            }
+            const std::string layerPrefix = "model.layers.";
+            if (name.rfind(layerPrefix, 0) == 0) {
+                return language_prefix + "layers." +
+                       name.substr(layerPrefix.size());
+            }
+            return name;
+        };
         static const std::set <std::string> draftRootLinears = {
             "fc.weight",
             "candidate_selector.hidden_projection.weight"
@@ -9132,10 +9172,16 @@ namespace fastllm {
                     continue;
                 }
             }
-            targetNames.push_back(name);
+            std::string targetName = canonicalQwen35TextWeightName(name);
+            targetNames.push_back(targetName);
+            textWeightAliases[name] = targetName;
         }
         auto targetMap = basellm::GetTensorMap(targetNames);
-        result.insert(targetMap.begin(), targetMap.end());
+        // Keep only source names as lookup keys: the loader reads FP8 scales
+        // from the checkpoint namespace and uses mapped names for placement.
+        for (const auto &alias : textWeightAliases) {
+            result[alias.first] = targetMap.at(alias.second);
+        }
         return result;
     }
 
@@ -9143,6 +9189,8 @@ namespace fastllm {
         // Linear slot Data objects keep raw PagedCacheManager pointers. Stop
         // model work and destroy all request contexts before deleting pools.
         ShutdownRuntime();
+        if (persistentPrefixCache) persistentPrefixCache->Stop();
+        persistentPrefixCache.reset();
         mtpCaches.clear();
         mtpPagedCachePools.clear();
         if (threadTpWorkerGroup.HasWorkers()) {
@@ -10016,6 +10064,7 @@ namespace fastllm {
 
     bool Qwen3_5Model::TryRecordPagedPrefixCacheExtra(ResponseContext *context) {
         if (context == nullptr ||
+            !context->CanUsePagedPrefixCache() ||
             !Qwen35LinearPrefixCacheEnabled() ||
             !Qwen35HasLinearAttentionLayers(this, this->block_cnt)) {
             if (FastllmPrefixDiagEnabled()) {
@@ -10027,6 +10076,17 @@ namespace fastllm {
         }
         int pageLen = fastllm::GetPageLen();
         int currentLen = Qwen35CurrentTokenGrowingCacheLen(this, this->block_cnt, context->pastKeyValues);
+        if (!context->multimodalInput.empty()) {
+            int chunkSize = GetChunkedPrefillSize();
+            if (RequiresDFlashPrefixSnapshot(context)) {
+                chunkSize = std::min(chunkSize, QWEN35_DFLASH_LONG_PREFILL_CHUNK_SIZE);
+            }
+            // A page-aligned prompt tail is not necessarily a prefill chunk
+            // boundary. Reusing it in a longer conversation would change the
+            // chunk shapes (and FP8/GDN rounding) compared with a cold request.
+            if (currentLen > context->inputTokens || chunkSize <= 0 ||
+                currentLen % chunkSize != 0) return false;
+        }
         if (currentLen <= 0 || currentLen > (int)context->allTokens.size() ||
             currentLen % pageLen != 0) {
             if (FastllmPrefixDiagEnabled()) {
@@ -10063,10 +10123,15 @@ namespace fastllm {
             context->intParams["qwen35_linear_prefix_request_id"] = requestId;
         }
 
-        std::unique_ptr<Qwen35LinearPrefixSnapshot> snapshot(new Qwen35LinearPrefixSnapshot());
+        std::shared_ptr<Qwen35LinearPrefixSnapshot> snapshot(new Qwen35LinearPrefixSnapshot());
         snapshot->cachedLen = currentLen;
         snapshot->requestId = requestId;
         snapshot->tokens.assign(context->allTokens.begin(), context->allTokens.begin() + currentLen);
+        if (!context->prefixCachePageKeys.empty()) {
+            if ((int)context->prefixCachePageKeys.size() < currentLen / pageLen) return false;
+            snapshot->mediaPageKeys.assign(context->prefixCachePageKeys.begin(),
+                context->prefixCachePageKeys.begin() + currentLen / pageLen);
+        }
         snapshot->layers.resize(this->block_cnt);
         for (int i = 0; i < this->block_cnt; i++) {
             if (!Qwen35LayerIsLinearAttention(this, i)) {
@@ -10173,13 +10238,15 @@ namespace fastllm {
                    currentLen, (int) context->multimodalInput.size(),
                    (int) snapshot->dflashValid, (int) snapshot->mtpValid);
         }
+        if (persistentPrefixCache) persistentPrefixCache->Capture(context, snapshot);
+
         {
             std::lock_guard<std::mutex> guard(Qwen35LinearPrefixSnapshotsMutex());
             auto &items = Qwen35LinearPrefixSnapshots()[this];
             for (auto it = items.begin(); it != items.end(); ) {
                 Qwen35LinearPrefixSnapshot *old = it->get();
                 if (old != nullptr && old->cachedLen == snapshot->cachedLen &&
-                    old->tokens == snapshot->tokens) {
+                    old->tokens == snapshot->tokens && old->mediaPageKeys == snapshot->mediaPageKeys) {
                     // A draft-aware snapshot also contains everything needed
                     // by requests that do not use speculative decoding.
                     if ((old->mtpValid && !snapshot->mtpValid) ||
@@ -10226,10 +10293,16 @@ namespace fastllm {
         }
         context->intParams["qwen35_linear_prefix_last_len"] = currentLen;
         context->intParams["qwen35_linear_prefix_count"] = snapshotCount + 1;
+        if (verbose) {
+            printf("[PrefixCache] snapshot recorded: tokens=%d multimodal=%d dflash=%d.\n",
+                   currentLen, !context->multimodalInput.empty(), requireDFlash);
+            fflush(stdout);
+        }
         return true;
     }
 
     int Qwen3_5Model::QueryPagedPrefixCacheExtra(ResponseContext *context, int maxCachedLen) const {
+        if (context != nullptr && !context->CanUsePagedPrefixCache()) return 0;
         if (context != nullptr && maxCachedLen > 0 &&
             threadTpPreparedDevices.size() > 1) {
             // Both schedulers call this before restoring any state. An empty
@@ -10268,7 +10341,7 @@ namespace fastllm {
         std::lock_guard<std::mutex> guard(Qwen35LinearPrefixSnapshotsMutex());
         const Qwen35LinearPrefixSnapshot *snapshot =
             Qwen35FindLinearPrefixSnapshotLocked(
-                this, context->currentTokens, maxCachedLen, -1,
+                this, context->currentTokens, context->prefixCachePageKeys, maxCachedLen, -1,
                 requireMtp, requireDFlash, dflashLayers,
                 dflashKvHeads, dflashHeadDim);
         if (FastllmPrefixDiagEnabled()) {
@@ -10282,6 +10355,7 @@ namespace fastllm {
     }
 
     bool Qwen3_5Model::RestorePagedPrefixCacheExtra(ResponseContext *context, int cachedLen) const {
+        if (context != nullptr && !context->CanUsePagedPrefixCache()) return false;
         if (context == nullptr || cachedLen <= 0 ||
             !Qwen35HasLinearAttentionLayers(this, this->block_cnt)) {
             return true;
@@ -10293,7 +10367,7 @@ namespace fastllm {
         {
             std::lock_guard<std::mutex> guard(Qwen35LinearPrefixSnapshotsMutex());
             snapshot = Qwen35FindLinearPrefixSnapshotLocked(
-                this, context->currentTokens, cachedLen, cachedLen,
+                this, context->currentTokens, context->prefixCachePageKeys, cachedLen, cachedLen,
                 requireMtp, requireDFlash, dflashLayers,
                 dflashKvHeads, dflashHeadDim);
             if (snapshot == nullptr || (int)snapshot->layers.size() < this->block_cnt) {
@@ -10420,10 +10494,83 @@ namespace fastllm {
                         this->defaultChunkedPrefillSize);
     }
 
+    void Qwen3_5Model::PrepareMultimodalPrefixCache(ResponseContext *context) {
+        context->prefixCachePageKeys.clear();
+        context->multimodalPrefixSpans.clear();
+        auto &inputs = context->multimodalInput;
+        const char *enabled = getenv("FASTLLM_MULTIMODAL_PREFIX_CACHE");
+        if (inputs.empty() || (enabled != nullptr && std::string(enabled) == "0")) return;
+#ifndef USE_CUDA
+        return;
+#else
+        if (!CanUseGPUForward()) return;
+        auto frames = inputs.find("image_frames");
+        auto keys = inputs.find("image_cache_keys");
+        auto grid = inputs.find("image_grid_thw");
+        for (const char *unsupported : {"video_frames", "video_embeds", "image_embeds"}) {
+            auto it = inputs.find(unsupported);
+            if (it != inputs.end() && !it->second.empty()) return;
+        }
+        if (frames == inputs.end() || frames->second.empty() || keys == inputs.end() ||
+            keys->second.size() != 1 || grid == inputs.end() || grid->second.size() != 1) return;
+        const int count = (int)frames->second.size();
+        Data *digests = keys->second[0];
+        Data *grids = grid->second[0];
+        if (digests == nullptr || grids == nullptr || digests->cpuData == nullptr ||
+            grids->cpuData == nullptr || digests->dataType != DataType::INT32 ||
+            digests->dims != std::vector<int>({count, 8}) ||
+            grids->dims != std::vector<int>({count, 3}) ||
+            (grids->dataType != DataType::INT32 && grids->dataType != DataType::INT32PARAM)) return;
+        std::vector<std::vector<int>> imageGrids;
+        const int *values = (const int*)grids->cpuData;
+        for (int i = 0; i < count; ++i) imageGrids.push_back({values[i * 3], values[i * 3 + 1], values[i * 3 + 2]});
+        const auto &tokens = context->allTokens;
+        Data ids(DataType::FLOAT32, {1, (int)tokens.size()}, std::vector<float>(tokens.begin(), tokens.end()));
+        Data types, positions, delta;
+        BuildMultimodalPositionData(ids, imageGrids, {}, types, positions, delta);
+        for (size_t i = 0; i < tokens.size();) {
+            if (tokens[i] != image_token_id) { ++i; continue; }
+            MultimodalPrefixSpan span;
+            span.begin = (int)i;
+            while (i < tokens.size() && tokens[i] == image_token_id) ++i;
+            span.end = (int)i;
+            size_t index = context->multimodalPrefixSpans.size();
+            if (index >= (size_t)count) { context->multimodalPrefixSpans.clear(); return; }
+            memcpy(span.digest.data(), digests->cpuData + index * 32, 32);
+            context->multimodalPrefixSpans.push_back(span);
+        }
+        if ((int)context->multimodalPrefixSpans.size() != count) {
+            context->multimodalPrefixSpans.clear();
+            return;
+        }
+        std::vector<int> positionValues;
+        const float *p = (const float*)positions.cpuData;
+        for (int i = 0; i < (int)positions.Count(0); ++i) positionValues.push_back((int)p[i]);
+        context->prefixCachePageKeys = BuildMultimodalPrefixPageKeys(
+            tokens, positionValues, context->multimodalPrefixSpans, fastllm::GetPageLen());
+        if (verbose) {
+            printf("[PrefixCache] image layout: tokens=%zu spans=", tokens.size());
+            for (const auto &span : context->multimodalPrefixSpans) printf("[%d,%d)", span.begin, span.end);
+            printf("\n");
+            fflush(stdout);
+        }
+        auto replace = [&](const char *name, const Data &data) {
+            for (Data *old : inputs[name]) delete old;
+            inputs[name] = {new Data(data)};
+        };
+        replace("mm_token_type_ids", types);
+        replace("mrope_position_ids", positions);
+        replace("mrope_position_delta", delta);
+        if (persistentPrefixCache) persistentPrefixCache->Replanned(context);
+#endif
+    }
+
     void Qwen3_5Model::OnResponseContextCreated(ResponseContext *context) {
         if (context == nullptr) {
             return;
         }
+        PrepareMultimodalPrefixCache(context);
+        if (persistentPrefixCache) persistentPrefixCache->Created(context);
         // Paged-prefix restore runs before the first forward.  Mark recurrent
         // state slots now so the generic atomic TP restore plan does not treat
         // linear-attention layers (which deliberately have no paged managers)
@@ -10446,6 +10593,7 @@ namespace fastllm {
         if (context == nullptr) {
             return;
         }
+        if (persistentPrefixCache) persistentPrefixCache->Removed(context);
         std::lock_guard<std::mutex> guard(mtpCacheMutex);
         mtpCaches.erase(context);
         dflashContexts.erase(context);
@@ -13950,6 +14098,8 @@ namespace fastllm {
                 } else if (batchedConvSequence) {
                     // Keep the flattened token-major projection. Each request
                     // is handled independently before its cache update.
+                } else if (projectedConvBlock) {
+                    // 融合输入块已产出 convOutput/z，qkvConvInput 未物化，不能对其做 seq/head 交换。
                 } else if (batch == 1 && all1 && pastKey.dims.size() > 0) {
                     SwapSingleTokenSeqHeadByReshape(qkvConvInput);
                 } else if (batch > 1 && all1) {
@@ -14269,7 +14419,12 @@ namespace fastllm {
                     // Fused block output is already [1, batch, localQkvDim]; the
                     // single-token seq/head swap below must not re-apply.
                 } else if (batch == 1 && all1 && pastKey.dims.size() > 0) {
-                    SwapSingleTokenSeqHeadByReshape(convOutput);
+                    // 融合输入块（projectedConvBlock）产出的 convOutput 已经是
+                    // [1, batch, localQkvDim]，与图路径一致，不能再做 seq/head 交换；
+                    // 只有非融合卷积输出（[1, channels, 1]）才需要交换。
+                    if (!projectedConvBlock) {
+                        SwapSingleTokenSeqHeadByReshape(convOutput);
+                    }
                 } else if (batch > 1 && all1) {
                     convOutput.Reshape({1, batch, convOutput.dims[1]});
                 } else {
@@ -22536,9 +22691,10 @@ namespace fastllm {
         };
 
         auto tryRestorePrefixCache = [&](ResponseContext *ctx) -> int {
-            if (ctx == nullptr || ctx->cacheLen != 0 || ctx->currentTokens.empty()) {
+            if (ctx == nullptr || !ctx->CanUsePagedPrefixCache() || ctx->cacheLen != 0 || ctx->currentTokens.empty()) {
                 return 0;
             }
+            model->PreparePersistentPrefixCache(ctx);
             auto probeRefs = model->GetPagedKVCacheManagers(model->kvCacheId, true);
             PagedCacheManager *probeManager = nullptr;
             for (auto &ref : probeRefs) {
@@ -22556,7 +22712,7 @@ namespace fastllm {
                 auto it = queriedPages.find(manager);
                 if (it == queriedPages.end()) {
                     std::vector<int> pages;
-                    manager->Query(ctx->currentTokens, pages);
+                    manager->Query(ctx->currentTokens, pages, ctx->PrefixCachePageKeys());
                     it = queriedPages.emplace(manager, std::move(pages)).first;
                 }
                 return it->second;
@@ -22733,6 +22889,7 @@ namespace fastllm {
                 ctx->currentTokens.begin(),
                 ctx->currentTokens.begin() + cachedLen);
             ctx->cacheLen = cachedLen;
+            model->OnPersistentPrefixRestored(ctx);
             if (model->verbose) {
                 printf("[Qwen3.5 MTP] prefix cache hit: tokens=%d.\n", cachedLen);
                 fflush(stdout);
@@ -24162,6 +24319,8 @@ namespace fastllm {
                                     longPrefillDFlashSeeded = true;
                                 }
                             }
+                            model->ObservePersistentPrefill(curLen,
+                                std::chrono::duration<double,std::milli>(std::chrono::system_clock::now()-chunkStartTime).count());
                             st += curLen;
                             int cachedTokens = longPrefillBaseTokens + st;
                             if (cachedTokens % pageLen == 0) {
@@ -26918,6 +27077,12 @@ namespace fastllm {
                 imageCacheKey.assign((const char*)imageCacheKeys->cpuData + mediaIndex * 32, 32);
                 imageCacheKey += std::to_string((int)this->dataType);
                 size_t cached = imageCache->Append(imageCacheKey, mergedFeatures);
+                if (cached == 0 && persistentPrefixCache) {
+                    const size_t expected = (size_t)(mediaPatches /
+                        (vision_spatial_merge_size * vision_spatial_merge_size)) * vision_out_hidden_size;
+                    cached = persistentPrefixCache->LoadImage(imageCacheKey,expected,mergedFeatures);
+                    if (cached) imageCache->Put(imageCacheKey,mergedFeatures.data()+mergedFeatures.size()-cached,cached);
+                }
                 if (cached > 0) {
                     totalFeatureCount += (int)(cached / vision_out_hidden_size);
                     if (this->verbose) {
@@ -27888,6 +28053,8 @@ namespace fastllm {
                 size_t count = mergedFeatures.size() - featureStart;
                 bool stored = imageCache->Put(
                     imageCacheKey, mergedFeatures.data() + featureStart, count);
+                if (persistentPrefixCache)
+                    persistentPrefixCache->SaveImage(imageCacheKey,mergedFeatures.data()+featureStart,count);
                 if (this->verbose) {
                     printf("[Vision] Image embedding cache miss (%s; %zu/%zu bytes).\n",
                            stored ? "stored" : "uncached",
@@ -33489,6 +33656,20 @@ namespace fastllm {
         return lastRet;
     }
 
+    std::vector<int> Qwen3_5Model::ForwardMultimodalContext(
+            ResponseContext *context, const Data &inputIds,
+            const Data &attentionMask, const Data &positionIds,
+            const GenerationConfig &generationConfig,
+            const LastTokensManager &lastTokens,
+            std::vector<std::vector<float>*> *logits) {
+        std::vector<std::vector<int>> accepted, next;
+        std::vector<int> kept;
+        bool usedMtp = false;
+        return Qwen35ForwardMultimodal(context, inputIds, attentionMask, positionIds,
+            context->pastKeyValues, context->multimodalInput, generationConfig,
+            lastTokens, logits, accepted, next, kept, usedMtp);
+    }
+
     std::vector <int> Qwen3_5Model::ForwardMultimodal(
             const fastllm::Data &inputIds,
             const fastllm::Data &attentionMask,
@@ -33577,7 +33758,9 @@ namespace fastllm {
             logits = (*retLogits)[0];
         }
 
-        if (pastKeyValues.size() > 0 && pastKeyValues[0].second.dims.size() > 0) {
+        const bool contextPrefill = context != nullptr && context->intParams["index"] == 0;
+        const int prefixTokens = contextPrefill ? context->cacheLen : 0;
+        if (!contextPrefill && pastKeyValues.size() > 0 && pastKeyValues[0].second.dims.size() > 0) {
             Data adjustedPositionIds;
             auto deltaIt = multimodalInput.find("mrope_position_delta");
             if (deltaIt != multimodalInput.end() && !deltaIt->second.empty()) {
@@ -33634,8 +33817,48 @@ namespace fastllm {
             (rawVideoIt != multimodalInput.end() && !rawVideoIt->second.empty());
 
         Data imageFeatures, videoFeatures;
+        Data remainingMmTypes;
         std::vector<std::vector<int>> imageGridThwList, videoGridThwList;
-        if (hasRawMedia) {
+        const bool preparedImages = contextPrefill && !context->multimodalPrefixSpans.empty();
+        if (preparedImages) {
+            // Use this request's full position plan even when cached KV covers
+            // earlier images. Only materialize image rows needed by the suffix.
+            Data *types = mmTypeIt->second[0];
+            Data *fullPositions = mropeIt->second[0];
+            if (fullPositions->dims[1] != prefixTokens + inputIds.dims[1]) {
+                PrepareMultimodalPrefixCache(context); // preemption/re-prefill
+                types = mutableMultimodalInput["mm_token_type_ids"][0];
+            }
+            const float *typeValues = (const float*)types->cpuData;
+            remainingMmTypes.CopyFrom(Data(DataType::FLOAT32, {1, inputIds.dims[1]},
+                std::vector<float>(typeValues + prefixTokens, typeValues + prefixTokens + inputIds.dims[1])));
+            Data *allGrids = imageGridIt->second[0];
+            Data *allKeys = mutableMultimodalInput["image_cache_keys"][0];
+            std::vector<float> features;
+            for (size_t item = 0; item < context->multimodalPrefixSpans.size(); ++item) {
+                const auto &span = context->multimodalPrefixSpans[item];
+                if (span.end <= prefixTokens) continue;
+                Data grid(DataType::INT32, {1, 3}, DataDevice::CPU,
+                          allGrids->cpuData + item * 3 * sizeof(int));
+                Data key(DataType::INT32, {1, 8}, DataDevice::CPU, allKeys->cpuData + item * 32);
+                Data itemFeatures;
+                std::vector<std::vector<int>> itemGrids;
+                EncodeVisualItems({rawImageIt->second[item]}, &grid, false, itemFeatures, itemGrids, &key);
+                itemFeatures.ToDevice(DataDevice::CPU);
+                const int skip = std::max(0, prefixTokens - span.begin);
+                const float *rows = (const float*)itemFeatures.cpuData;
+                AssertInFastLLM(itemFeatures.dataType == DataType::FLOAT32 &&
+                    itemFeatures.dims == std::vector<int>({1, span.end - span.begin, vision_out_hidden_size}),
+                    "Qwen3.5 image features do not match prefix layout.\n");
+                features.insert(features.end(), rows + (size_t)skip * vision_out_hidden_size,
+                    rows + itemFeatures.Count(0));
+            }
+            if (!features.empty()) {
+                imageFeatures.CopyFrom(Data(DataType::FLOAT32,
+                    {(int)(features.size() / vision_out_hidden_size), vision_out_hidden_size}, features));
+                imageEmbeds = &imageFeatures;
+            }
+        } else if (hasRawMedia) {
             auto imageCacheIt = multimodalInput.find("image_cache_keys");
             EncodeVisualItems(
                 rawImageIt != multimodalInput.end() ? rawImageIt->second : std::vector<Data*>(),
@@ -33664,9 +33887,10 @@ namespace fastllm {
                 computedMropePositionDelta
             );
 
-            mutableMultimodalInput["mm_token_type_ids"].clear();
-            mutableMultimodalInput["mrope_position_ids"].clear();
-            mutableMultimodalInput["mrope_position_delta"].clear();
+            for (const char *name : {"mm_token_type_ids", "mrope_position_ids", "mrope_position_delta"}) {
+                for (Data *old : mutableMultimodalInput[name]) delete old;
+                mutableMultimodalInput[name].clear();
+            }
             mutableMultimodalInput["mm_token_type_ids"].push_back(new Data(computedMmTokenTypeIds));
             mutableMultimodalInput["mrope_position_ids"].push_back(new Data(computedMropePositionIds));
             mutableMultimodalInput["mrope_position_delta"].push_back(new Data(computedMropePositionDelta));
@@ -33702,7 +33926,8 @@ namespace fastllm {
 
         Data hiddenStates;
         BuildMultimodalTextEmbeddings(inputIds, hiddenStates);
-        MergeMultimodalFeaturesIntoText(*mmTypeIt->second[0], imageEmbeds, videoEmbeds, hiddenStates);
+        MergeMultimodalFeaturesIntoText(preparedImages ? remainingMmTypes : *mmTypeIt->second[0],
+                                       imageEmbeds, videoEmbeds, hiddenStates);
         imageFeatures.FreeSpace();
         videoFeatures.FreeSpace();
 
@@ -33714,6 +33939,16 @@ namespace fastllm {
             // ForwardFromHiddenStates 期望 allPositionIds 在 CPU 上, 这里需要再次 ToDevice(CPU).
             ToDataType(mropePositionIds, DataType::FLOAT32);
             mropePositionIds.ToDevice(DataDevice::CPU);
+        }
+        if (prefixTokens > 0) {
+            const int fullLength = mropePositionIds.dims[1];
+            const float *positions = (const float*)mropePositionIds.cpuData;
+            std::vector<float> suffix;
+            for (int axis = 0; axis < 3; ++axis) {
+                suffix.insert(suffix.end(), positions + axis * fullLength + prefixTokens,
+                    positions + axis * fullLength + prefixTokens + inputIds.dims[1]);
+            }
+            mropePositionIds.CopyFrom(Data(DataType::FLOAT32, {3, inputIds.dims[1]}, suffix));
         }
 
         Data attentionMaskCopy(attentionMask);
@@ -33729,7 +33964,7 @@ namespace fastllm {
         std::vector<int> draftDevices;
         std::map<int, int> draftRatios;
         const bool canSeedDraftCache =
-            context != nullptr && context->cacheLen == 0 &&
+            context != nullptr &&
             context->preTokens == totalLen && totalLen > 0 &&
             Qwen35MtpSupportsGenerationConfig(generationConfig) &&
             CanUseGPUForward() &&
@@ -33754,7 +33989,7 @@ namespace fastllm {
             hiddenStates.ToDevice(DataDevice::CPU);
             FastllmCudaClearBigBuffer();
 
-            {
+            if (prefixTokens == 0) {
                 std::lock_guard<std::mutex> guard(mtpCacheMutex);
                 mtpCaches.erase(context);
                 dflashContexts.erase(context);
@@ -33897,7 +34132,11 @@ namespace fastllm {
             std::vector<int> dflashDrafts;
             int firstMtpDraft = -1;
             try {
-                for (int st = 0; st < totalLen; st += chunkSize) {
+                for (int st = 0; st < totalLen; ) {
+                    const auto persistentChunkStarted = std::chrono::steady_clock::now();
+                    // Preserve prefill arithmetic across cold and restored requests:
+                    // checkpoint existing complete chunks; do not split the tail
+                    // solely to create another checkpoint (FP8/GDN is shape-sensitive).
                     const int curLen = std::min(chunkSize, totalLen - st);
                     const bool isLastChunk = st + curLen == totalLen;
                     Data curInputIds, curPositionIds, curHiddenStates;
@@ -33976,7 +34215,7 @@ namespace fastllm {
                         }
                         const bool appended = appendMtpChunk(
                             speculativeHiddenStates, mtpInputTokens,
-                            curPositionIds, st, !isLastChunk,
+                            curPositionIds, prefixTokens + st, !isLastChunk,
                             firstMtpDraft);
                         if (!appended) {
                             seedMtp = false;
@@ -33989,9 +34228,9 @@ namespace fastllm {
                                 std::vector<int>{chunkRet.back()}) &&
                             Qwen35DFlashDraftFitsContext(
                                 max_positions, dflashCheckpointBlockSize,
-                                st + curLen);
+                                prefixTokens + st + curLen);
                         const bool appended = appendDFlashChunk(
-                            st, curLen, generateDrafts,
+                            prefixTokens + st, curLen, generateDrafts,
                             isLastChunk ? chunkRet.back() : -1,
                             dflashDrafts);
                         releaseDFlashHidden();
@@ -33999,17 +34238,11 @@ namespace fastllm {
                             seedDFlash = false;
                         }
                     }
-                    if (context != nullptr && Qwen35MmcacheSeedEnabled()) {
-                        // Mirror the text long-prefill seeding: record a paged
-                        // prefix snapshot at every page-aligned chunk boundary.
-                        // Multimodal prefill otherwise only attempts recording
-                        // at end of turn, where the length is rarely aligned,
-                        // so image requests would never seed the prefix cache.
-                        const int cachedTokens =
-                            context->cacheLen + st + curLen;
-                        if (cachedTokens % fastllm::GetPageLen() == 0) {
-                            context->TryRecordPagedCache(this);
-                        }
+                    ObservePersistentPrefill(curLen,std::chrono::duration<double,std::milli>(
+                        std::chrono::steady_clock::now()-persistentChunkStarted).count());
+                    st += curLen;
+                    if (context != nullptr && (prefixTokens + st) % fastllm::GetPageLen() == 0) {
+                        context->TryRecordPagedCache(this);
                     }
                 }
             } catch (...) {
@@ -34048,14 +34281,15 @@ namespace fastllm {
             return chunkRet;
         }
 
-        if (IsThreadTensorParallelEnabled()) {
+        if (CanUseGPUForward()) {
             hiddenStates.ToDevice(DataDevice::CPU);
             FastllmCudaClearBigBuffer();
 
-            const int chunkSize = GetChunkedPrefillSize();
-            if (chunkSize > 0 && totalLen > chunkSize) {
+            const int chunkSize = std::max(1, GetChunkedPrefillSize());
+            if (totalLen > chunkSize) {
                 std::vector<int> chunkRet;
-                for (int st = 0; st < totalLen; st += chunkSize) {
+                for (int st = 0; st < totalLen; ) {
+                    const auto persistentChunkStarted = std::chrono::steady_clock::now();
                     const int curLen = std::min(chunkSize, totalLen - st);
                     Data curInputIds, curPositionIds, curHiddenStates;
                     Split(inputIds, 1, st, st + curLen, curInputIds);
@@ -34088,6 +34322,12 @@ namespace fastllm {
                     }
                     isIntermediateChunkedPrefill =
                         oldIntermediateChunkedPrefill;
+                    ObservePersistentPrefill(curLen,std::chrono::duration<double,std::milli>(
+                        std::chrono::steady_clock::now()-persistentChunkStarted).count());
+                    st += curLen;
+                    if (context != nullptr && (prefixTokens + st) % fastllm::GetPageLen() == 0) {
+                        context->TryRecordPagedCache(this);
+                    }
                 }
                 return chunkRet;
             }

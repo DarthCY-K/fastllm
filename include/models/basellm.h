@@ -6,6 +6,7 @@
 #include "contextconfig.h"
 #include "baseblock.h"
 #include "template.h"
+#include "utils/multimodal_prefix_cache.h"
 
 #include <atomic>
 #include <thread>
@@ -39,6 +40,18 @@ namespace fastllm {
         std::vector <std::pair <Data, Data> > pastKeyValues;
         std::vector <int> currentTokens;
         std::map <std::string, std::vector <Data*> > multimodalInput;
+        std::vector<MultimodalPrefixSpan> multimodalPrefixSpans;
+        std::vector<std::string> prefixCachePageKeys;
+        std::vector<std::string> prefixCacheBasePageKeys;
+        // A converted prefix has a distinct computation history. Carry it in
+        // both text and multimodal cache keys, not only in SSD manifests.
+        std::string prefixCacheProvenance;
+        bool CanUsePagedPrefixCache() const {
+            return multimodalInput.empty() || !prefixCachePageKeys.empty();
+        }
+        const std::vector<std::string> *PrefixCachePageKeys() const {
+            return prefixCachePageKeys.empty() ? nullptr : &prefixCachePageKeys;
+        }
         std::queue <int> resultTokenQueue;
         std::queue <std::vector <float>*> resultLogits;
         GenerationConfig generationConfig;
@@ -312,6 +325,13 @@ namespace fastllm {
                 const LastTokensManager &lastTokens = LastTokensManager(),
                 std::vector <std::vector <float>*> *logits = nullptr);
 
+        virtual std::vector<int> ForwardMultimodalContext(
+                ResponseContext *context, const Data &inputIds,
+                const Data &attentionMask, const Data &positionIds,
+                const GenerationConfig &generationConfig,
+                const LastTokensManager &lastTokens,
+                std::vector<std::vector<float>*> *logits);
+
         // 是否需要生成AttentionMask
         virtual bool NeedAttentionMask(int qlen, int klen);
 
@@ -445,6 +465,10 @@ namespace fastllm {
         // generated in a turn can only be cached when the next turn re-prefills
         // them.
         virtual bool WantsPerStepPrefixSnapshot() const { return false; }
+        virtual void PreparePersistentPrefixCache(ResponseContext *context) {}
+        virtual void OnPersistentPrefixRestored(ResponseContext *context) {}
+        virtual bool WaitPersistentPrefixCache(int timeoutMs) { return true; }
+        virtual std::string PersistentPrefixCacheStatistics() const { return "{}"; }
 
         virtual void PrepareToolCallConstraint(ResponseContext *context, GenerationConfig &generationConfig);
 
