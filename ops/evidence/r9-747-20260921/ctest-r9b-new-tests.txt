@@ -1,0 +1,13 @@
+Test project /home/ai-agent/builds/upgrade-test/build-r9b
+    Start  8: qwen35_text_weights
+1/4 Test  #8: qwen35_text_weights ..............   Passed    0.22 sec
+    Start 10: disk_prefix_cache
+2/4 Test #10: disk_prefix_cache ................   Passed    0.18 sec
+    Start 11: multimodal_prefix_cache
+3/4 Test #11: multimodal_prefix_cache ..........   Passed    0.00 sec
+    Start 12: paged_media_identity
+4/4 Test #12: paged_media_identity .............   Passed    0.16 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   0.57 sec

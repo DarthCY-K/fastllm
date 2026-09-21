@@ -1,0 +1,3 @@
+resolve r9: multicuda->theirs(3 hunks), qwen3_5->ours(1 comment)
+resolve r9b: [ours,union,ours,custom4,theirs_guard] + swap call-site revert 50->0 + headers union
+linker: EXE -static-libstdc++ (gcc13 libstdc++.so lacks CXXABI_1.3.15)

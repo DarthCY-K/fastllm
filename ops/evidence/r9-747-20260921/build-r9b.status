@@ -1,0 +1,14 @@
+BUILD_R9B_START 2026-09-21 10:27:01
+--- r9b marker checks ---
+E1: 1
+E4 swapTag: 2
+P1 text-compat (qwen3_5_text): 0
+P2 persistent inc: 1
+P3 persistentPrefixCache refs: 11
+P4 lmcache_fs files: 2
+conflict markers: 0
+CMAKE_OK 10:27:02
+BUILD_OK
+-rwxrwxr-x 1 ai-agent ai-agent 133939464 Sep 21 10:32 build-r9b/tools/ftllm/libfastllm_tools.so
+66f68772abe34a596bbe187addb0451a  build-r9b/tools/ftllm/libfastllm_tools.so
+BUILD_R9B_END 2026-09-21 10:32:07
