@@ -1,0 +1,5 @@
+[PASS] models :: ['Qwen3.8-27B']
+[FAIL] chat_ping :: TimeoutError('wall-clock timeout 90s')
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=136.7
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=202.1 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=False fails=1 saved=/home/ai-agent/builds/upgrade-test/accept-r10-prod-probe.json
