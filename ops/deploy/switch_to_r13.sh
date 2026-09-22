@@ -31,7 +31,7 @@ for s in "idle big-buffer trim" FP8LinearAdd cache_sql_prepare FASTLLM_NCCL_INIT
   [ "$c" -ge 1 ] || { echo "MISSING_MARKER $s"; exit 2; }
 done
 echo "--- 差异面自检：相对 overlay-r12 只允许 .so 与 util.py 不同 ---"
-DIFF=$(diff -rq $OVL0 $OVL | grep -vE "libfastllm_tools.so|/util.py")
+DIFF=$(diff -rq $OVL0 $OVL | grep -vE "libfastllm_tools.so|/util.py|__pycache__|\.pyc")
 if [ -n "$DIFF" ]; then echo "UNEXPECTED_DIFF:"; echo "$DIFF" | head -20; exit 2; fi
 echo "diff ok"
 grep -q "is_qwen38_flash_next_model" $OVL/util.py || { echo "UTIL_PY_MISSING_R13_LINE"; exit 2; }
