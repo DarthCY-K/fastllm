@@ -908,9 +908,11 @@ if (UNIT_TEST)
         target_link_libraries(cuda_prefill_paths_test PRIVATE fastllm)
         target_include_directories(cuda_prefill_paths_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         add_test(NAME cuda_prefill_gdn_long COMMAND cuda_prefill_paths_test gdn)
+        add_test(NAME cuda_prefill_gdn_sm75 COMMAND cuda_prefill_paths_test gdn_sm75)
         add_test(NAME cuda_prefill_sparse_strides COMMAND cuda_prefill_paths_test sparse)
-        set_tests_properties(cuda_prefill_gdn_long cuda_prefill_sparse_strides PROPERTIES
+        set_tests_properties(cuda_prefill_gdn_long cuda_prefill_gdn_sm75 cuda_prefill_sparse_strides PROPERTIES
                              LABELS "cuda;triton" SKIP_RETURN_CODE 77)
+        set_tests_properties(cuda_prefill_gdn_sm75 PROPERTIES RUN_SERIAL TRUE TIMEOUT 300)
         add_test(NAME cuda_prefill_gdn_large_fp32 COMMAND cuda_prefill_paths_test gdn_large_fp32)
         add_test(NAME cuda_prefill_gdn_large_fp16 COMMAND cuda_prefill_paths_test gdn_large_fp16)
         set_tests_properties(cuda_prefill_gdn_large_fp32 cuda_prefill_gdn_large_fp16 PROPERTIES
@@ -959,6 +961,16 @@ if (UNIT_TEST)
         add_test(NAME cuda_single_query_attention COMMAND cuda_single_query_attention_test)
         set_tests_properties(cuda_single_query_attention PROPERTIES LABELS cuda SKIP_RETURN_CODE 77)
 
+        if (NOT WIN32)
+            add_executable(cuda_paged_fragmented_attention_test test/basic/test_cuda_paged_fragmented_attention.cpp)
+            target_link_libraries(cuda_paged_fragmented_attention_test PRIVATE fastllm)
+            target_include_directories(cuda_paged_fragmented_attention_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+            add_test(NAME cuda_paged_fragmented_attention COMMAND cuda_paged_fragmented_attention_test)
+            add_test(NAME cuda_paged_fragmented_attention_long COMMAND cuda_paged_fragmented_attention_test --long)
+            set_tests_properties(cuda_paged_fragmented_attention cuda_paged_fragmented_attention_long PROPERTIES
+                                 LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 600)
+        endif()
+
         add_executable(cuda_masked_attention_test test/basic/test_cuda_masked_attention.cpp)
         target_link_libraries(cuda_masked_attention_test PRIVATE fastllm)
         target_include_directories(cuda_masked_attention_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -976,6 +988,21 @@ if (UNIT_TEST)
         target_include_directories(cuda_qwen4_attention_fusion_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         add_test(NAME cuda_qwen4_attention_fusion COMMAND cuda_qwen4_attention_fusion_test)
         set_tests_properties(cuda_qwen4_attention_fusion PROPERTIES LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 180)
+
+        add_executable(cuda_bf16_bias_multigpu_test test/basic/test_cuda_bf16_bias_multigpu.cpp)
+        target_link_libraries(cuda_bf16_bias_multigpu_test PRIVATE fastllm)
+        target_include_directories(cuda_bf16_bias_multigpu_test PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+        add_test(NAME cuda_bf16_bias_multigpu COMMAND cuda_bf16_bias_multigpu_test)
+        set_tests_properties(cuda_bf16_bias_multigpu PROPERTIES
+            LABELS "cuda;multigpu" SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 60)
+
+        add_executable(cuda_marlin_sm75_ldmatrix_test test/basic/test_cuda_marlin_sm75_ldmatrix.cu)
+        target_include_directories(cuda_marlin_sm75_ldmatrix_test PRIVATE src/devices/cuda/moe/marlin_moe)
+        set_target_properties(cuda_marlin_sm75_ldmatrix_test PROPERTIES
+            CUDA_STANDARD 17 CUDA_STANDARD_REQUIRED ON)
+        add_test(NAME cuda_marlin_sm75_ldmatrix COMMAND cuda_marlin_sm75_ldmatrix_test)
+        set_tests_properties(cuda_marlin_sm75_ldmatrix PROPERTIES
+            LABELS cuda SKIP_RETURN_CODE 77 RUN_SERIAL TRUE TIMEOUT 30)
 
         add_executable(cuda_single_prefill_dispatch_test test/basic/test_cuda_single_prefill_dispatch.cu)
         target_include_directories(cuda_single_prefill_dispatch_test PRIVATE third_party)
