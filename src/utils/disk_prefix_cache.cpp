@@ -452,19 +452,49 @@ struct DiskPrefixCache::Impl {
             if (!IndexUsable()) Recover();
             Lease metadata(root / ".metadata", LOCK_EX);
             Database db(dbPath);
+            // This pass runs under the exclusive lifecycle lease, so every
+            // second it spends here is a second every reader blocks in
+            // BeginRead. The original loop paid a TRUNCATE WAL checkpoint, a
+            // full unindexed object sweep and two directory fsyncs per evicted
+            // checkpoint; with the quota deliberately kept full that pinned
+            // both locks for 5-10 s per pass and produced the warm-restore
+            // "门闩" (2026-09-22 forensics: lease-EX + metadata-EX held 5.1 s,
+            // md127 at 2-10 MB/s, GPU idle, no log output). Batch the durable
+            // work instead: WAL checkpoint every 8 evictions and one directory
+            // sync per touched commit directory at the end. Accounting stays
+            // exact because Used() is re-read every iteration (SUM scans over
+            // the page-cached index are milliseconds).
+            std::set<std::string> touched;
+            int round = 0;
             while (true) {
-                db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
+                if (round > 0 && round % 8 == 0) db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
                 uint64_t used = Used(db);
-                if (used <= limit && required <= limit - used) return true;
+                if (used <= limit && required <= limit - used) break;
                 std::string id, key;
                 { Statement oldest(db.value, "SELECT identity,key FROM checkpoints ORDER BY created,identity,key LIMIT 1");
                   if (!oldest.Row()) return false;
                   id = oldest.Text(0); key = oldest.Text(1); }
+                std::vector<std::string> owned;
+                { Statement query(db.value, "SELECT hash FROM refs WHERE identity=? AND key=?");
+                  query.Text(1, id); query.Text(2, key);
+                  while (query.Row()) owned.push_back(query.Text(0)); }
                 // Withdraw the source of truth first. A crash can leak objects,
                 // but cannot leave a published checkpoint pointing at GC'd data.
-                fs::remove(CommitPath(id, key)); SyncDirectory(commits / id);
+                fs::remove(CommitPath(id, key));
+                touched.insert(id);
                 { Statement erase(db.value, "DELETE FROM checkpoints WHERE identity=? AND key=?");
                   erase.Text(1, id); erase.Text(2, key); erase.Run(); }
+                for (const auto &hash : owned) {
+                    bool shared = false;
+                    { Statement probe(db.value, "SELECT 1 FROM refs WHERE hash=? LIMIT 1");
+                      probe.Text(1, hash); shared = probe.Row(); }
+                    if (shared) continue;
+                    fs::remove(BlobPath(hash));
+                    Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run();
+                }
+                ++round;
+            }
+            if (round > 0) {
                 std::vector<std::string> unused;
                 { Statement query(db.value, "SELECT hash FROM objects WHERE NOT EXISTS(SELECT 1 FROM refs WHERE refs.hash=objects.hash)");
                   while (query.Row()) unused.push_back(query.Text(0)); }
@@ -472,8 +502,11 @@ struct DiskPrefixCache::Impl {
                     fs::remove(BlobPath(hash));
                     Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run();
                 }
+                for (const auto &id : touched) SyncDirectory(commits / id);
                 SyncDirectory(transport);
+                db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
             }
+            return true;
         } catch (const std::exception &) { return false; }
     }
     lmcache::connector::Completion Wait(uint64_t future) {
@@ -792,11 +825,16 @@ std::vector<DiskPrefixCache::Checkpoint> DiskPrefixCache::ListCheckpoints(const 
     Check((exactIdentity.empty() || IsDigest(exactIdentity)) &&
           (familyIdentity.empty() || IsDigest(familyIdentity)) &&
           (kind == "prefix" || kind == "encoder") && maxLength >= 0, "invalid_checkpoint_query");
-    Lease lease(impl->root / ".lease", LOCK_SH);
-    Lease metadata(impl->root / ".metadata", LOCK_EX);
+    // Lookups run from the request path, so they must never queue behind the
+    // writers' metadata lock, and a live writer's in-flight intent must not
+    // push a lookup into a full commits-tree Scan while holding that lock.
+    // The index is an expendable WAL database: a reader may observe a
+    // slightly stale snapshot and treat it as a miss, and every candidate is
+    // re-validated (commit file checksum + blob headers) before use. Writers
+    // keep enforcing the intent check in BeginWrite. 2026-09-22 forensics:
+    // warm restores stalled 5-10 s behind the GC/commit metadata windows.
     try {
         Database db(impl->dbPath);
-        Check(db.Scalar("SELECT COUNT(*) FROM intents") == 0, "cache_index_needs_rebuild");
         Statement query(db.value, "SELECT key,identity,family,kind,length,dtype,provenance,created FROM checkpoints "
             "WHERE (?='' OR identity=?) AND (?='' OR family=?) AND kind=? AND length<=? ORDER BY length DESC,created ASC");
         query.Text(1, exactIdentity); query.Text(2, exactIdentity); query.Text(3, familyIdentity); query.Text(4, familyIdentity);
@@ -814,6 +852,8 @@ std::vector<DiskPrefixCache::Checkpoint> DiskPrefixCache::ListCheckpoints(const 
         return result;
     } catch (...) {
         // Exact deterministic commit files remain usable without any index.
+        Lease lease(impl->root / ".lease", LOCK_SH);
+        Lease metadata(impl->root / ".metadata", LOCK_EX);
         return impl->Scan(exactIdentity, familyIdentity, maxLength, kind);
     }
 }
