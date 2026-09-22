@@ -1,0 +1,5 @@
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.07
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=238.8
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=202.9 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/ncclab-B1-probe.json

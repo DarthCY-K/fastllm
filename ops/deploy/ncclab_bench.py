@@ -15,8 +15,16 @@ KEY = [l.split('=', 1)[1].strip().strip('"').strip("'")
        if l.startswith('VLLM_API_KEY=')][0]
 H = {'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json'}
 
+def _model_id():
+    req = urllib.request.Request(BASE + '/v1/models', headers=H)
+    d = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+    return d['data'][0]['id']
+
+MODEL = _model_id()
+print(f"[{TAG}] model_id={MODEL}")
+
 def call(prompt, max_tokens, timeout=600):
-    body = {"model": "Qwen3.8-27B", "messages": [{"role": "user", "content": prompt}],
+    body = {"model": MODEL, "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens, "temperature": 0, "stream": False,
             "chat_template_kwargs": {"enable_thinking": False}}
     req = urllib.request.Request(BASE + '/v1/chat/completions',

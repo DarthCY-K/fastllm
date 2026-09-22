@@ -1,0 +1,8 @@
+[B1] model_id=Swift-Qwen3.8-27B-NVFP4
+[B1] decode#1 wall=2.49s ct=512 pt=33 tps=205.94
+[B1] decode#2 wall=2.23s ct=512 pt=33 tps=229.19
+[B1] decode#3 wall=2.22s ct=512 pt=33 tps=230.70
+[B1] decode#4 wall=2.22s ct=512 pt=33 tps=230.74
+[B1] decode#5 wall=2.23s ct=512 pt=33 tps=230.03
+[B1] short_burst n=20 total=1.87s mean=94ms p50=94ms min=92ms max=95ms
+BENCH_JSON {"tag": "B1", "decode_tps": [205.94, 229.19, 230.7, 230.74, 230.03], "decode_mean": 225.32, "decode_min": 205.94, "decode_max": 230.74, "burst_mean_ms": 93.6, "burst_p50_ms": 93.6, "burst_total_s": 1.87}
