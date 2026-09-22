@@ -1,0 +1,5 @@
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.14
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=240.4
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=204.4 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r13-triton.json

@@ -1,0 +1,13 @@
+R13 冒烟窗口 2026-09-22 22:41:48 → 22:44:56（生产中断 3m08s，prod 35s 恢复 + 暖机）
+
+| 配置 | READY | md5 3 pin | dec (t/s) | errs | 备注 |
+|---|---|---|---|---|---|
+| prod-baseline(8080 停机前) | — | 3/3 | 236.7 / 205.2 | — | 同窗 A/B 基线 |
+| r13-force (dflash, 262144) | 35s | 3/3 | 237.8 | 0 | 合并零回归 |
+| r13-ns (无投机) | 30s | 3/3 | 57.0 | 0 | — |
+| r13-triton (+Triton SM75) | 30s | 3/3 | 240.4 | 0 | 与 force 输出零差异（短探针未触发 GDN gate） |
+| r13-prodmirror (1M+yarn+SSD+Triton) | 35s | 3/3 | 231.6 | 0 | 启动关键行 1M ctx OK；SSD boot=8 |
+
+- 探针（trial_probe2）：models / chat_ping / count50 / arith_think 四发全 PASS，与 r8–r12 历史 md5 基线逐位一致
+- 生产恢复：PROD_READY ~35s + warmup_prod.sh 兜底
+- 未决项：Triton GDN 数值正确性由 `cuda_prefill_paths_test gdn_sm75`（单测，已 PASS）承担；长上下文 prefill 收益需验收套餐（tail64 + 308K needle）
