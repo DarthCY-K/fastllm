@@ -1,0 +1,7 @@
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+PASS bias-free expert migration to GPU 0
+PASS bias-free expert migration to GPU 1
+PASS bias-free expert migration to GPU 0
+PASS bias-free expert migration to GPU 1
+PASS nonzero bias on GPU 0
+PASS nonzero bias on GPU 1

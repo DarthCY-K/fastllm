@@ -1,0 +1,8 @@
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+GDN chunks=3 batch=1 heads=48 state=0 fused_mask=0 output max_error=3.8147e-06 state max_error=3.7076e-06 continued_output max_error=3.8147e-06 continued_state max_error=6.61006e-06 PASS
+GDN chunks=8 batch=1 heads=48 state=0 fused_mask=0 output max_error=3.8147e-06 state max_error=4.83263e-06 continued_output max_error=3.8147e-06 continued_state max_error=7.21356e-06 PASS
+GDN chunks=32 batch=1 heads=48 state=0 fused_mask=0 output max_error=3.8147e-06 state max_error=6.7614e-06 continued_output max_error=1.90735e-06 continued_state max_error=6.61961e-06 PASS
+GDN chunks=65 batch=1 heads=48 state=0 fused_mask=0 output max_error=3.8147e-06 state max_error=6.66548e-06 continued_output max_error=1.90735e-06 continued_state max_error=6.98026e-06 PASS
+GDN chunks=8 batch=2 heads=48 state=0 fused_mask=0 output max_error=3.8147e-06 state max_error=5.39515e-06 continued_output max_error=3.8147e-06 continued_state max_error=7.21356e-06 PASS
+GDN chunks=8 batch=1 heads=48 state=7 fused_mask=1 output max_error=9.53674e-06 state max_error=6.10352e-05 continued_output max_error=7.62939e-06 continued_state max_error=6.10352e-05 PASS
+GDN chunks=32 batch=1 heads=48 state=7 fused_mask=1 output max_error=1.14441e-05 state max_error=4.57764e-05 continued_output max_error=7.62939e-06 continued_state max_error=4.57764e-05 PASS

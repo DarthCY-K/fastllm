@@ -1,0 +1,2 @@
+prefill regression: sparse fast path rejected
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 

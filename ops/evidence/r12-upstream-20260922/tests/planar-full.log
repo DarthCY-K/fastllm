@@ -1,0 +1,18 @@
+FAIL: block16 BF16 layouts changed output bits
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+PASS columns=17 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=17 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=17 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=17 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=33 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=33 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=33 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=33 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=128 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=128 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=128 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=128 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=640 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=640 cross_swiglu=0 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=640 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+PASS columns=640 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree

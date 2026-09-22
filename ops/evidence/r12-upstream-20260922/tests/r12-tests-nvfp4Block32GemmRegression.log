@@ -1,0 +1,229 @@
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+hasAVX2=1 hasAVX512BF16=0
+[ OK ] AVX2 fused m=5120 k=128 n=1 maxErr/|terms|=1.762e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=1 maxErr/|terms|=1.762e-08
+[ OK ] AVX2 fused m=5120 k=128 n=2 maxErr/|terms|=1.992e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=2 maxErr/|terms|=1.992e-08
+[ OK ] AVX2 fused m=5120 k=128 n=3 maxErr/|terms|=1.965e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=3 maxErr/|terms|=1.965e-08
+[ OK ] AVX2 fused m=5120 k=128 n=4 maxErr/|terms|=2.112e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=4 maxErr/|terms|=2.112e-08
+[ OK ] AVX2 fused m=5120 k=128 n=5 maxErr/|terms|=2.080e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=5 maxErr/|terms|=2.080e-08
+[ OK ] AVX2 fused m=5120 k=128 n=6 maxErr/|terms|=2.640e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=6 maxErr/|terms|=2.640e-08
+[ OK ] AVX2 fused m=5120 k=128 n=7 maxErr/|terms|=2.050e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=7 maxErr/|terms|=2.050e-08
+[ OK ] AVX2 fused m=5120 k=128 n=8 maxErr/|terms|=1.984e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=8 maxErr/|terms|=1.984e-08
+[ OK ] AVX2 fused m=5120 k=128 n=13 maxErr/|terms|=2.069e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=13 maxErr/|terms|=2.069e-08
+[ OK ] AVX2 fused m=5120 k=128 n=32 maxErr/|terms|=2.088e-08
+[ OK ] FastllmGemm  m=5120 k=128 n=32 maxErr/|terms|=2.088e-08
+[ OK ] AVX2 fused m=2304 k=96 n=1 maxErr/|terms|=1.400e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=1 maxErr/|terms|=1.400e-08
+[ OK ] AVX2 fused m=2304 k=96 n=2 maxErr/|terms|=2.500e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=2 maxErr/|terms|=2.500e-08
+[ OK ] AVX2 fused m=2304 k=96 n=3 maxErr/|terms|=2.883e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=3 maxErr/|terms|=2.883e-08
+[ OK ] AVX2 fused m=2304 k=96 n=4 maxErr/|terms|=2.973e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=4 maxErr/|terms|=2.973e-08
+[ OK ] AVX2 fused m=2304 k=96 n=5 maxErr/|terms|=2.397e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=5 maxErr/|terms|=2.397e-08
+[ OK ] AVX2 fused m=2304 k=96 n=6 maxErr/|terms|=2.974e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=6 maxErr/|terms|=2.974e-08
+[ OK ] AVX2 fused m=2304 k=96 n=7 maxErr/|terms|=2.120e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=7 maxErr/|terms|=2.120e-08
+[ OK ] AVX2 fused m=2304 k=96 n=8 maxErr/|terms|=3.249e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=8 maxErr/|terms|=3.249e-08
+[ OK ] AVX2 fused m=2304 k=96 n=13 maxErr/|terms|=2.728e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=13 maxErr/|terms|=2.728e-08
+[ OK ] AVX2 fused m=2304 k=96 n=32 maxErr/|terms|=2.639e-08
+[ OK ] FastllmGemm  m=2304 k=96 n=32 maxErr/|terms|=2.639e-08
+[ OK ] AVX2 fused m=4608 k=64 n=1 maxErr/|terms|=1.400e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=1 maxErr/|terms|=1.400e-08
+[ OK ] AVX2 fused m=4608 k=64 n=2 maxErr/|terms|=1.817e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=2 maxErr/|terms|=1.817e-08
+[ OK ] AVX2 fused m=4608 k=64 n=3 maxErr/|terms|=1.424e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=3 maxErr/|terms|=1.424e-08
+[ OK ] AVX2 fused m=4608 k=64 n=4 maxErr/|terms|=1.592e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=4 maxErr/|terms|=1.592e-08
+[ OK ] AVX2 fused m=4608 k=64 n=5 maxErr/|terms|=1.984e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=5 maxErr/|terms|=1.984e-08
+[ OK ] AVX2 fused m=4608 k=64 n=6 maxErr/|terms|=2.141e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=6 maxErr/|terms|=2.141e-08
+[ OK ] AVX2 fused m=4608 k=64 n=7 maxErr/|terms|=3.213e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=7 maxErr/|terms|=3.213e-08
+[ OK ] AVX2 fused m=4608 k=64 n=8 maxErr/|terms|=1.927e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=8 maxErr/|terms|=1.927e-08
+[ OK ] AVX2 fused m=4608 k=64 n=13 maxErr/|terms|=1.771e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=13 maxErr/|terms|=1.771e-08
+[ OK ] AVX2 fused m=4608 k=64 n=32 maxErr/|terms|=2.594e-08
+[ OK ] FastllmGemm  m=4608 k=64 n=32 maxErr/|terms|=2.594e-08
+[ OK ] AVX2 fused m=160 k=33 n=1 maxErr/|terms|=2.596e-08
+[ OK ] FastllmGemm  m=160 k=33 n=1 maxErr/|terms|=2.596e-08
+[ OK ] AVX2 fused m=160 k=33 n=2 maxErr/|terms|=3.814e-08
+[ OK ] FastllmGemm  m=160 k=33 n=2 maxErr/|terms|=3.814e-08
+[ OK ] AVX2 fused m=160 k=33 n=3 maxErr/|terms|=3.704e-08
+[ OK ] FastllmGemm  m=160 k=33 n=3 maxErr/|terms|=3.704e-08
+[ OK ] AVX2 fused m=160 k=33 n=4 maxErr/|terms|=6.048e-08
+[ OK ] FastllmGemm  m=160 k=33 n=4 maxErr/|terms|=6.048e-08
+[ OK ] AVX2 fused m=160 k=33 n=5 maxErr/|terms|=5.103e-08
+[ OK ] FastllmGemm  m=160 k=33 n=5 maxErr/|terms|=5.103e-08
+[ OK ] AVX2 fused m=160 k=33 n=6 maxErr/|terms|=5.226e-08
+[ OK ] FastllmGemm  m=160 k=33 n=6 maxErr/|terms|=5.226e-08
+[ OK ] AVX2 fused m=160 k=33 n=7 maxErr/|terms|=4.775e-08
+[ OK ] FastllmGemm  m=160 k=33 n=7 maxErr/|terms|=4.775e-08
+[ OK ] AVX2 fused m=160 k=33 n=8 maxErr/|terms|=4.873e-08
+[ OK ] FastllmGemm  m=160 k=33 n=8 maxErr/|terms|=4.873e-08
+[ OK ] AVX2 fused m=160 k=33 n=13 maxErr/|terms|=4.816e-08
+[ OK ] FastllmGemm  m=160 k=33 n=13 maxErr/|terms|=4.816e-08
+[ OK ] AVX2 fused m=160 k=33 n=32 maxErr/|terms|=5.580e-08
+[ OK ] FastllmGemm  m=160 k=33 n=32 maxErr/|terms|=5.580e-08
+[ OK ] AVX2 fused m=96 k=7 n=1 maxErr/|terms|=2.324e-08
+[ OK ] FastllmGemm  m=96 k=7 n=1 maxErr/|terms|=2.324e-08
+[ OK ] AVX2 fused m=96 k=7 n=2 maxErr/|terms|=3.384e-08
+[ OK ] FastllmGemm  m=96 k=7 n=2 maxErr/|terms|=3.384e-08
+[ OK ] AVX2 fused m=96 k=7 n=3 maxErr/|terms|=2.492e-08
+[ OK ] FastllmGemm  m=96 k=7 n=3 maxErr/|terms|=2.492e-08
+[ OK ] AVX2 fused m=96 k=7 n=4 maxErr/|terms|=2.657e-08
+[ OK ] FastllmGemm  m=96 k=7 n=4 maxErr/|terms|=2.657e-08
+[ OK ] AVX2 fused m=96 k=7 n=5 maxErr/|terms|=4.474e-08
+[ OK ] FastllmGemm  m=96 k=7 n=5 maxErr/|terms|=4.474e-08
+[ OK ] AVX2 fused m=96 k=7 n=6 maxErr/|terms|=3.576e-08
+[ OK ] FastllmGemm  m=96 k=7 n=6 maxErr/|terms|=3.576e-08
+[ OK ] AVX2 fused m=96 k=7 n=7 maxErr/|terms|=5.707e-08
+[ OK ] FastllmGemm  m=96 k=7 n=7 maxErr/|terms|=5.707e-08
+[ OK ] AVX2 fused m=96 k=7 n=8 maxErr/|terms|=4.346e-08
+[ OK ] FastllmGemm  m=96 k=7 n=8 maxErr/|terms|=4.346e-08
+[ OK ] AVX2 fused m=96 k=7 n=13 maxErr/|terms|=4.647e-08
+[ OK ] FastllmGemm  m=96 k=7 n=13 maxErr/|terms|=4.647e-08
+[ OK ] AVX2 fused m=96 k=7 n=32 maxErr/|terms|=5.485e-08
+[ OK ] FastllmGemm  m=96 k=7 n=32 maxErr/|terms|=5.485e-08
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=0
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=1
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=2
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=3
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=4
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=5
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=6
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=7
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=8
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=9
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=10
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=11
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=12
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=13
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=14
+[ OK ] AVX2 whole/split range all 256 scales, FP mode=15
+[ OK ] AVX2 strided m=5120 n=1 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=2 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=3 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=4 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=5 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=6 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=7 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=8 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=13 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=5120 n=32 columns=[3,210) padding preserved
+[ OK ] AVX2 strided m=2304 n=1 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=2 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=3 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=4 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=5 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=6 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=7 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=8 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=13 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=2304 n=32 columns=[1,131) padding preserved
+[ OK ] AVX2 strided m=5120 n=1 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=2 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=3 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=4 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=5 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=6 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=7 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=8 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=13 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=32 columns=[7,23) padding preserved
+[ OK ] AVX2 strided m=5120 n=1 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=2 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=3 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=4 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=5 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=6 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=7 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=8 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=13 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=5120 n=32 columns=[7,22) padding preserved
+[ OK ] AVX2 strided m=1056 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1056 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1024 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1023 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=5121 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=2305 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=31 n=32 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=1 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=2 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=3 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=4 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=5 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=6 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=7 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=8 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=13 columns=[1,20) padding preserved
+[ OK ] AVX2 strided m=1 n=32 columns=[1,20) padding preserved
+ALL PASS

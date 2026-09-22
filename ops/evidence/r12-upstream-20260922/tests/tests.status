@@ -1,0 +1,23 @@
+RUN_R12_TESTS_START 2026-09-22 10:43:14
+--- 补建 nvfp4_planar_test（观察项） ---
+planar build rc=2
+--- CPU 单测 ---
+reduce_batch_test: rc=0 | PASS ReduceBatch: uneven partitions, empty rows, guards, up to 40 workers
+numas_nvfp4_moe_test: rc=0 | ALL_PASS
+moe_expert_partition_test: rc=0 | PASS MoE expert partition regressions
+nvfp4_planar_test: NOT_BUILT
+nvfp4Block32GemmRegression: rc=0 | ALL PASS
+--- CUDA 测试（轻量；GPU 与生产共享）---
+cuda_marlin_sm75_ldmatrix_test : rc=0 | PASS ldmatrix x4
+cuda_bf16_bias_multigpu_test : rc=0 | PASS nonzero bias on GPU 1
+cuda_paged_fragmented_attention_test : rc=0 | PASS len=4099 rows=8 layout=4 tail=1 max_abs=0.0215601366
+cuda_prefill_paths_test gdn: rc=0 | GDN chunks=66 batch=1 heads=2 state=7 fused_mask=0 output max_error=7.62939e-06 state max_error=3.05176e-05 continued_output max_error=5.72205e-06 continued_state max_error=3.05176e-05 PASS
+cuda_prefill_paths_test gdn_sm75: rc=0 | GDN chunks=32 batch=1 heads=48 state=7 fused_mask=1 output max_error=1.14441e-05 state max_error=4.57764e-05 continued_output max_error=7.62939e-06 continued_state max_error=4.57764e-05 PASS
+cuda_prefill_paths_test sparse: rc=1 | CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+RUN_R12_TESTS_END 2026-09-22 10:44:09
+=========================
+
+--- 复查与补充（2026-09-22 10:52）---
+planar: 原 make 失败系补建时缺 LIBRARY_PATH=fastllm-link-deps（-lnccl 找不到）；重编后 rc=1，唯一非 PASS 行 = "FAIL: block16 BF16 layouts changed output bits"（既存观察项：测试文件未被 r12 4 提交触碰）
+gdn_sm75 完整输出: 7 形状全 PASS（heads=48；chunks=3/8/32/65；batch=1/2；fp32/fp16+fused_mask；max_error ≤1.14e-05）
+sparse: rc=1 = Qwen4 稀疏路径 arch gate（cudadevice.cpp:3664 arch<80）在 SM75 拒绝——环境不满足，非回归

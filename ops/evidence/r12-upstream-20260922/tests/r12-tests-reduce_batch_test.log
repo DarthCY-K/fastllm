@@ -1,0 +1,2 @@
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+PASS ReduceBatch: uneven partitions, empty rows, guards, up to 40 workers

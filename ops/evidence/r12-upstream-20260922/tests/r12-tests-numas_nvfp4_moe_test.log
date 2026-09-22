@@ -1,0 +1,72 @@
+CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+Activate NUMA MoE assist overlap
+threadIdx: 0, use cpu 0, bind to numa 0
+threadIdx: 1, use cpu 4, bind to numa 0
+threadIdx: 2, use cpu 8, bind to numa 0
+threadIdx: 3, use cpu 12, bind to numa 0
+threadIdx: 4, use cpu 16, bind to numa 0
+threadIdx: 5, use cpu 20, bind to numa 0
+threadIdx: 6, use cpu 24, bind to numa 0
+threadIdx: 7, use cpu 28, bind to numa 0
+threadIdx: 8, use cpu 32, bind to numa 0
+threadIdx: 9, use cpu 36, bind to numa 0
+threadIdx: 10, use cpu 40, bind to numa 0
+threadIdx: 11, use cpu 44, bind to numa 0
+threadIdx: 12, use cpu 1, bind to numa 0
+threadIdx: 13, use cpu 5, bind to numa 0
+threadIdx: 14, use cpu 9, bind to numa 0
+threadIdx: 15, use cpu 13, bind to numa 0
+threadIdx: 16, use cpu 17, bind to numa 0
+threadIdx: 17, use cpu 21, bind to numa 0
+threadIdx: 18, use cpu 25, bind to numa 0
+threadIdx: 19, use cpu 29, bind to numa 0
+threadIdx: 20, use cpu 33, bind to numa 0
+threadIdx: 21, use cpu 37, bind to numa 0
+threadIdx: 22, use cpu 41, bind to numa 0
+threadIdx: 23, use cpu 45, bind to numa 0
+threadIdx: 24, use cpu 2, bind to numa 0
+threadIdx: 25, use cpu 6, bind to numa 0
+threadIdx: 26, use cpu 10, bind to numa 0
+threadIdx: 27, use cpu 14, bind to numa 0
+threadIdx: 28, use cpu 18, bind to numa 0
+threadIdx: 29, use cpu 22, bind to numa 0
+threadIdx: 30, use cpu 26, bind to numa 0
+threadIdx: 31, use cpu 30, bind to numa 0
+threadIdx: 32, use cpu 34, bind to numa 0
+threadIdx: 33, use cpu 38, bind to numa 0
+threadIdx: 34, use cpu 42, bind to numa 0
+threadIdx: 35, use cpu 46, bind to numa 0
+threadIdx: 36, use cpu 3, bind to numa 0
+threadIdx: 37, use cpu 7, bind to numa 0
+threadIdx: 38, use cpu 11, bind to numa 0
+threadIdx: 39, use cpu 15, bind to numa 0
+threadIdx: 40, use cpu 19, bind to numa 0
+threadIdx: 41, use cpu 23, bind to numa 0
+threadIdx: 42, use cpu 27, bind to numa 0
+threadIdx: 43, use cpu 31, bind to numa 0
+threadIdx: 44, use cpu 35, bind to numa 0
+threadIdx: 45, use cpu 39, bind to numa 0
+Activate GPU Prefill
+Activate Pinned Weight
+PASS hidden=96 inter=64 experts=11 topk=2 shared=0 dtype=0: routes, batch transitions, compact scales
+PASS hidden=96 inter=64 experts=11 topk=2 shared=0 dtype=1: routes, batch transitions, compact scales
+PASS hidden=96 inter=64 experts=11 topk=2 shared=1 dtype=0: routes, batch transitions, compact scales
+PASS hidden=96 inter=64 experts=11 topk=2 shared=1 dtype=1: routes, batch transitions, compact scales
+PASS hidden=256 inter=128 experts=29 topk=5 shared=0 dtype=0: routes, batch transitions, compact scales
+PASS hidden=256 inter=128 experts=29 topk=5 shared=0 dtype=1: routes, batch transitions, compact scales
+PASS hidden=256 inter=128 experts=29 topk=5 shared=1 dtype=0: routes, batch transitions, compact scales
+PASS hidden=256 inter=128 experts=29 topk=5 shared=1 dtype=1: routes, batch transitions, compact scales
+PASS hidden=256 inter=160 experts=29 topk=5 shared=0 dtype=0: routes, batch transitions, compact scales
+PASS hidden=256 inter=160 experts=29 topk=5 shared=0 dtype=1: routes, batch transitions, compact scales
+PASS hidden=256 inter=160 experts=29 topk=5 shared=1 dtype=0: routes, batch transitions, compact scales
+PASS hidden=256 inter=160 experts=29 topk=5 shared=1 dtype=1: routes, batch transitions, compact scales
+PASS hidden=352 inter=224 experts=17 topk=7 shared=0 dtype=0: routes, batch transitions, compact scales
+PASS hidden=352 inter=224 experts=17 topk=7 shared=0 dtype=1: routes, batch transitions, compact scales
+PASS hidden=352 inter=224 experts=17 topk=7 shared=1 dtype=0: routes, batch transitions, compact scales
+PASS hidden=352 inter=224 experts=17 topk=7 shared=1 dtype=1: routes, batch transitions, compact scales
+PASS hidden=576 inter=320 experts=19 topk=4 shared=0 dtype=0: routes, batch transitions, compact scales
+PASS hidden=576 inter=320 experts=19 topk=4 shared=0 dtype=1: routes, batch transitions, compact scales
+PASS hidden=576 inter=320 experts=19 topk=4 shared=1 dtype=0: routes, batch transitions, compact scales
+PASS hidden=576 inter=320 experts=19 topk=4 shared=1 dtype=1: routes, batch transitions, compact scales
+PASS duplicate decode groups preserve single-row output bits
+ALL_PASS
