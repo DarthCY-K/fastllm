@@ -1,0 +1,39 @@
+BUILD_R13_START 2026-09-22 22:26:28
+--- r13 marker checks ---
+conflict markers: 0
+G1 TrimBigBuffer def: 1
+G2 Expansion uses Trim: 1
+G3 view dataDeviceIds: 1
+G4 managed capture only: 1
+G5 host numa node: 1
+G6 rendezvous spin: 3
+G7 RetainCudaWorkspace: 1
+G8 graphpool test target: 4
+L1 pooltrim intact: 1
+L2 gcfix intact: 2
+L3 export batch intact: 2
+L4 mmguard intact: 3
+L5 triton sm75 intact: 1
+--- overlay util.py 一致性核对（overlay-r12 vs d50955ce 版）---
+util_py_sync=IDENTICAL
+CMAKE_OK 22:26:31
+BUILD_OK 22:36:41
+-rwxrwxr-x 1 ai-agent ai-agent 137464536 Sep 22 22:36 /home/ai-agent/builds/upgrade-test/build-r13/tools/ftllm/libfastllm_tools.so
+fa8a19ff44be621173c6eda75c628a27  /home/ai-agent/builds/upgrade-test/build-r13/tools/ftllm/libfastllm_tools.so
+so sm75_mma: 1
+so gdn_v9: 1
+so cache_sql_prepare: 1
+so ALLOW_YARN: 2
+so TrimBigBuffer: 2
+so RetainWs: 4
+so HostNumaNode: 3
+--- overlay-r13 组装（基座=overlay-r12=现役生产 overlay；同步 merged util.py）---
+fa8a19ff44be621173c6eda75c628a27  overlay-r13/ftllm/libfastllm_tools.so
+--- 测试目标构建 ---
+tests_build_rc=0
+planar_build_rc=0
+[100%] Building CXX object CMakeFiles/nvfp4_planar_test.dir/test/basic/test_nvfp4_planar.cpp.o
+[100%] Linking CXX executable nvfp4_planar_test
+[100%] Built target nvfp4_planar_test
+make: Leaving directory '/home/ai-agent/builds/upgrade-test/build-r13'
+BUILD_R13_END 2026-09-22 22:37:18

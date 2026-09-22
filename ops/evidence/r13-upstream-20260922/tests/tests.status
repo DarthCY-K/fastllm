@@ -1,0 +1,23 @@
+RUN_R13_TESTS_START 2026-09-22 22:37:47
+## CPU 单测
+reduce_batch_test          rc=0 | PASS ReduceBatch: uneven partitions, empty rows, guards, up to 40 workers
+numas_nvfp4_moe_test       rc=0 | ALL_PASS
+moe_expert_partition_test  rc=0 | PASS MoE expert partition regressions
+nvfp4Block32GemmRegression rc=0 | ALL PASS
+nvfp4_planar_test          rc=1 | PASS columns=640 cross_swiglu=1 avx512=0: equal storage and weight/scale bits; CPU outputs agree
+## CUDA 轻量测试（GPU 与生产共享）
+cuda_marlin_sm75_ldmatrix_test           rc=0 | PASS ldmatrix x4
+cuda_bf16_bias_multigpu_test             rc=0 | PASS nonzero bias on GPU 1
+cuda_paged_fragmented_attention_test     rc=0 | PASS len=4099 rows=8 layout=4 tail=1 max_abs=0.0215601366
+cuda_prefill_paths_test gdn              rc=77 | 
+cuda_prefill_paths_test gdn_sm75         rc=77 | 
+cuda_prefill_paths_test sparse           rc=77 | 
+## CUDA Graph 池回归（r13 核心项；内存紧时会 SKIP=77）
+cudaGraphPoolMissRegression              rc=0
+    [Fastllm] CUDA reserve allocation stopped on device 0: 0/1 blocks of 22009 MB allocated, gpuFree 5853/22009 MB, error=out of memory. Existing pool blocks were preserved.
+    CPU Instruction Info: [AVX2: ON] [AVX512F: OFF] [AVX512_VNNI: OFF] [AVX512_BF16: OFF] [AMX: OFF] 
+    mixed-size capture pool and replay: PASS
+    expansion retains reusable and reclaimable workspace: PASS
+    graph-owned workspace survives OOM retry: PASS
+    CUDA graph pool-miss regression: PASS; allocation freeze disabled by FASTLLM_CUDA_MEM_CHECK (4 GPUs)
+RUN_R13_TESTS_END 2026-09-22 22:37:55
