@@ -1,0 +1,20 @@
+[8k-a] len=8192 end=1790070430.933 commits=1/1 lag_last=1.70s lag_all=[1.7] objects 41810->41552 bytes 32336714144->32483940608
+[8k-b] len=8192 end=1790070443.261 commits=1/1 lag_last=1.75s lag_all=[1.75] objects 41552->40778 bytes 32483940608->31557302048
+[32k] len=32768 end=1790070475.360 commits=4/4 lag_last=1.72s lag_all=[-18.02, -11.66, -5.09, 1.72] objects 40778->41854 bytes 31557302048->32404072288
+=== export/gc 打印行（P）===
+17:47:06 [Prefix SSD] gc: evicted=2 checkpoints objects=780 freed=237MB held=212ms (txn=210ms tail=2ms) required=619MB
+17:47:12 [Prefix SSD] export: chunks=522 new=522 dedup=0 staged=372MB batches=33 hash=357ms probe=13ms stage=609ms sync=1249ms txn=212ms
+17:47:12 [Prefix SSD] committed: tokens=8192 key=e8fc98c7ed4962eb5d81ac7a1cf3e2ccc0931e0b0a70bc14c7a54931046a45b8.
+17:47:18 [Prefix SSD] gc: evicted=2 checkpoints objects=1292 freed=1267MB held=495ms (txn=492ms tail=3ms) required=619MB
+17:47:25 [Prefix SSD] export: chunks=522 new=518 dedup=4 staged=372MB batches=33 hash=293ms probe=12ms stage=733ms sync=1328ms txn=118ms
+17:47:25 [Prefix SSD] committed: tokens=8192 key=6593edf28504220bfc47903fa8d63591f35616d1892198f085a2454b0bf981a4.
+17:47:31 [Prefix SSD] gc: evicted=2 checkpoints objects=1008 freed=683MB held=323ms (txn=321ms tail=2ms) required=1734MB
+17:47:37 [Prefix SSD] export: chunks=522 new=518 dedup=4 staged=372MB batches=33 hash=320ms probe=12ms stage=668ms sync=1252ms txn=108ms
+17:47:37 [Prefix SSD] committed: tokens=8192 key=e7514353adac1394a08b6d8381c536bbb6fd1d85619ab129f1567e2db744f0c6.
+17:47:43 [Prefix SSD] export: chunks=1044 new=1040 dedup=4 staged=743MB batches=66 hash=651ms probe=24ms stage=1364ms sync=2483ms txn=214ms
+17:47:43 [Prefix SSD] committed: tokens=16384 key=f859f8a2a501cf3b71d5a090e4a3dabd300398983062f02095f35a222937ffad.
+17:47:50 [Prefix SSD] export: chunks=1566 new=1562 dedup=4 staged=1115MB batches=99 hash=972ms probe=36ms stage=2081ms sync=3685ms txn=319ms
+17:47:50 [Prefix SSD] committed: tokens=24576 key=5c1b808ba2fbcc80cabd47776462f53118e62bb005342ee9a5ee181e5bbafc07.
+17:47:57 [Prefix SSD] export: chunks=2088 new=2084 dedup=4 staged=1487MB batches=132 hash=1280ms probe=48ms stage=2794ms sync=5117ms txn=428ms
+17:47:57 [Prefix SSD] committed: tokens=32768 key=67182e2683f3bebe1fa784f1791ee8c562112ec3d86a02a6537d76baec12ae55.
+EXP_PROBE_DONE P 2026-09-22 17:47:59

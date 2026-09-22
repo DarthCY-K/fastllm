@@ -1,0 +1,14 @@
+[8k-a] len=8192 end=1790070162.486 commits=1/1 lag_last=3.71s lag_all=[3.71] objects -1->522 bytes -1->389829408
+[8k-b] len=8192 end=1790070177.486 commits=1/1 lag_last=3.65s lag_all=[3.65] objects 522->1040 bytes 389829408->779576576
+[32k] len=32768 end=1790070213.657 commits=4/4 lag_last=4.21s lag_all=[-17.44, -10.57, -3.1, 4.21] objects 1040->3124 bytes 779576576->2338811968
+=== export/gc 打印行（A）===
+17:42:35 [Prefix SSD] full recovery starting: commits=0 (index missing or dirty).
+17:42:35 [Prefix SSD] full recovery done: commits=0 refs=0 objects_removed=0 elapsed=0.00s.
+17:42:35 [Prefix SSD] index ok: fast startup, full recovery skipped.
+17:42:46 [Prefix SSD] committed: tokens=8192 key=c8c5bf4e705a0861e5902b15a79562c86d823fec8bb9c9356f5654081a9b32b4.
+17:43:01 [Prefix SSD] committed: tokens=8192 key=483fa5f0c904ef8dca8371026736b371dd6f583b5699aa620a27a9a29b96eda2.
+17:43:16 [Prefix SSD] committed: tokens=8192 key=1896fdbc58e84aeced224bad5ecf616629cf2b97dc8b27ca341daf0ba934f3bf.
+17:43:23 [Prefix SSD] committed: tokens=16384 key=60d43f4d6266f329aac4adec1ed824ca54372a8986e1a31f9a710b378c32bae3.
+17:43:30 [Prefix SSD] committed: tokens=24576 key=8740b09aaef124d22ef93cf7bd8a9756383268f5688334fa97714e48f2fb610e.
+17:43:37 [Prefix SSD] committed: tokens=32768 key=b265869d47a4f4e354e33f9249149e705c8674c86a5bfabafce148c765ce6d50.
+EXP_PROBE_DONE A 2026-09-22 17:43:39

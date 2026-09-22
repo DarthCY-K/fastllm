@@ -1,0 +1,20 @@
+[8k-a] len=8192 end=1790070267.845 commits=1/1 lag_last=1.05s lag_all=[1.05] objects -1->522 bytes -1->389829408
+[8k-b] len=8192 end=1790070280.138 commits=1/1 lag_last=1.24s lag_all=[1.24] objects 522->1040 bytes 389829408->779576576
+[32k] len=32768 end=1790070313.882 commits=4/4 lag_last=1.22s lag_all=[-20.08, -13.16, -6.2, 1.22] objects 1040->3124 bytes 779576576->2338811968
+=== export/gc 打印行（B）===
+17:44:20 [Prefix SSD] full recovery starting: commits=0 (index missing or dirty).
+17:44:20 [Prefix SSD] full recovery done: commits=0 refs=0 objects_removed=0 elapsed=0.00s.
+17:44:20 [Prefix SSD] index ok: fast startup, full recovery skipped.
+17:44:28 [Prefix SSD] export: chunks=522 new=522 dedup=0 staged=372MB batches=33 hash=324ms probe=11ms stage=626ms sync=936ms txn=63ms
+17:44:28 [Prefix SSD] committed: tokens=8192 key=f2b5e2ba2449d33445089a16008ac1836aa478aad3f565852c555e1055dc0191.
+17:44:41 [Prefix SSD] export: chunks=522 new=518 dedup=4 staged=372MB batches=33 hash=322ms probe=11ms stage=706ms sync=917ms txn=68ms
+17:44:41 [Prefix SSD] committed: tokens=8192 key=43f674abe06116e1be403a866e74252007d2785061a3b4c5440105da7dd1b46f.
+17:44:53 [Prefix SSD] export: chunks=522 new=518 dedup=4 staged=372MB batches=33 hash=320ms probe=11ms stage=688ms sync=864ms txn=70ms
+17:44:53 [Prefix SSD] committed: tokens=8192 key=5e656f8135c4ca10f407ed4ffd6d431843e8eedf0b820614be538b4e8c821a8c.
+17:45:00 [Prefix SSD] export: chunks=1044 new=1040 dedup=4 staged=743MB batches=66 hash=643ms probe=21ms stage=1345ms sync=1742ms txn=141ms
+17:45:00 [Prefix SSD] committed: tokens=16384 key=7d3bb8a633a527e5a3a80bcdb6f7fc72084c889bb0adcb943a284232c0f40229.
+17:45:07 [Prefix SSD] export: chunks=1566 new=1562 dedup=4 staged=1115MB batches=99 hash=966ms probe=32ms stage=1955ms sync=2653ms txn=210ms
+17:45:07 [Prefix SSD] committed: tokens=24576 key=ff6d527e790ec1fb9eddc8a5c4b77244ab2e21f19efc60d8f6b42448e4b7c752.
+17:45:15 [Prefix SSD] export: chunks=2088 new=2084 dedup=4 staged=1487MB batches=132 hash=1278ms probe=43ms stage=2517ms sync=3560ms txn=285ms
+17:45:15 [Prefix SSD] committed: tokens=32768 key=b4c31f32a6550005f73b133cb0391bbf32ba8999dc4adc1b767b79e3abf40cfa.
+EXP_PROBE_DONE B 2026-09-22 17:45:17

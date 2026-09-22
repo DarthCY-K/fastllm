@@ -605,6 +605,47 @@ struct DiskPrefixCache::WriteSession::State {
     uint64_t remaining = 0, written = 0;
     std::vector<fs::path> temporary;
     Refs verified;
+    // Batched publication: staged chunks are fsynced, renamed and registered in
+    // groups. Under synchronous=FULL every per-chunk intent insert, staged-file
+    // fsync and objects transaction costs its own jbd2 journal commit; thread
+    // sampling on the production box showed the export worker spending ~70% of
+    // its wall time inside fsync/fdatasync waiting for journal commits (4 per
+    // chunk, ~8 ms each). Deferring only the PUBLISH step keeps the data safe:
+    // staged bytes already sit on disk, and a crash leaks blobs that the GC's
+    // orphan sweep collects instead of ever publishing a broken manifest.
+    struct Pending { fs::path stage; std::string hash; uint64_t bytes; };
+    std::vector<Pending> pending;
+    uint64_t pendingBytes = 0, staged = 0, dedup = 0, stagedBytes = 0, batches = 0;
+    int64_t hashNs = 0, probeNs = 0, stageNs = 0, syncNs = 0, txnNs = 0;
+    static constexpr size_t BatchChunks = 16;
+    static constexpr uint64_t BatchBytes = 64ull << 20;
+    void FlushPending() {
+        if (pending.empty()) return;
+        Lease metadata(owner->root / ".metadata", LOCK_EX);
+        Database db(owner->dbPath);
+        const auto intent = id + ":batch:" + std::to_string(++batches);
+        owner->Intent(db, intent, true);
+        int64_t syncStart = NowNs();
+        for (const auto &item : pending) SyncFile(item.stage);
+        int64_t synced = NowNs();
+        {
+            Transaction transaction(db);
+            for (const auto &item : pending) {
+                Check(rename(item.stage.c_str(), owner->BlobPath(item.hash).c_str()) == 0, "cache_rename");
+                Statement put(db.value, "INSERT OR REPLACE INTO objects VALUES(?,?)");
+                put.Text(1, item.hash); put.Number(2, item.bytes); put.Run();
+                Consume(db, item.bytes);
+            }
+            owner->Intent(db, intent, false);
+            transaction.Commit();
+        }
+        int64_t finished = NowNs();
+        SyncDirectory(owner->transport);
+        syncNs += synced - syncStart;
+        txnNs += finished - synced;
+        pendingBytes = 0;
+        pending.clear();
+    }
     explicit State(std::shared_ptr<Impl> owner) : owner(std::move(owner)) {}
     ~State() {
         // StoreBytes returns only after every submitted LMCache transfer ends.
@@ -713,12 +754,16 @@ Json::array DiskPrefixCache::WriteSession::StoreBytes(size_t bytes,
         size_t count = std::min(ChunkBytes, bytes - offset);
         std::vector<char> buffer(count + BlobHeaderBytes);
         read(offset, buffer.data() + BlobHeaderBytes, count);
+        int64_t digestStart = NowNs();
         auto hash = Digest(buffer.data() + BlobHeaderBytes, count);
+        state->hashNs += NowNs() - digestStart;
         // Bounded striped locks protect duplicate writers across processes,
         // without creating one lock file per cached object.
         Lease object(state->owner->root / (".object-" + hash.substr(0, 2)), LOCK_EX);
         bool valid = false;
+        int64_t probeStart = NowNs();
         try { state->owner->ReadBlob(hash, count); valid = true; } catch (...) {}
+        state->probeNs += NowNs() - probeStart;
         if (!valid) {
             memcpy(buffer.data(), BlobMagic, 8); PutLength(buffer.data(), count);
             memcpy(buffer.data() + 16, hash.data(), 64);
@@ -730,26 +775,22 @@ Json::array DiskPrefixCache::WriteSession::StoreBytes(size_t bytes,
                 Database db(state->owner->dbPath);
                 state->Reserve(db, buffer.size() + IndexAllowance);
             }
+            int64_t stageStart = NowNs();
             state->owner->Transfer(true, "stage@0@0@" + hash + "@" + salt, buffer);
             Check(FileSize(stage) == buffer.size(), "cache_staging_size");
             Check(chmod(stage.c_str(), 0600) == 0, "cache_file_mode");
-            SyncFile(stage);
-            {
-                Lease metadata(state->owner->root / ".metadata", LOCK_EX);
-                Database db(state->owner->dbPath);
-                const auto intent = state->id + ":blob:" + hash;
-                state->owner->Intent(db, intent, true);
-                Check(rename(stage.c_str(), state->owner->BlobPath(hash).c_str()) == 0, "cache_rename");
-                SyncDirectory(state->owner->transport);
-                Transaction transaction(db);
-                Statement put(db.value, "INSERT OR REPLACE INTO objects VALUES(?,?)");
-                put.Text(1, hash); put.Number(2, buffer.size()); put.Run();
-                state->Consume(db, buffer.size());
-                state->owner->Intent(db, intent, false);
-                transaction.Commit();
-            }
+            state->stageNs += NowNs() - stageStart;
+            // Publish is deferred: FlushPending() fsyncs a whole group of staged
+            // files in one journal-flush window, then renames and registers them
+            // in a single transaction (see the batching note on State).
+            state->pending.push_back({stage, hash, buffer.size()});
+            state->pendingBytes += buffer.size();
+            state->stagedBytes += buffer.size();
             state->written += buffer.size();
-        }
+            ++state->staged;
+            if (state->pending.size() >= State::BatchChunks || state->pendingBytes >= State::BatchBytes)
+                state->FlushPending();
+        } else ++state->dedup;
         state->verified[hash] = count;
         chunks.emplace_back(Json::object{{"sha256", hash}, {"bytes", double(count)}});
         offset += count;
@@ -764,6 +805,9 @@ void DiskPrefixCache::WriteSession::Commit(const std::string &key, const Json &v
     Check((kind == "prefix" || kind == "encoder") && IsDigest(family), "invalid_checkpoint_metadata");
     Check(kind != "prefix" || (value["length"].is_number() && value["length"].int_value() > 0 &&
           value["length"].number_value() == value["length"].int_value()), "invalid_checkpoint_length");
+    // The manifest must never reference bytes that are not durable: publish the
+    // whole staged group (fsync + rename + register) before indexing this record.
+    state->FlushPending();
     Refs refs; CollectRefs(value, refs);
     for (const auto &ref : refs) {
         auto found = state->verified.find(ref.first);
@@ -804,6 +848,15 @@ void DiskPrefixCache::WriteSession::Commit(const std::string &key, const Json &v
     state->Consume(db, envelope.size());
     owner->Intent(db, intent, false);
     state->written += envelope.size();
+    if (state->staged || state->dedup) {
+        printf("[Prefix SSD] export: chunks=%llu new=%llu dedup=%llu staged=%.0fMB batches=%llu "
+               "hash=%.0fms probe=%.0fms stage=%.0fms sync=%.0fms txn=%.0fms\n",
+               (unsigned long long)(state->staged + state->dedup), (unsigned long long)state->staged,
+               (unsigned long long)state->dedup, state->stagedBytes / 1048576.0,
+               (unsigned long long)state->batches, state->hashNs / 1e6, state->probeNs / 1e6,
+               state->stageNs / 1e6, state->syncNs / 1e6, state->txnNs / 1e6);
+        fflush(stdout);
+    }
 }
 uint64_t DiskPrefixCache::WriteSession::WrittenBytes() const { return state ? state->written : 0; }
 Json DiskPrefixCache::ReadSession::Load(const std::string &key, const std::string &sourceIdentity) {
