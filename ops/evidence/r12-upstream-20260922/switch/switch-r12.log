@@ -1,0 +1,60 @@
+===== SWITCH-R12 START 2026-09-22 11:54:28 =====
+--- PHASE0 preflight ---
+overlay-r12 so md5=4fb02a30c1562e54438846e4c66f014c
+  gate ALLOW_YARN_WITH_DFLASH=2
+  gate selector_q=1
+  gate proposal_q=1
+  gate FASTLLM_QWEN35_FINAL_CHUNK_DECODE_MAX=1
+  gate FASTLLM_PREFIX_CACHE_SNAPSHOT_INTERVAL_PAGES=1
+  marker idle big-buffer trim=1
+  marker FP8LinearAdd=7
+  marker cache_sql_prepare=1
+  marker FASTLLM_NCCL_INIT_TIMEOUT_MS=2
+  marker Prefix SSD=11
+  marker sm75_mma=1
+  marker chunk_gdn_prefill_v9_fp16_state=1
+python 层标记 OK (default_effort + 脱敏 + persistent_prefix + 重复参数宽容 b253557592c542888568f44374a258df)
+--- PHASE1 backup venv ftllm ---
+backup done -> /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm.backup-20260922-pre-r12
+5.8G	/home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm.backup-20260922-pre-r12
+--- PHASE2 sync overlay-r12 -> venv ---
+sync: copies=163 deletes=0
+--- PHASE3 verify venv ---
+4fb02a30c1562e54438846e4c66f014c  /home/ai-agent/builds/upgrade-test/overlay-r12/ftllm/libfastllm_tools.so
+4fb02a30c1562e54438846e4c66f014c  /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/libfastllm_tools.so
+b253557592c542888568f44374a258df  /home/ai-agent/builds/upgrade-test/overlay-r12/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py
+b253557592c542888568f44374a258df  /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/openai_server/tool_parsers/qwen3coder_tool_parser.py
+d6af34bfe036dd2eb7d36b5436575f34  /home/ai-agent/builds/upgrade-test/overlay-r12/ftllm/openai_server/fastllm_completion.py
+d6af34bfe036dd2eb7d36b5436575f34  /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/openai_server/fastllm_completion.py
+persistent_prefix.py synced
+import ok: /home/ai-agent/builds/fastllm-video-venv/lib/python3.13/site-packages/ftllm/__init__.py
+--- PHASE4 restart prod ---
+PROD_READY after ~35s
+--- PHASE5 新启动窗口关键行 ---
+[fastllm-experimental] Yarn + external DFlash/DSpark draft explicitly allowed by FASTLLM_ALLOW_YARN_WITH_DFLASH
+[Fastllm] Per-session context window limit: 1048576 tokens (requested=1048576, model max=262144).
+[Fastllm] KV Cache Token limit: 1048576 tokens (totalPages=8192, pageLen=128).
+[Qwen3.5 DFlash2] TP prepared: 5 paired MLPs, 0 output-gather weights, 10 weights total, 2.49 GiB logical, 4 CUDA ranks, min_weight=32 MiB.
+--- PHASE5.5 暖机兜底（吸收 SSD 首请求读取校验）11:55:21 ---
+warmup: rc=0 elapsed=1s store=18G
+--- PHASE6 功能回归 run1 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.07
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=233.8
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=202.9 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/switch-r12-probe.json
+--- PHASE7 复跑 run2 + 错误扫描 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.07
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=238.7
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=200.8 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/switch-r12-probe2.json
+errors_since_restart=0
+grep: /home/ai-agent/fastllm-video-repro/results/server-prod.service.log: binary file matches
+pos_accept_rate=[85.61%, 70.43%, 57.82%, 47.73%, 39.46%, 32.91%, 27.64%]
+pos_accept_rate=[85.62%, 70.42%, 57.78%, 47.68%, 39.42%, 32.86%, 27.58%]
+seeded=0
+desync=0
+store_size=16G
+SWITCH_R12_DONE ready=1 so=4fb02a30c1562e54438846e4c66f014c
+===== SWITCH-R12 END 2026-09-22 11:55:24 =====
