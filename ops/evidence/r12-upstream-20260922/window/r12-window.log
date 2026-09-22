@@ -1,0 +1,71 @@
+========= R12 WINDOW START 2026-09-22 11:00:14 =========
+testing so=4fb02a30c1562e54438846e4c66f014c
+--- [prod-baseline] probe 8080 11:00:14 ---
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.15
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=232.9
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=200.9 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r12-prod.json
+--- stop prod 11:00:15 ---
+--- [r12-force] start stack (argv-swift-trial.json)  11:00:20 ---
+[r12-force] READY http=401 ~35s
+[r12-force] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.13
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=226.9
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=200.1 ttft=0.08
+[r12-force] ssd_boot: 0
+[r12-force] accept: 
+[r12-force] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r12-ns] start stack (argv-swift-trial-ns.json)  11:01:00 ---
+[r12-ns] READY http=401 ~30s
+[r12-ns] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.14
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=56.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=65.3 ttft=0.09
+[r12-ns] ssd_boot: 0
+[r12-ns] accept: 
+[r12-ns] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r12-ssd] start stack (argv-swift-trial.json)  11:01:36 ---
+[r12-ssd] READY http=401 ~35s
+[r12-ssd] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.19
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=229.1
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=204.1 ttft=0.09
+[r12-ssd] ssd_boot: 8
+[r12-ssd] accept: 
+[r12-ssd] errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- [r12-triton] start stack (argv-swift-trial.json) TRITON_SM75=1 11:02:16 ---
+[r12-triton] READY http=401 ~35s
+[r12-triton] md5_match=3/3
+[PASS] models :: ['Swift-Qwen3.8-27B-NVFP4']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.13
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=231.4
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=204.5 ttft=0.09
+[r12-triton] ssd_boot: 0
+[r12-triton] accept: 
+[r12-triton] errs=0
+[r12-triton] triton_log_lines=1
+2026-09-22 11:02:17,466 34967 server.py[line:318] INFO: Namespace(command='server', version=False, model='/home/ai-agent/staging/swift-qwen38-nvfp4', path='', threads=-1, low=False, low_gpu_mem=True, dtype='auto', moe_dtype='', moe_atype='', atype='auto', kv_cache_dtype='fp8_e4m3', cuda_embedding=False, kv_cache_limit='auto', max_batch=4, chunked_prefill_size=2048, fast_prefill=False, device=None, vision_device=None, multimodal=False, tp='0,1,2,3', moe_device='', moe_device_layers=-1, moe_cuda_cache=0, moe_cpu_cache=0, image_embedding_cache=None, ngram_device='cpu', moe_experts=-1, cache_history='', cache_fast='', enable_thinking='', cuda_shared_expert='true', enable_amx='false', max_context_length=262144, rope_scaling='', tokens=1048576, page_size=-1, prefix_cache='', prefix_cache_dir=None, prefix_cache_disk_gb=None, prefix_cache_restore_policy=None, prefix_cache_snapshot_interval_pages=16, prefix_cache_snapshot_max_per_request=-1, prefix_cache_snapshot_max_records=-1, gpu_mem_ratio=0.96, cuda_slab=0, mtp=0, mtp_fp8_draft_head=None, dspark=0, speculative_algorithm='dflash', speculative_draft_model_path='/home/ai-agent/fastllm-video-repro/models/z-lab/Qwen3.8-27B-DFlash2', draft_tokens=-1, speculative_num_draft_tokens=8, speculative_dspark_block_size=-1, speculative_dspark_confidence_threshold=0.5, triton=False, custom='', lora='', cache_dir='', dtype_config='', ori='', mmproj='', tool_call_parser='auto', chat_template='', model_name='Swift-Qwen3.8-27B-NVFP4', host='127.0.0.1', port=8081, api_key='[REDACTED]', temperature=None, top_p=None, top_k=None, repeat_penalty=None, think='false', hide_input=False, dev_mode=False, startup_progress='off')
+[r12-triton] 与 force 输出差异（去时间/速度字段）:
+3,5c3,5
+< 46 lines 30f8a5c9ee88 finish=length dec=226.9
+< 403-hit md5=2adaf2269e77 finish=stop dec=200.1 ttft=0.08
+< SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r12-force.json
+---
+> 46 lines 30f8a5c9ee88 finish=length dec=231.4
+> 403-hit md5=2adaf2269e77 finish=stop dec=204.5 ttft=0.09
+> SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/probe-r12-triton.json
+[r12-triton] diff_rc=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- restore prod 11:02:56 ---
+PROD_READY after ~35s
+prod_ready=1
+warmup: rc=0 elapsed=0s store=17G
+R12_WINDOW_DONE 2026-09-22 11:03:26 prod=1
+========= R12 WINDOW END 2026-09-22 11:03:26 =========
