@@ -1,0 +1,9 @@
+R13 转正 2026-09-22 23:06:16 → 23:15:04（其后一次因 __pycache__ 白名单误报在 PHASE0 退出，无副作用）
+
+- backup: ftllm.backup-20260922-pre-r13（5.8G）
+- sync overlay-r13 -> venv: copies=164 deletes=0；venv so=fa8a19ff44be621173c6eda75c628a27（rollback=1747548d…）
+- marker 自检 20/20（含上游 TrimBigBuffer=2 / RetainCudaWorkspace=4 / GetHostNumaNode=3 / graph-safe custom all-reduce=3）
+- 差异面自检：相对 overlay-r12 仅 .so 与 util.py（diff ok）
+- PROD_READY ~35s；启动关键行：SSD 前缀缓存 + SM75 Triton GDN ENABLED + Yarn×DFlash 放行 + 1M ctx + KV 1M + DFlash2 TP 5 paired MLPs
+- 回归 ×2 全 PASS（models/chat_ping/count50/arith_think），md5 3/3 逐位一致（f5de00c56dd1/30f8a5c9ee88/2adaf2269e77），dec 236.9→238.9
+- errors_since_restart=0；desync=0；accept 序列后位稳定（85.6%/70.4%/57.8%/47.7%/39.5%/32.9%/27.6%）
