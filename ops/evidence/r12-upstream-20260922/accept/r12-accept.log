@@ -1,0 +1,61 @@
+========= R12 ACCEPT START 2026-09-22 11:10:03 =========
+candidate so=4fb02a30c1562e54438846e4c66f014c
+--- PHASE A: prod 基线（8080，同窗对照）11:10:03 ---
+warmup: rc=0 elapsed=0s store=17G
+prod md5_match=3/3
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.09
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=235.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=201.8 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-r12-prod-probe.json
+prod tail64: {"ttft": 12.512, "total": 14.813, "ctok": 512, "decode_tps": 222.6}
+--- stop prod 11:10:20 ---
+--- PHASE C: r12 候选（8081，prod 同参）11:10:30 ---
+READY ~35s
+--- gate/yarn 指纹 ---
+2026-09-22 11:10:31,698 37699 server.py[line:318] INFO: Namespace(command='server', version=False, model='/home/ai-agent/staging/swift-qwen38-nvfp4', path='', threads=-1, low=False, low_gpu_mem=True, dtype='auto', moe_dtype='', moe_atype='', atype='auto', kv_cache_dtype='fp8_e4m3', cuda_embedding=False, kv_cache_limit='auto', max_batch=4, chunked_prefill_size=2048, fast_prefill=False, device=None, vision_device=None, multimodal=False, tp='0,1,2,3', moe_device='', moe_device_layers=-1, moe_cuda_cache=0, moe_cpu_cache=0, image_embedding_cache=None, ngram_device='cpu', moe_experts=-1, cache_history='', cache_fast='', enable_thinking='', cuda_shared_expert='true', enable_amx='false', max_context_length=1048576, rope_scaling='{"rope_type": "yarn", "factor": 4.0, "original_max_position_embeddings": 262144}', tokens=1048576, page_size=-1, prefix_cache='', prefix_cache_dir=None, prefix_cache_disk_gb=None, prefix_cache_restore_policy=None, prefix_cache_snapshot_interval_pages=16, prefix_cache_snapshot_max_per_request=-1, prefix_cache_snapshot_max_records=-1, gpu_mem_ratio=0.96, cuda_slab=0, mtp=0, mtp_fp8_draft_head=None, dspark=0, speculative_algorithm='dflash', speculative_draft_model_path='/home/ai-agent/fastllm-video-repro/models/z-lab/Qwen3.8-27B-DFlash2', draft_tokens=-1, speculative_num_draft_tokens=8, speculative_dspark_block_size=-1, speculative_dspark_confidence_threshold=0.5, triton=False, custom='', lora='', cache_dir='', dtype_config='', ori='', mmproj='', tool_call_parser='auto', chat_template='', model_name='Qwen3.8-27B', host='127.0.0.1', port=8081, api_key='[REDACTED]', temperature=None, top_p=None, top_k=None, repeat_penalty=None, think='false', hide_input=False, dev_mode=False, startup_progress='off')
+[fastllm-experimental] Yarn + external DFlash/DSpark draft explicitly allowed by FASTLLM_ALLOW_YARN_WITH_DFLASH
+[Fastllm] Per-session context window limit: 1048576 tokens (requested=1048576, model max=262144).
+cand md5_match=3/3
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.13
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=228.2
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=203.5 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-r12-cand-probe.json
+cand tail64: {"ttft": 13.276, "total": 15.634, "ctok": 512, "decode_tps": 217.2}
+--- needle 308K (PHASE C) 11:11:18 ---
+prompt_tokens= 308204 depth= 120000
+{"ttft": 410.1, "total": 411.7, "answer": "X9J7-QUARTZ-3312", "found": true}
+--- fingerprints 11:18:12 ---
+seeded=2 desync=0
+pos_accept_rate=[100.00%, 98.44%, 98.44%, 98.44%, 95.31%, 95.31%, 95.31%]
+errs=0
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- PHASE D: r12-triton（同参 + TRITON_SM75=1；先停编译服务验证引擎自拉起）11:18:22 ---
+D: :48989 已停（等待引擎自拉起）
+READY ~35s
+triton md5_match=3/3
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.16
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=227.6
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=168.7 ttft=0.09
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-r12-triton-probe.json
+--- spawn 验证：编译服务进程 ---
+30833 /home/ai-agent/builds/fastllm-video-venv/bin/python tools/fastllm_triton_server.py --host 127.0.0.1 --port 48990
+40198 bash -c sleep 330; echo "T=$(date +%T)"; cd /home/ai-agent/builds/upgrade-test; echo "=== PHASE D 段 ==="; sed -n "/PHASE D:/,\$p" r12-accept.log | head -45; echo "=== 8081 ==="; curl -s -o /dev/null -m 3 -w "http=%{http_code}\n" http://127.0.0.1:8081/v1/models; echo "=== 编译服务进程 ==="; pgrep -af fastllm_triton_server | head -3 || echo "(无)"
+--- 引擎 spawn 日志 /tmp/fastllm_triton_server.log ---
+(日志未生成 → 引擎未 spawn)
+triton tail64: {"ttft": 14.118, "total": 16.475, "ctok": 512, "decode_tps": 217.3}
+--- needle 308K (PHASE D) 11:19:14 ---
+prompt_tokens= 308204 depth= 120000
+{"ttft": 403.5, "total": 403.9, "answer": "X9J7-QUARTZ-3312", "found": true}
+--- D 指纹 ---
+errs=0
+triton_log_lines=2
+0, 1 MiB 1, 1 MiB 2, 1 MiB 3, 1 MiB 
+--- restore prod 11:26:09 ---
+PROD_READY ~35s
+prod_ready=1
+warmup: rc=0 elapsed=0s store=18G
+R12_ACCEPT_DONE 2026-09-22 11:26:40 prod=1
+========= R12 ACCEPT END 2026-09-22 11:26:40 =========
