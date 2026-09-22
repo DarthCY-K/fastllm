@@ -5,6 +5,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <cstdlib>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -21,6 +22,20 @@ public:
     explicit NcclSubmitRendezvous(int ranks,
             std::chrono::milliseconds timeout = std::chrono::minutes(5))
         : nextPhase(ranks, 0), timeout(timeout) {}
+
+    // A/B 旋钮：到达早的 rank 在回退到 CV 等待前自旋的上限（默认 2048 = f233cde6 现状）。
+    // FASTLLM_NCCL_RENDEZVOUS_SPIN=0 时立即进入 CV 等待，复现该提交之前的行为。
+    static int SpinBudget() {
+        static const int budget = []() {
+            const char *env = std::getenv("FASTLLM_NCCL_RENDEZVOUS_SPIN");
+            if (env != nullptr && *env != '\0') {
+                const int value = std::atoi(env);
+                return value < 0 ? 0 : value;
+            }
+            return 2048;
+        }();
+        return budget;
+    }
 
     bool Wait(int rank, Phase phase, int count, int dataType) {
         std::unique_lock<std::mutex> lock(mutex);
@@ -52,7 +67,7 @@ public:
         // metadata so this bounded wait never holds the mutex needed by peers.
         // Long prefill/host-expert work still falls back to the timed CV wait.
         lock.unlock();
-        for (int spin = 0; spin < 2048; ++spin) {
+        for (int spin = 0; spin < SpinBudget(); ++spin) {
             if (completedEpoch.load(std::memory_order_acquire) != current ||
                 aborted.load(std::memory_order_acquire)) {
                 return !aborted.load(std::memory_order_acquire);
