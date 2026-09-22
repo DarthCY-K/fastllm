@@ -12,23 +12,28 @@ S="$W/build-r12-gcfix.status"
 SO="$W/build-r12/tools/ftllm/libfastllm_tools.so"
 {
   echo "BUILD_R12_GCFIX_START $(date '+%F %T')"
-  echo "== 标记自检 (期望: F1..F5=1, F4b=0, 冲突=0) =="
+  echo "== 标记自检 (期望: F1..F6=1, 冲突=0) =="
   printf "conflict_markers(expect 0): "; grep -rn "<<<<<<<" wt-r12/src wt-r12/include 2>/dev/null | wc -l
-  printf "F1_batched_checkpoint: "; grep -c "round % 8 == 0" wt-r12/src/utils/disk_prefix_cache.cpp
+  printf "F1_single_txn: ";        grep -c "BEGIN IMMEDIATE" wt-r12/src/utils/disk_prefix_cache.cpp
   printf "F2_scoped_sweep: ";        grep -c "SELECT 1 FROM refs WHERE hash=? LIMIT 1" wt-r12/src/utils/disk_prefix_cache.cpp
   printf "F3_lockfree_lookup: ";     grep -c "never queue behind" wt-r12/src/utils/disk_prefix_cache.cpp
   printf "F4_write_intent_kept: ";   grep -c "cache_index_needs_rebuild" wt-r12/src/utils/disk_prefix_cache.cpp
   printf "F5_batched_syncs: ";       grep -c "touched.insert(id)" wt-r12/src/utils/disk_prefix_cache.cpp
+  printf "F6_gc_evidence: ";         grep -c "gc: evicted=" wt-r12/src/utils/disk_prefix_cache.cpp
 } > "$S" 2>&1
 
 mkdir -p "$W/artifacts"
 if [ -f "$SO" ]; then
   M0=$(md5sum "$SO" | cut -d' ' -f1)
   echo "build-r12_so_pre_md5=$M0" >> "$S"
-  if [ "$M0" = "4fb02a30c1562e54438846e4c66f014c" ]; then
-    cp -a "$SO" "$W/artifacts/libfastllm_tools-r12-4fb02a30.so"
-    echo "pristine_r12_so_stashed=artifacts/libfastllm_tools-r12-4fb02a30.so" >> "$S"
-  fi
+  case "$M0" in
+    4fb02a30c1562e54438846e4c66f014c)
+      cp -a "$SO" "$W/artifacts/libfastllm_tools-r12-4fb02a30.so"
+      echo "stashed=artifacts/libfastllm_tools-r12-4fb02a30.so (现役 r12)" >> "$S";;
+    f7d1390b4926e22dc1562734e3b221aa)
+      cp -a "$SO" "$W/artifacts/libfastllm_tools-r12-gcfix-v1-f7d1390b.so"
+      echo "stashed=artifacts/libfastllm_tools-r12-gcfix-v1-f7d1390b.so (v1 未生效版)" >> "$S";;
+  esac
 fi
 
 echo "== incremental make (build-r12, j64) ==" >> "$S"

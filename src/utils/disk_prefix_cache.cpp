@@ -453,27 +453,27 @@ struct DiskPrefixCache::Impl {
             Lease metadata(root / ".metadata", LOCK_EX);
             Database db(dbPath);
             // This pass runs under the exclusive lifecycle lease, so every
-            // second it spends here is a second every reader blocks in
-            // BeginRead. The original loop paid a TRUNCATE WAL checkpoint, a
-            // full unindexed object sweep and two directory fsyncs per evicted
-            // checkpoint; with the quota deliberately kept full that pinned
-            // both locks for 5-10 s per pass and produced the warm-restore
-            // "门闩" (2026-09-22 forensics: lease-EX + metadata-EX held 5.1 s,
-            // md127 at 2-10 MB/s, GPU idle, no log output). Batch the durable
-            // work instead: WAL checkpoint every 8 evictions and one directory
-            // sync per touched commit directory at the end. Accounting stays
-            // exact because Used() is re-read every iteration (SUM scans over
-            // the page-cached index are milliseconds).
+            // millisecond it spends here is a millisecond every reader blocks
+            // in BeginRead. Forensics 2026-09-22 (1.8-3.1 s exclusive hold per
+            // full pass): with PRAGMA synchronous=FULL every statement is its
+            // own durable transaction, so deleting tens of thousands of rows
+            // one by one paid one WAL fsync each (~1.1 ms measured on this
+            // box; the WAL checkpoints and directory fsyncs here cost ~1 ms
+            // total). Run the entire pass inside a single transaction -- the
+            // connection close rolls it back on error -- and keep the final
+            // WAL checkpoint outside the transaction.
+            db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
+            db.Exec("BEGIN IMMEDIATE");
+            int64_t started = NowNs();
+            uint64_t evicted = 0, objects = 0, freedApprox = 0;
             std::set<std::string> touched;
-            int round = 0;
             while (true) {
-                if (round > 0 && round % 8 == 0) db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
                 uint64_t used = Used(db);
                 if (used <= limit && required <= limit - used) break;
                 std::string id, key;
-                { Statement oldest(db.value, "SELECT identity,key FROM checkpoints ORDER BY created,identity,key LIMIT 1");
-                  if (!oldest.Row()) return false;
-                  id = oldest.Text(0); key = oldest.Text(1); }
+                { Statement oldest(db.value, "SELECT identity,key,bytes FROM checkpoints ORDER BY created,identity,key LIMIT 1");
+                  if (!oldest.Row()) { db.Exec("COMMIT"); return false; }
+                  id = oldest.Text(0); key = oldest.Text(1); freedApprox += oldest.Number(2); }
                 std::vector<std::string> owned;
                 { Statement query(db.value, "SELECT hash FROM refs WHERE identity=? AND key=?");
                   query.Text(1, id); query.Text(2, key);
@@ -489,22 +489,35 @@ struct DiskPrefixCache::Impl {
                     { Statement probe(db.value, "SELECT 1 FROM refs WHERE hash=? LIMIT 1");
                       probe.Text(1, hash); shared = probe.Row(); }
                     if (shared) continue;
+                    uint64_t objectBytes = 0;
+                    { Statement bytes(db.value, "SELECT bytes FROM objects WHERE hash=?");
+                      bytes.Text(1, hash); if (bytes.Row()) objectBytes = bytes.Number(0); }
                     fs::remove(BlobPath(hash));
-                    Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run();
+                    { Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run(); }
+                    ++objects; freedApprox += objectBytes;
                 }
-                ++round;
+                ++evicted;
             }
-            if (round > 0) {
-                std::vector<std::string> unused;
-                { Statement query(db.value, "SELECT hash FROM objects WHERE NOT EXISTS(SELECT 1 FROM refs WHERE refs.hash=objects.hash)");
-                  while (query.Row()) unused.push_back(query.Text(0)); }
-                for (const auto &hash : unused) {
-                    fs::remove(BlobPath(hash));
-                    Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run();
-                }
-                for (const auto &id : touched) SyncDirectory(commits / id);
-                SyncDirectory(transport);
-                db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
+            std::vector<std::string> unused;
+            { Statement query(db.value, "SELECT hash FROM objects WHERE NOT EXISTS(SELECT 1 FROM refs WHERE refs.hash=objects.hash)");
+              while (query.Row()) unused.push_back(query.Text(0)); }
+            for (const auto &hash : unused) {
+                fs::remove(BlobPath(hash));
+                Statement erase(db.value, "DELETE FROM objects WHERE hash=?"); erase.Text(1, hash); erase.Run();
+                ++objects;
+            }
+            db.Exec("COMMIT");
+            int64_t committed = NowNs();
+            for (const auto &id : touched) SyncDirectory(commits / id);
+            SyncDirectory(transport);
+            db.Exec("PRAGMA wal_checkpoint(TRUNCATE)");
+            if (evicted || objects) {
+                printf("[Prefix SSD] gc: evicted=%llu checkpoints objects=%llu freed=%.0fMB held=%.0fms "
+                       "(txn=%.0fms tail=%.0fms) required=%lluMB\n",
+                       (unsigned long long)evicted, (unsigned long long)objects, freedApprox / 1048576.0,
+                       (NowNs() - started) / 1e6, (committed - started) / 1e6, (NowNs() - committed) / 1e6,
+                       (unsigned long long)(required >> 20));
+                fflush(stdout);
             }
             return true;
         } catch (const std::exception &) { return false; }
