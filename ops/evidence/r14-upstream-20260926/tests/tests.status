@@ -1,0 +1,26 @@
+RUN_R14_TESTS_START 2026-09-26 20:14:26
+## CPU 单测
+reduce_batch_test          rc=0 | PASS ReduceBatch: uneven partitions, empty rows, guards, up to 40 workers
+numas_nvfp4_moe_test       rc=0 | PASS hidden=96 inter=64 experts=11 topk=2 shared=0 dtype=0: routes, batch transitions, compact scales
+moe_expert_partition_test  rc=0 | PASS MoE expert partition regressions
+nvfp4Block32GemmRegression rc=0 | ALL PASS
+nvfp4_planar_test          rc=1 | FAIL: block16 BF16 layouts changed output bits
+disk_prefix_cache_test     rc=0 | PASS
+multimodal_prefix_cache_test rc=0 | PASS
+paged_media_identity_test  rc=0 | PASS
+multimodal_history_cache_test rc=0 | PASS
+qwen4_multimodal_cache_test rc=0 | PASS
+qwen35_text_weights_test   rc=0 | ALL_PASS: Qwen3.5 text/VL mapping and CPU FP8 loader
+## CUDA 轻量测试（GPU 与生产共享）
+cuda_marlin_sm75_ldmatrix_test rc=0 | PASS ldmatrix x1
+cuda_bf16_bias_multigpu_test rc=0 | PASS bias-free expert migration to GPU 0
+cuda_paged_fragmented_attention_test rc=0 | PASS kv_heads=2 len=129 rows=2 layout=0 tail=0 max_abs=0.000135244674
+cuda_prefill_paths_test gdn    rc=77 | 
+cuda_prefill_paths_test gdn_sm75 rc=77 | 
+cuda_prefill_paths_test sparse rc=77
+cudaGraphPoolMissRegression rc=0
+mixed-size capture pool and replay: PASS
+expansion retains reusable and reclaimable workspace: PASS
+graph-owned workspace survives OOM retry: PASS
+CUDA graph pool-miss regression: PASS; allocation freeze disabled by FASTLLM_CUDA_MEM_CHECK (4 GPUs)
+RUN_R14_TESTS_END 2026-09-26 20:14:56

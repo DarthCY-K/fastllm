@@ -1,0 +1,5 @@
+[PASS] models :: ['Qwen3.8-27B']
+[PASS] chat_ping :: f5de00c56dd1 finish=stop ttft=0.14
+[PASS] count50 :: 46 lines 30f8a5c9ee88 finish=length dec=189.1
+[PASS] arith_think :: 403-hit md5=2adaf2269e77 finish=stop dec=184.3 ttft=0.08
+SWIFT_TRIAL_NS_PROBE ok=True fails=0 saved=/home/ai-agent/builds/upgrade-test/accept-r14-dqoff-probe.json
