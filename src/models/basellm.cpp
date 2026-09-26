@@ -522,6 +522,8 @@ namespace fastllm {
     }
 
     void basellm::TryRecordResponseContext(ResponseContext *context) {
+        // These caches are keyed only by token IDs. Media placeholders do not
+        // identify their pixels, embeddings, or multimodal position state.
         if (context == nullptr || !context->multimodalInput.empty()) {
             return;
         }
@@ -611,6 +613,8 @@ namespace fastllm {
                    (void *) this, (int) this->multimodalInput.size(),
                    (int) this->allTokens.size());
         }
+        // Media requests may record paged prefixes only through
+        // identity-aware page keys; keyless requests are rejected here.
         if (!CanUsePagedPrefixCache()) return;
         bool hasLinearAttentionCache = false;
         bool hasBoundedAttentionCache = false;
@@ -1957,6 +1961,8 @@ namespace fastllm {
 
                     if (isPrompt) {
                         model->PreparePersistentPrefixCache(ctx);
+                        // Media requests need identity-aware page keys to probe
+                        // the paged prefix cache; others are excluded here.
                         if (ctx->cacheLen == 0 && ctx->CanUsePagedPrefixCache() &&
                             ctx->intParams.find("paged_prefix_restore_disabled") ==
                                 ctx->intParams.end()) {
@@ -3282,10 +3288,15 @@ namespace fastllm {
         context->multimodalInput = multimodalInput;
         context->tokens = LastTokensUnit(generationConfig.last_n);
 
-        bool restoredNativeHistory = multimodalInput.empty() &&
+        // A restored text prefix can bypass the multimodal prefill path, while
+        // a restored media prefix may belong to different images with the same
+        // placeholder tokens. Keep request-local KV reuse, but do not restore
+        // cross-request token-only caches for multimodal prompts.
+        bool allowHistoryCache = context->multimodalInput.empty();
+        bool restoredNativeHistory = allowHistoryCache &&
             this->TryRestoreHistoryCache(context->currentTokens, context->cacheLen);
 
-        auto cache = !multimodalInput.empty() || restoredNativeHistory || !this->UseGenericHistoryCache() ?
+        auto cache = !allowHistoryCache || restoredNativeHistory || !this->UseGenericHistoryCache() ?
                      std::make_pair((PastKVCacheMemory*)nullptr, 0) :
                      pastKVCacheManager.Get(inputTokens);
         if (cache.first != nullptr && cache.second > 0) {

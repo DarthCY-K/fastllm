@@ -197,6 +197,31 @@ class FastLLmModel:
         except Exception:
             return None
 
+    @classmethod
+    def _supports_image_input(cls, model):
+        if getattr(model, "mmproj_path", ""):
+            return True
+        config = getattr(model, "config", None)
+        if not isinstance(config, dict) or config.get("language_model_only"):
+            return False
+        architectures = config.get("architectures") or []
+        architecture = architectures[0] if isinstance(architectures, list) and architectures else ""
+        is_deepseek_v41 = (
+            architecture == "DeepseekV41ForCausalLM"
+            or config.get("model_type") in {"deepseek_v41", "deepseek_v41_text"})
+        vision_config = config.get("vision_config")
+        if not isinstance(vision_config, dict) or not vision_config:
+            # DeepSeek-V4.1 also accepts the flat native checkpoint config.
+            if not (is_deepseek_v41 and cls._positive_int(config.get("vision_n_layers"))):
+                return False
+        # Native HF vision models do not use a separate GGUF projector.
+        # Match launch_stream_response, whose Qwen image route also handles
+        # Flash-Next even though its text decoder is Qwen4Exp.
+        return cls._is_qwen3_5(model) or is_deepseek_v41 or architecture in {
+            "CogVLMForCausalLM", "Gemma4ForConditionalGeneration",
+            "Step3p7ForConditionalGeneration", "Qwen3_8FlashNextForConditionalGeneration",
+        }
+
     @staticmethod
     def _supports_image_input(model):
         # GGUF multimodal models carry a separate mmproj file.
