@@ -40,6 +40,10 @@ class AnthropicReasoningEffortTest(unittest.IsolatedAsyncioTestCase):
                 else:
                     self.assertNotIsInstance(result, ErrorResponse)
                     self.assertEqual(instance.model.launch_kwargs["enable_thinking"], enabled)
+                    # Fork-local: qwen3_5-family default is "medium"; invalid
+                    # generic levels still fall back to "xhigh".
+                    expected_effort = "low" if effort == "low" else (
+                        "medium" if effort is None else "xhigh")
                     self.assertEqual(
                         instance.model.launch_kwargs["chat_template_kwargs"]["reasoning_effort"],
-                        "low" if effort == "low" else "xhigh")
+                        expected_effort)

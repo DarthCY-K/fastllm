@@ -67,8 +67,11 @@ class QwenReasoningDefaultTest(unittest.TestCase):
                 for effort in (None, "none", "low", "medium", "xhigh"):
                     with self.subTest(api=api, stream=stream, effort=effort):
                         self.send(api, effort, stream, omit=effort is None)
+                        # Fork-local: this service pins the Qwen3.5/3.8
+                        # fixed template to "medium" (production default;
+                        # upstream expects "xhigh" here).
                         self.assert_generation(
-                            "xhigh" if effort in (None, "none") else effort,
+                            "medium" if effort in (None, "none") else effort,
                             effort not in (None, "none"))
 
 

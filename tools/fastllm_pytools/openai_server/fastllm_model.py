@@ -223,29 +223,6 @@ class FastLLmModel:
         }
 
     @staticmethod
-    def _supports_image_input(model):
-        # GGUF multimodal models carry a separate mmproj file.
-        if getattr(model, "mmproj_path", ""):
-            return True
-        # Hugging Face checkpoints bundle the vision tower (model.visual.*)
-        # in the same directory, so `mmproj_path` is empty but the model can
-        # still accept images. Without this, `/v1/models` advertises
-        # input_modalities=["text"] and clients replace images with a text
-        # placeholder before the request ever reaches the server.
-        config = getattr(model, "config", None)
-        if not isinstance(config, dict):
-            return False
-        if config.get("language_model_only") is True:
-            return False
-        vision_config = config.get("vision_config")
-        if isinstance(vision_config, dict) and vision_config:
-            return True
-        return bool(
-            config.get("vision_start_token_id") is not None
-            or config.get("image_token_id") is not None
-        )
-
-    @staticmethod
     def _is_kimi_k3(model):
         detector = getattr(model, "_is_kimi_k3", None)
         if callable(detector):
