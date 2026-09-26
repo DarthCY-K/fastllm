@@ -1,0 +1,27 @@
+{
+ "base": "http://127.0.0.1:8080",
+ "when": "2026-09-26 22:22:31",
+ "checks": [
+  {
+   "name": "models",
+   "ok": false,
+   "detail": "URLError(ConnectionRefusedError(111, 'Connection refused'))"
+  },
+  {
+   "name": "chat_ping",
+   "ok": false,
+   "detail": "URLError(ConnectionRefusedError(111, 'Connection refused'))"
+  },
+  {
+   "name": "count50",
+   "ok": false,
+   "detail": "URLError(ConnectionRefusedError(111, 'Connection refused'))"
+  },
+  {
+   "name": "arith_think",
+   "ok": false,
+   "detail": "URLError(ConnectionRefusedError(111, 'Connection refused'))"
+  }
+ ],
+ "rows": []
+}
